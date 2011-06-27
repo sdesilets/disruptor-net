@@ -1,7 +1,7 @@
 ﻿namespace Disruptor
 {
     /// <summary>
-    ///  Implementations translate a other data representations into <see cref="IEntry"/>s claimed from the <see cref="RingBuffer"/>
+    ///  Implementations translate a other data representations into <see cref="IEntry"/>s claimed from the <see cref="RingBuffer{T}"/>
     /// </summary>
     /// <typeparam name="T">Entry implementation storing the data for sharing during exchange or parallel coordination of an event.</typeparam>
     public interface IEntryTranslator<T> where T:IEntry

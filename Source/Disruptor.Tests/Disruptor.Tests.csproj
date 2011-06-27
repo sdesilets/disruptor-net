@@ -47,7 +47,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EntryTranslatorTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Support\StubEntry.cs" />
+    <Compile Include="Support\StubEntryFactory.cs" />
     <Compile Include="UtilTests.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -61,16 +64,13 @@
     <Content Include="Java\BatchConsumerTest.java" />
     <Content Include="Java\collections\HistogramTest.java" />
     <Content Include="Java\ConsumerBarrierTest.java" />
-    <Content Include="Java\EntryTranslatorTest.java" />
     <Content Include="Java\FatalExceptionHandlerTest.java" />
     <Content Include="Java\IgnoreExceptionHandlerTest.java" />
     <Content Include="Java\RingBufferTest.java" />
     <Content Include="Java\support\Actions.java" />
     <Content Include="Java\support\DaemonThreadFactory.java" />
-    <Content Include="Java\support\StubEntry.java" />
     <Content Include="Java\support\TestEntry.java" />
     <Content Include="Java\support\TestWaiter.java" />
-    <Content Include="Java\UtilTest.java" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

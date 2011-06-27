@@ -112,8 +112,8 @@ namespace Disruptor
         /// <summary>
         /// ConsumerBarrier handed out for gating consumers of the RingBuffer and dependent <see cref="IConsumer"/>(s)
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        private sealed class ConsumerTrackingConsumerBarrier<U> : IConsumerBarrier<U> where U : IEntry
+        /// <typeparam name="TU"></typeparam>
+        private sealed class ConsumerTrackingConsumerBarrier<TU> : IConsumerBarrier<TU> where TU : IEntry
         {
             // ReSharper disable InconsistentNaming
 #pragma warning disable 169
@@ -121,17 +121,17 @@ namespace Disruptor
             private readonly IConsumer[] _consumers;
             private volatile bool _alerted;
             public long p8, p9, p10, p11, p12, p13, p14; // cache line padding
-            private readonly RingBuffer<U> _ringBuffer;
+            private readonly RingBuffer<TU> _ringBuffer;
             // ReSharper restore InconsistentNaming
 #pragma warning restore 169
 
-            public ConsumerTrackingConsumerBarrier(RingBuffer<U> ringBuffer, params IConsumer[] consumers)
+            public ConsumerTrackingConsumerBarrier(RingBuffer<TU> ringBuffer, params IConsumer[] consumers)
             {
                 _ringBuffer = ringBuffer;
                 _consumers = consumers;
             }
 
-            public U GetEntry(long sequence)
+            public TU GetEntry(long sequence)
             {
                 return _ringBuffer._entries[(int)sequence & _ringBuffer._ringModMask];
             }
