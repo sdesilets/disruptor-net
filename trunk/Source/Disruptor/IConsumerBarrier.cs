@@ -1,0 +1,60 @@
+﻿using System;
+
+namespace Disruptor
+{
+    /// <summary>
+    /// Coordination barrier for tracking the cursor for producers and sequence of
+    /// dependent <see cref="IConsumer"/>s for a <see cref="RingBuffer"/>
+    /// </summary>
+    /// <typeparam name="T"><see cref="IEntry"/> implementation stored in the <see cref="RingBuffer"/></typeparam>
+    public interface IConsumerBarrier<out T>where T:IEntry
+    {
+        /// <summary>
+        /// Get the <see cref="IEntry"/> for a given sequence from the underlying <see cref="RingBuffer"/>.
+        /// </summary>
+        /// <param name="sequence">sequence of the {@link Entry} to get.</param>
+        /// <returns>the {@link Entry} for the sequence.</returns>
+        T GetEntry(long sequence);
+
+        /// <summary>
+        /// Wait for the given sequence to be available for consumption.
+        /// </summary>
+        /// <param name="sequence">sequence to wait for</param>
+        /// <returns>the sequence up to which is available</returns>
+        /// <exception cref="AlertException">if a status change has occurred for the Disruptor</exception>
+        /// <exception cref="InterruptedException">if the thread needs awaking on a condition variable.</exception>
+        long WaitFor(long sequence);
+
+        /// <summary>
+        ///  Wait for the given sequence to be available for consumption with a time out.
+        /// </summary>
+        /// <param name="sequence">sequence to wait for</param>
+        /// <param name="timeout">timeout value</param>
+        /// <returns>the sequence up to which is available</returns>
+        /// <exception cref="AlertException">if a status change has occurred for the Disruptor</exception>
+        /// <exception cref="InterruptedException">if the thread needs awaking on a condition variable.</exception>
+        long WaitFor(long sequence, TimeSpan timeout);
+
+        /// <summary>
+        /// Delegate a call to the <see cref="RingBuffer.Cursor"/>
+        /// Returns the value of the cursor for entries that have been published.
+        /// </summary>
+        long Cursor { get; }
+
+        /// <summary>
+        /// The current alert status for the barrier.
+        /// Returns true if in alert otherwise false.
+        /// </summary>
+        bool IsAlerted { get; }
+
+        /// <summary>
+        ///  Alert the consumers of a status change and stay in this status until cleared.
+        /// </summary>
+        void Alert();
+
+        /// <summary>
+        /// Clear the current alert status.
+        /// </summary>
+        void ClearAlert();
+    }
+}
