@@ -41,44 +41,13 @@ namespace Disruptor.Tests
             consumerMock2.Verify();
             consumerMock3.Verify();
         }
-    }
-}
-/*
-public final class UtilTest
-{
-    private final Mockery context = new Mockery();
 
-    @Test
-    public void shouldReturnMinimumSequence()
-    {
-        final Consumer[] consumers = new Consumer[3];
-        consumers[0] = context.mock(Consumer.class, "c0");
-        consumers[1] = context.mock(Consumer.class, "c1");
-        consumers[2] = context.mock(Consumer.class, "c2");
-
-        context.checking(new Expectations()
+        [Test]
+        public void ShouldReturnLongMaxWhenNoConsumers()
         {
-            {
-                oneOf(consumers[0]).getSequence();
-                will(returnValue(Long.valueOf(7L)));
+            var consumers = new IConsumer[0];
 
-                oneOf(consumers[1]).getSequence();
-                will(returnValue(Long.valueOf(3L)));
-
-                oneOf(consumers[2]).getSequence();
-                will(returnValue(Long.valueOf(12L)));
-            }
-        });
-
-        Assert.assertEquals(3L, Util.getMinimumSequence(consumers));
-    }
-
-    @Test
-    public void shouldReturnLongMaxWhenNoConsumers()
-    {
-        final Consumer[] consumers = new Consumer[0];
-
-        Assert.assertEquals(Long.MAX_VALUE, Util.getMinimumSequence(consumers));
+            Assert.AreEqual(long.MaxValue, Util.GetMinimumSequence(consumers));
+        }
     }
 }
-*/
