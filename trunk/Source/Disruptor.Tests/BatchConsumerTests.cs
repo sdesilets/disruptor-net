@@ -82,6 +82,8 @@ namespace Disruptor.Tests
 
             _batchConsumer.Halt();
             thread.Join();
+
+            _batchHandlerMock.VerifyAll();
         }
 
         [Test]
@@ -107,6 +109,9 @@ namespace Disruptor.Tests
 
             _batchConsumer.Halt();
             thread.Join();
+
+            _batchHandlerMock.VerifyAll();
+            exceptionHandlerMock.VerifyAll();
         }
     }
 }
