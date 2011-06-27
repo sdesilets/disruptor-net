@@ -24,9 +24,8 @@ namespace Disruptor
 
         public static long GetMinimumSequence(IConsumer[] consumers)
         {
-            //TODO test perf vs for loop
-            //TODO extension method?
-            return consumers.Min(c => c.Sequence);
+            //TODO convert to extension method
+            return consumers.Length == 0 ? long.MaxValue : consumers.Min(c => c.Sequence);
         }
     }
 }
