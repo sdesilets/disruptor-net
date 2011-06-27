@@ -16,7 +16,7 @@ namespace Disruptor
         /// <param name="sequence">sequence to be waited on.</param>
         /// <returns>the sequence that is available which may be greater than the requested sequence.</returns>
         /// <exception cref="AlertException">if the status of the Disruptor has changed.</exception>
-        /// <exception cref="InterruptedException">if the thread is interrupted.</exception>
+        /// <exception cref="InterruptedException">if the thread is interrupted.</exception> TODO
         long WaitFor<T>(IConsumer[] consumers, RingBuffer<T> ringBuffer, IConsumerBarrier<T> barrier, long sequence) where T:IEntry;
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace Disruptor
         /// <param name="timeout">timeout value to abort after.</param>
         /// <returns>the sequence that is available which may be greater than the requested sequence.</returns>
         /// /// <exception cref="AlertException">if the status of the Disruptor has changed.</exception>
-        /// <exception cref="InterruptedException">if the thread is interrupted.</exception>
+        /// <exception cref="InterruptedException">if the thread is interrupted.</exception> TODO
         long WaitFor<T>(IConsumer[] consumers, RingBuffer<T> ringBuffer, IConsumerBarrier<T> barrier, long sequence,
                         TimeSpan timeout) where T : IEntry;
 

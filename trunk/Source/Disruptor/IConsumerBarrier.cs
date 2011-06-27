@@ -4,13 +4,13 @@ namespace Disruptor
 {
     /// <summary>
     /// Coordination barrier for tracking the cursor for producers and sequence of
-    /// dependent <see cref="IConsumer"/>s for a <see cref="RingBuffer"/>
+    /// dependent <see cref="IConsumer"/>s for a <see cref="RingBuffer{T}"/>
     /// </summary>
-    /// <typeparam name="T"><see cref="IEntry"/> implementation stored in the <see cref="RingBuffer"/></typeparam>
+    /// <typeparam name="T"><see cref="IEntry"/> implementation stored in the <see cref="RingBuffer{T}"/></typeparam>
     public interface IConsumerBarrier<out T>where T:IEntry
     {
         /// <summary>
-        /// Get the <see cref="IEntry"/> for a given sequence from the underlying <see cref="RingBuffer"/>.
+        /// Get the <see cref="IEntry"/> for a given sequence from the underlying <see cref="RingBuffer{T}"/>.
         /// </summary>
         /// <param name="sequence">sequence of the {@link Entry} to get.</param>
         /// <returns>the {@link Entry} for the sequence.</returns>
@@ -22,7 +22,7 @@ namespace Disruptor
         /// <param name="sequence">sequence to wait for</param>
         /// <returns>the sequence up to which is available</returns>
         /// <exception cref="AlertException">if a status change has occurred for the Disruptor</exception>
-        /// <exception cref="InterruptedException">if the thread needs awaking on a condition variable.</exception>
+        /// <exception cref="InterruptedException">if the thread needs awaking on a condition variable.</exception> TODO
         long WaitFor(long sequence);
 
         /// <summary>
@@ -32,11 +32,11 @@ namespace Disruptor
         /// <param name="timeout">timeout value</param>
         /// <returns>the sequence up to which is available</returns>
         /// <exception cref="AlertException">if a status change has occurred for the Disruptor</exception>
-        /// <exception cref="InterruptedException">if the thread needs awaking on a condition variable.</exception>
+        /// <exception cref="InterruptedException">if the thread needs awaking on a condition variable.</exception> TODO
         long WaitFor(long sequence, TimeSpan timeout);
 
         /// <summary>
-        /// Delegate a call to the <see cref="RingBuffer.Cursor"/>
+        /// Delegate a call to the <see cref="RingBuffer{T}.Cursor"/>
         /// Returns the value of the cursor for entries that have been published.
         /// </summary>
         long Cursor { get; }

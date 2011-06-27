@@ -3,15 +3,15 @@
 namespace Disruptor
 {
     /// <summary>
-    /// Callback interface to be implemented for processing <see cref="IEntry"/>s as they become available in the <see cref="RingBuffer"/>
+    /// Callback interface to be implemented for processing <see cref="IEntry"/>s as they become available in the <see cref="RingBuffer{T}"/>
     /// </summary>
     /// <typeparam name="T">Entry implementation storing the data for sharing during exchange or parallel coordination of an event.</typeparam>
     public interface IBatchHandler<in T> where T:IEntry
     {
         /// <summary>
-        /// Called when a publisher has committed an <see cref="IEntry"/> to the <see cref="RingBuffer"/>
+        /// Called when a publisher has committed an <see cref="IEntry"/> to the <see cref="RingBuffer{T}"/>
         /// </summary>
-        /// <param name="entry">Committed to the <see cref="RingBuffer"/></param>
+        /// <param name="entry">Committed to the <see cref="RingBuffer{T}"/></param>
         /// <exception cref="Exception">If the BatchHandler would like the exception handled further up the chain.</exception>
         void OnAvailable(T entry);
 
