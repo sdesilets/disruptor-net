@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BatchConsumerTests.cs" />
+    <Compile Include="ConsumerBarrierTests.cs" />
     <Compile Include="EntryTranslatorTests.cs" />
     <Compile Include="FatalExceptionHandlerTests.cs" />
     <Compile Include="IgnoreExceptionHandlerTests.cs" />
@@ -66,14 +67,10 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Java\BatchConsumerSequenceTrackingCallbackTest.java" />
-    <Content Include="Java\BatchConsumerTest.java" />
     <Content Include="Java\collections\HistogramTest.java" />
-    <Content Include="Java\ConsumerBarrierTest.java" />
-    <Content Include="Java\RingBufferTest.java" />
     <Content Include="Java\support\Actions.java" />
     <Content Include="Java\support\DaemonThreadFactory.java" />
     <Content Include="Java\support\TestEntry.java" />
-    <Content Include="Java\support\TestWaiter.java" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
