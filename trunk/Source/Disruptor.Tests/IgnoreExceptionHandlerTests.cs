@@ -1,5 +1,7 @@
 using System;
+using Disruptor.Logging;
 using Disruptor.Tests.Support;
+using Moq;
 using NUnit.Framework;
 
 namespace Disruptor.Tests
@@ -8,15 +10,17 @@ namespace Disruptor.Tests
     public class IgnoreExceptionHandlerTests
     {
         [Test]
-        //TODO review IgnoreExceptionHandler to be able to test the handling (we can't fake the static call ATM), 
-        //this test just check that IgnoreExceptionHandler properly ignore the exception
         public void ShouldHandleAndIgnoreException()
         {
+            var loggerMock = new Mock<ILogger>();
             var ex = new Exception();
             var entry = new StubEntry(1);
+            var exceptionHandler = new IgnoreExceptionHandler(loggerMock.Object);
 
-            var exceptionHandler = new IgnoreExceptionHandler();
+            //check no exception bubble here
             exceptionHandler.Handle(ex, entry);
+
+            loggerMock.Verify(logger => logger.Log(Level.Info, "Exception processing: " + entry, ex));
         }
     }
 }
