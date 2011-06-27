@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading;
-using Disruptor.Logging;
 
 namespace Disruptor
 {
@@ -46,8 +45,7 @@ namespace Disruptor
         /// </summary>
         /// <param name="consumerBarrier"></param>
         /// <param name="entryHandler"></param>
-        /// <param name="logger">logger used by the exception handler</param>
-        public BatchConsumer(IConsumerBarrier<T> consumerBarrier, ISequenceTrackingHandler<T> entryHandler, ILogger logger)
+        public BatchConsumer(IConsumerBarrier<T> consumerBarrier, ISequenceTrackingHandler<T> entryHandler)
         {
             _consumerBarrier = consumerBarrier;
             _handler = entryHandler;
