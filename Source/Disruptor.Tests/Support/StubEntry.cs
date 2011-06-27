@@ -35,5 +35,10 @@ namespace Disruptor.Tests.Support
             if (obj.GetType() != typeof (StubEntry)) return false;
             return Equals((StubEntry) obj);
         }
+
+        public override string ToString()
+        {
+            return string.Format("Sequence: {0}, Value: {1}, TestString: {2}", Sequence, Value, TestString);
+        }
     }
 }

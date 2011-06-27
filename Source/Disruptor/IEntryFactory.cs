@@ -7,7 +7,7 @@
     public interface IEntryFactory<out T> where T:IEntry
     {
         //TODO check why original implementation does not constraint T to implement IEntry
-
+        // TODO replace by a Func<T> ?
         T Create();
     }
 }

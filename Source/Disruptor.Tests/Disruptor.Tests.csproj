@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BatchConsumerSequenceTrackingCallbackTests.cs" />
     <Compile Include="BatchConsumerTests.cs" />
     <Compile Include="ConsumerBarrierTests.cs" />
     <Compile Include="EntryTranslatorTests.cs" />
@@ -66,11 +67,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Java\BatchConsumerSequenceTrackingCallbackTest.java" />
     <Content Include="Java\collections\HistogramTest.java" />
-    <Content Include="Java\support\Actions.java" />
-    <Content Include="Java\support\DaemonThreadFactory.java" />
-    <Content Include="Java\support\TestEntry.java" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
