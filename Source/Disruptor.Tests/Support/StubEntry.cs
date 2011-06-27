@@ -7,7 +7,7 @@ namespace Disruptor.Tests.Support
             Value = i;
         }
 
-        public int Value { get; private set; }
+        public int Value { get; set; }
         public string TestString { get; set; }
 
         public void Copy(StubEntry entry)

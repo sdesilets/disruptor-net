@@ -98,6 +98,7 @@ namespace Disruptor
         /// <returns><see cref="IEntry"/> for the sequence</returns>
         public T GetEntry(long sequence)
         {
+            //TODO replace by indexer?
             return _entries[(int)sequence & _ringModMask];
         }
 

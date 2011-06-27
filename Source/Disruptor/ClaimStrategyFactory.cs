@@ -29,7 +29,7 @@ namespace Disruptor
         /// </summary>
         private sealed class MultiThreadedStrategy : IClaimStrategy
         {
-            private long _sequence;
+            private long _sequence = -1L;
 
             public long GetAndIncrement()
             {
@@ -57,7 +57,7 @@ namespace Disruptor
         /// </summary>
         private sealed class SingleThreadedStrategy : IClaimStrategy
         {
-            private long _sequence;
+            private long _sequence = -1L;
 
             public long GetAndIncrement()
             {
