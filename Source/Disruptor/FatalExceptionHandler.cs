@@ -1,19 +1,32 @@
 ﻿using System;
+using Disruptor.Logging;
 
 namespace Disruptor
 {
     /// <summary>
-    /// Convenience implementation of an exception handler that using standard Console output to log
-    /// the exception and re-throw it
+    /// Convenience implementation of an exception handler that using <see cref="ILogger"/> to log
+    /// the exception at Fatal level and re-throw it
     /// </summary>
     public sealed class FatalExceptionHandler:IExceptionHandler
     {
+        private readonly ILogger _logger;
+
+        public FatalExceptionHandler()
+        {
+            _logger = ConsoleLogger.Create();
+        }
+
+        public FatalExceptionHandler(ILogger logger)
+        {
+            _logger = logger;
+        }
+
         public void Handle(Exception ex, IEntry currentEntry)
         {
-            Console.WriteLine("Error - Exception processing for entry {0} : {1}", currentEntry, ex);
+            var message = "Exception processing: " + currentEntry;
+            _logger.Log(Level.Fatal, message, ex);
 
-            //TODO check if we need to wrap the exception (see default implem)
-            throw ex;
+            throw new RuntimeException(message, ex);
         }
     }
 }

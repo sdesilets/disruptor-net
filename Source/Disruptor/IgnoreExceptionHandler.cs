@@ -1,4 +1,5 @@
 ﻿using System;
+using Disruptor.Logging;
 
 namespace Disruptor
 {
@@ -7,9 +8,21 @@ namespace Disruptor
     /// </summary>
     public sealed class IgnoreExceptionHandler:IExceptionHandler
     {
+        private readonly ILogger _logger;
+
+        public IgnoreExceptionHandler()
+        {
+            _logger = ConsoleLogger.Create();
+        }
+
+        public IgnoreExceptionHandler(ILogger logger)
+        {
+            _logger = logger;
+        }
+
         public void Handle(Exception ex, IEntry currentEntry)
         {
-            Console.WriteLine("Info - Exception processing for entry {0} : {1}", currentEntry, ex);
+            _logger.Log(Level.Info, "Exception processing: " + currentEntry, ex);
         }
     }
 }

@@ -59,9 +59,13 @@
     <Compile Include="IRunnable.cs" />
     <Compile Include="ISequenceTrackingHandler.cs" />
     <Compile Include="IWaitStrategy.cs" />
+    <Compile Include="Logging\ILogger.cs" />
+    <Compile Include="Logging\Level.cs" />
+    <Compile Include="Logging\ConsoleLogger.cs" />
     <Compile Include="NoOpConsumer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RingBuffer.cs" />
+    <Compile Include="RuntimeException.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="WaitStrategyFactory.cs" />
   </ItemGroup>
