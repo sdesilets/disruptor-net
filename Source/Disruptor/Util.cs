@@ -31,8 +31,18 @@ namespace Disruptor
         /// <returns>the minimum sequence found or lon.MaxValue if the array is empty.</returns>
         public static long GetMinimumSequence(IConsumer[] consumers)
         {
-            //TODO convert to extension method
-            return consumers.Length == 0 ? long.MaxValue : consumers.Min(c => c.Sequence);
+            if (consumers.Length == 0) return long.MaxValue;
+
+            var min = long.MaxValue;
+            for (var i = 0; i < consumers.Length; i++)
+            {
+                var sequence = consumers[i].Sequence;
+                if(sequence < min)
+                {
+                    min = sequence;
+                }
+            }
+            return min;
         }
     }
 }
