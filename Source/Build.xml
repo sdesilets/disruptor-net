@@ -1,10 +1,66 @@
-﻿<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="CompileTest">
-  <Target Name="Build">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <MSBuildCommunityTasksPath>$(MSBuildProjectDirectory)\Lib\MSBuild.Community\</MSBuildCommunityTasksPath>
+    <NUnitToolPath>$(MSBuildProjectDirectory)\Lib\NUnit\</NUnitToolPath>
+    <TargetDir>$(MsBuildProjectDirectory)\Target\</TargetDir>
+    <ReportDir>$(TargetDir)Report\</ReportDir>
+    <PerfReportDir>$(ReportDir)Perf\</PerfReportDir>
+    <UnitReportDir>$(ReportDir)Unit\</UnitReportDir>
+    <DocDir>$(TargetDir)Doc\</DocDir>
+    <DistDir>$(TargetDir)Dist\</DistDir>
+    <BinDir>$(TargetDir)Bin\</BinDir>
+  </PropertyGroup>
+
+  <Import Project="$(MSBuildCommunityTasksPath)MSBuild.Community.Tasks.Targets" />
+
+  <Target Name="Clean">
+    <RemoveDir Directories="$(TargetDir)" />
+    <RemoveDir Directories="$(MSBuildProjectDirectory)\Disruptor\bin" />
+    <RemoveDir Directories="$(MSBuildProjectDirectory)\Disruptor\obj" />
+    <RemoveDir Directories="$(MSBuildProjectDirectory)\Disruptor.PerfTestRunner\bin" />
+    <RemoveDir Directories="$(MSBuildProjectDirectory)\Disruptor.PerfTestRunner\obj" />
+    <RemoveDir Directories="$(MSBuildProjectDirectory)\Disruptor.PerfTests\bin" />
+    <RemoveDir Directories="$(MSBuildProjectDirectory)\Disruptor.PerfTests\obj" />
+    <RemoveDir Directories="$(MSBuildProjectDirectory)\Disruptor.Tests\bin" />
+    <RemoveDir Directories="$(MSBuildProjectDirectory)\Disruptor.Tests\obj" />
+  </Target>
+
+  <Target Name="PreBuild" DependsOnTargets="Clean">
+    <MakeDir Directories="$(TargetDir)" />
+    <MakeDir Directories="$(ReportDir)" />
+    <MakeDir Directories="$(DocDir)" />
+    <MakeDir Directories="$(DistDir)" />
+    <MakeDir Directories="$(PerfReportDir)" />
+    <MakeDir Directories="$(UnitReportDir)" />
+    <MakeDir Directories="$(BinDir)" />
+  </Target>
+  
+  <!-- Compiles the VS solution -->
+  <Target Name="Build" DependsOnTargets="PreBuild">
     <MSBuild
 		  Projects="NDisruptor.sln"
-		  Properties="Configuration=Release;OutputPath=bin\;"
+		  Properties="Configuration=Release;OutputPath=$(BinDir);Optimize=true"
 		  StopOnFirstFailure="true"
 		  ContinueOnError="false"
 		/>
+  </Target>
+  
+  <!-- Run Unit tests (Using MSBuild.Community) -->
+  <Target Name="Test" DependsOnTargets="Build">
+    <NUnit 
+      Assemblies="$(BinDir)\Disruptor.Tests.dll"
+      ToolPath="$(NUnitToolPath)"
+      OutputXmlFile="$(UnitReportDir)\UnitTests.xml"
+      />
+  </Target>
+
+  <!-- Run performance tests (Using MSBuild.Community) -->
+  <Target Name="Perf" DependsOnTargets="Build">
+    <NUnit
+      Assemblies="$(BinDir)\Disruptor.PerfTests.dll"
+      ToolPath="$(NUnitToolPath)"
+      OutputXmlFile="$(UnitReportDir)\UnitTests.xml"
+      />
   </Target>
 </Project>
