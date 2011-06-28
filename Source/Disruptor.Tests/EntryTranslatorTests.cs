@@ -11,8 +11,7 @@ namespace Disruptor.Tests
         [Test]
         public void ShouldTranslateOtherDataIntoAnEntry()
         {
-            var factory = new StubEntryFactory();
-            var entry = factory.Create();
+            var entry = new StubEntry(-1);
 
             var entryTranslator = new ExampleEntryTranslator(TestString);
 
@@ -21,7 +20,7 @@ namespace Disruptor.Tests
             Assert.AreEqual(TestString, entry.TestString);
         }
 
-        public class ExampleEntryTranslator:IEntryTranslator<StubEntry>
+        private class ExampleEntryTranslator:IEntryTranslator<StubEntry>
         {
             private readonly string _testString;
 

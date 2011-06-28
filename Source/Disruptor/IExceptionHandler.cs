@@ -10,7 +10,7 @@ namespace Disruptor
         /// <summary>
         /// Strategy for handling uncaught exceptions when processing an <see cref="IEntry"/>.
         /// If the strategy wishes to suspend further processing by the <see cref="BatchConsumer{T}"/>
-        /// then is should throw a <see cref="RuntimeException"/>.TODO
+        /// then is should throw a <see cref="DisruptorFatalException"/>
         /// </summary>
         /// <param name="ex">the exception that propagated from the <see cref="IBatchHandler{T}"/></param>
         /// <param name="currentEntry">currentEntry being processed when the exception occurred.</param>

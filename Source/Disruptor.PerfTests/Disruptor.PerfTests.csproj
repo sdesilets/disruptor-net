@@ -29,6 +29,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="nunit.framework">
@@ -43,12 +44,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Version.cs">
+      <Link>Version.cs</Link>
+    </Compile>
     <Compile Include="AbstractPerfTestQueueVsDisruptor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Support\ValueAdditionHandler.cs" />
     <Compile Include="Support\ValueAdditionQueueConsumer.cs" />
     <Compile Include="Support\ValueEntry.cs" />
-    <Compile Include="Support\ValueEntryFactory.cs" />
     <Compile Include="UniCast1P1CPerfTest.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -58,7 +61,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Java\AbstractPerfTestQueueVsDisruptor.java" />
     <Content Include="Java\DiamondPath1P3CPerfTest.java" />
     <Content Include="Java\MultiCast1P3CPerfTest.java" />
     <Content Include="Java\Pipeline3StepLatencyPerfTest.java" />
@@ -79,7 +81,6 @@
     <Content Include="Java\support\ValueMutationQueueConsumer.java" />
     <Content Include="Java\support\ValueProducer.java" />
     <Content Include="Java\support\ValueQueueProducer.java" />
-    <Content Include="Java\UniCast1P1CPerfTest.java" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

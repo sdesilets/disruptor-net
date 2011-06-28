@@ -2,11 +2,13 @@
 
 namespace Disruptor
 {
+    /// <summary>
+    /// Set of common functions used by the Disruptor
+    /// </summary>
     public static class Util
     {
         /// <summary>
         /// Calculate the next power of 2, greater than or equal to x.
-        /// From Hacker's Delight, Chapter 3, Harry S. Warren Jr.
         /// </summary>
         /// <param name="x">Value to round up</param>
         /// <returns>The next power of 2 from x inclusive</returns>
@@ -22,6 +24,11 @@ namespace Disruptor
             return result;
         }
 
+        /// <summary>
+        /// Get the minimum sequence from an array of <see cref="IConsumer"/>s.
+        /// </summary>
+        /// <param name="consumers">consumers to compare.</param>
+        /// <returns>the minimum sequence found or lon.MaxValue if the array is empty.</returns>
         public static long GetMinimumSequence(IConsumer[] consumers)
         {
             //TODO convert to extension method

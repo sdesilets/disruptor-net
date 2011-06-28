@@ -19,7 +19,7 @@ namespace Disruptor.Tests
         [SetUp]
         public void SetUp()
         {
-            _ringBuffer = new RingBuffer<StubEntry>(new StubEntryFactory(), 64);
+            _ringBuffer = new RingBuffer<StubEntry>(()=>new StubEntry(-1), 64);
 
             _consumerMock1 = new Mock<IConsumer>();
             _consumerMock2 = new Mock<IConsumer>();
@@ -100,7 +100,7 @@ namespace Disruptor.Tests
                     {
                         _consumerBarrier.WaitFor(expectedNumberMessages - 1);
                     }
-                    catch (AlertException e)
+                    catch (AlertException)
                     {
                         alerted[0] = true;
                     }

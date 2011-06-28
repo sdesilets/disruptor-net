@@ -21,7 +21,7 @@ namespace Disruptor.Tests
             {
                 exceptionHandler.Handle(exception, entry);
             }
-            catch (RuntimeException e)
+            catch (DisruptorFatalException e)
             {
                 Assert.AreSame(exception, e.InnerException);
             }

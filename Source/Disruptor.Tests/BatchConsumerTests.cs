@@ -19,7 +19,7 @@ namespace Disruptor.Tests
         [SetUp]
         public void Setup()
         {
-            _ringBuffer = new RingBuffer<StubEntry>(new StubEntryFactory(), 16);
+            _ringBuffer = new RingBuffer<StubEntry>(()=>new StubEntry(-1), 16);
             _consumerBarrier = _ringBuffer.CreateConsumerBarrier();
             _batchHandlerMock = new Mock<IBatchHandler<StubEntry>>();
             _batchConsumer = new BatchConsumer<StubEntry>(_consumerBarrier, _batchHandlerMock.Object);

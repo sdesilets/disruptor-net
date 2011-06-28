@@ -91,7 +91,7 @@ namespace Disruptor.PerfTests
         {
             _queueConsumer = new ValueAdditionQueueConsumer(_queue);
 
-            _ringBuffer = new RingBuffer<ValueEntry>(new ValueEntryFactory(), Size, 
+            _ringBuffer = new RingBuffer<ValueEntry>(()=> new ValueEntry(), Size, 
                                                      ClaimStrategyFactory.ClaimStrategyOption.SingleThreaded,
                                                      WaitStrategyFactory.WaitStrategyOption.Yielding);
 
