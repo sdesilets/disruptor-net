@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Threading;
+using Disruptor.MemoryLayout;
 
 namespace Disruptor
 {
@@ -8,19 +8,11 @@ namespace Disruptor
     /// and delegating the available <see cref="IEntry"/>s to a <see cref="IBatchHandler{T}"/>.
     /// </summary>
     /// <typeparam name="T">Entry implementation storing the data for sharing during exchange or parallel coordination of an event.</typeparam>
-    public sealed class BatchConsumer<T>:IConsumer
+    public sealed class BatchConsumer<T> : IConsumer
         where T:IEntry
     {
-// ReSharper disable UnusedMember.Global
-// ReSharper disable InconsistentNaming
-        public long _p1, _p2, _p3, _p4, _p5, _p6, _p7; // cache line padding
-        private volatile bool _running = true;
-        public long _p8, _p9, _p10, _p11, _p12, _p13, _p14; // cache line padding
-        private long _sequence = -1L;
-        public long _p15, _p16, _p17, _p18, _p19; // cache line padding
-// ReSharper restore InconsistentNaming
-// ReSharper restore UnusedMember.Global
-
+        private CacheLineStorageBool _running = new CacheLineStorageBool(true);
+        private CacheLineStorageLong _sequence = new CacheLineStorageLong(-1L);
         private readonly IConsumerBarrier<T> _consumerBarrier;
         private readonly IBatchHandler<T> _handler;
         private readonly bool _noSequenceTracker;
@@ -82,10 +74,10 @@ namespace Disruptor
         /// </summary>
         public void Run()
         {
-            _running = true;
+            _running.VolatileData = true;
             var entry = default(T);
 
-            while (_running)
+            while (_running.VolatileData)
             {
                 try
                 {
@@ -123,15 +115,23 @@ namespace Disruptor
             _handler.OnCompletion();
         }
 
+        /// <summary>
+        /// Get the sequence up to which this Consumer has consumed <see cref="IEntry"/>s
+        /// Return the sequence of the last consumed <see cref="IEntry"/>
+        /// </summary>
         public long Sequence
         {
-            get { return Thread.VolatileRead(ref _sequence); }
-            private set { Thread.VolatileWrite(ref _sequence, value);}
+            get { return _sequence.VolatileData; }
+            private set { _sequence.VolatileData = value;}
         }
 
+        /// <summary>
+        /// Signal that this Consumer should stop when it has finished consuming at the next clean break.
+        /// It will call <see cref="IConsumerBarrier{T}.Alert"/> to notify the thread to check status.
+        /// </summary>
         public void Halt()
         {
-            _running = false;
+            _running.VolatileData = false;
             _consumerBarrier.Alert();
         }
 
@@ -142,6 +142,10 @@ namespace Disruptor
         {
             private readonly BatchConsumer<T> _batchConsumer;
 
+            ///<summary>
+            /// 
+            ///</summary>
+            ///<param name="batchConsumer"></param>
             public SequenceTrackerCallback(BatchConsumer<T> batchConsumer)
             {
                 _batchConsumer = batchConsumer;

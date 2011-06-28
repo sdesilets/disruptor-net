@@ -10,9 +10,6 @@
         /// set: Explicitly set the sequence number for this Entry and a CommitCallback for indicating when the producer is
         ///      finished with assigning data for exchange.
         /// </summary>
-        long Sequence
-        {
-            get; set;
-        }
+        long Sequence { get; set; }
     }
 }

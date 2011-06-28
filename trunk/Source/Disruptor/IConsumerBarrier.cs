@@ -22,7 +22,6 @@ namespace Disruptor
         /// <param name="sequence">sequence to wait for</param>
         /// <returns>the sequence up to which is available</returns>
         /// <exception cref="AlertException">if a status change has occurred for the Disruptor</exception>
-        /// <exception cref="InterruptedException">if the thread needs awaking on a condition variable.</exception> TODO
         long WaitFor(long sequence);
 
         /// <summary>
@@ -32,7 +31,6 @@ namespace Disruptor
         /// <param name="timeout">timeout value</param>
         /// <returns>the sequence up to which is available</returns>
         /// <exception cref="AlertException">if a status change has occurred for the Disruptor</exception>
-        /// <exception cref="InterruptedException">if the thread needs awaking on a condition variable.</exception> TODO
         long WaitFor(long sequence, TimeSpan timeout);
 
         /// <summary>

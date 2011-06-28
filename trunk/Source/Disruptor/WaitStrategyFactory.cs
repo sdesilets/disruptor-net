@@ -3,6 +3,9 @@ using System.Threading;
 
 namespace Disruptor
 {
+    /// <summary>
+    /// Factory used by the <see cref="RingBuffer{T}"/> to instantiate the selected <see cref="IWaitStrategy"/>.
+    /// </summary>
     public static class WaitStrategyFactory
     {
         /// <summary>

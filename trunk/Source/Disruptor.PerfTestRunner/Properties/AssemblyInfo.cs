@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Disruptor")]
+[assembly: AssemblyTitle("Disruptor.PerfTestRunner")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCulture("")]
@@ -15,5 +15,4 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("d80ab069-2ad5-46b5-8a6f-60d2e6b3e30d")]
-
+[assembly: Guid("aea2f776-cfce-4fa1-ae40-727b0e296337")]

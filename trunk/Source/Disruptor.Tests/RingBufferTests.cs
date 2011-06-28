@@ -17,7 +17,7 @@ namespace Disruptor.Tests
         [SetUp]
         public void SetUp()
         {
-            _ringBuffer = new RingBuffer<StubEntry>(new StubEntryFactory(), 20);
+            _ringBuffer = new RingBuffer<StubEntry>(()=>new StubEntry(-1), 20);
             _consumerBarrier = _ringBuffer.CreateConsumerBarrier();
             _producerBarrier = _ringBuffer.CreateProducerBarrier(new NoOpConsumer<StubEntry>(_ringBuffer));
         }

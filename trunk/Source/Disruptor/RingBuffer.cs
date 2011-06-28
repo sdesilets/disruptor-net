@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using Disruptor.MemoryLayout;
 
 namespace Disruptor
 {
@@ -9,14 +10,12 @@ namespace Disruptor
     /// <typeparam name="T">Entry implementation storing the data for sharing during exchange or parallel coordination of an event.</typeparam>
     public sealed class RingBuffer<T> where T : IEntry
     {
-        // Set to -1 as sequence starting point 
+        /// <summary>
+        /// Initial cursor value, set to -1 as sequence starting point 
+        /// </summary>
         public const long InitialCursorValue = -1L;
 
-        // ReSharper disable InconsistentNaming
-        public long p1, p2, p3, p4, p5, p6, p7; // cache line padding INITCURSOR_VALUE;
-        private long _cursor = InitialCursorValue;
-        public long p8, p9, p10, p11, p12, p14; // cache line padding
-        // ReSharper restore InconsistentNaming
+        private CacheLineStorageLong _cursor = new CacheLineStorageLong(InitialCursorValue);
 
         private readonly T[] _entries;
         private readonly int _ringModMask;
@@ -31,7 +30,7 @@ namespace Disruptor
         /// <param name="size">size of the RingBuffer that will be rounded up to the next power of 2</param>
         /// <param name="claimStrategyOption"> threading strategy for producers claiming <see cref="IEntry"/>s in the ring.</param>
         /// <param name="waitStrategyOption">waiting strategy employed by consumers waiting on <see cref="IEntry"/>s becoming available.</param>
-        public RingBuffer(IEntryFactory<T> entryFactory, int size, ClaimStrategyFactory.ClaimStrategyOption claimStrategyOption = ClaimStrategyFactory.ClaimStrategyOption.Multithreaded, WaitStrategyFactory.WaitStrategyOption waitStrategyOption = WaitStrategyFactory.WaitStrategyOption.Blocking)
+        public RingBuffer(Func<T> entryFactory, int size, ClaimStrategyFactory.ClaimStrategyOption claimStrategyOption = ClaimStrategyFactory.ClaimStrategyOption.Multithreaded, WaitStrategyFactory.WaitStrategyOption waitStrategyOption = WaitStrategyFactory.WaitStrategyOption.Blocking)
         {
             var sizeAsPowerOfTwo = Util.CeilingNextPowerOfTwo(size);
             _ringModMask = sizeAsPowerOfTwo - 1;
@@ -87,8 +86,8 @@ namespace Disruptor
         /// </summary>
         public long Cursor
         {
-            get { return Thread.VolatileRead(ref _cursor); }
-            private set{Thread.VolatileWrite(ref _cursor, value);}
+            get { return _cursor.VolatileData; }
+            private set{ _cursor.VolatileData = value;}
         }
 
         /// <summary>
@@ -102,11 +101,11 @@ namespace Disruptor
             return _entries[(int)sequence & _ringModMask];
         }
 
-        private void Fill(IEntryFactory<T> entryEntryFactory)
+        private void Fill(Func<T> entryEntryFactory)
         {
             for (var i = 0; i < _entries.Length; i++)
             {
-                _entries[i] = entryEntryFactory.Create();
+                _entries[i] = entryEntryFactory();
             }
         }
 
@@ -116,20 +115,20 @@ namespace Disruptor
         /// <typeparam name="TU"></typeparam>
         private sealed class ConsumerTrackingConsumerBarrier<TU> : IConsumerBarrier<TU> where TU : IEntry
         {
-            // ReSharper disable InconsistentNaming
-#pragma warning disable 169
-            public long p1, p2, p3, p4, p5, p6, p7; // cache line padding
+            public CacheLinePadding CacheLinePadding1;
             private readonly IConsumer[] _consumers;
             private volatile bool _alerted;
-            public long p8, p9, p10, p11, p12, p13, p14; // cache line padding
+            public CacheLinePadding CacheLinePadding2;
             private readonly RingBuffer<TU> _ringBuffer;
-            // ReSharper restore InconsistentNaming
-#pragma warning restore 169
 
             public ConsumerTrackingConsumerBarrier(RingBuffer<TU> ringBuffer, params IConsumer[] consumers)
             {
                 _ringBuffer = ringBuffer;
                 _consumers = consumers;
+
+                // to make compiler happy
+                CacheLinePadding1 = new CacheLinePadding();
+                CacheLinePadding2 = new CacheLinePadding();
             }
 
             public TU GetEntry(long sequence)

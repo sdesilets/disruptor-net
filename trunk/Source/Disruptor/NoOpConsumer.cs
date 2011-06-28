@@ -17,15 +17,24 @@
             _ringBuffer = ringBuffer;
         }
 
+        /// <summary>
+        /// NoOp
+        /// </summary>
         public void Run()
         {
         }
 
+        /// <summary>
+        /// Delegates call to <see cref="RingBuffer{T}.Cursor"/>
+        /// </summary>
         public long Sequence
         {
             get { return _ringBuffer.Cursor; }
         }
 
+        /// <summary>
+        /// NoOp
+        /// </summary>
         public void Halt()
         {
         }

@@ -22,7 +22,7 @@ namespace Disruptor
         }
 
         //TODO
-        /**
+        /*
      * Overridden so the stack trace is not filled in for this exception for performance reasons.
      *
      * @return this instance.

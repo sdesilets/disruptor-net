@@ -29,6 +29,8 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\Disruptor.XML</DocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -40,9 +42,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Version.cs">
+      <Link>Version.cs</Link>
+    </Compile>
     <Compile Include="AbstractEntry.cs" />
     <Compile Include="AlertException.cs" />
     <Compile Include="BatchConsumer.cs" />
+    <Compile Include="MemoryLayout\CacheLinePadding.cs" />
+    <Compile Include="MemoryLayout\CacheLineStorageLong.cs" />
+    <Compile Include="MemoryLayout\CacheLineStorageBool.cs" />
     <Compile Include="ClaimStrategyFactory.cs" />
     <Compile Include="FatalExceptionHandler.cs" />
     <Compile Include="IBatchHandler.cs" />
@@ -50,7 +58,6 @@
     <Compile Include="IConsumer.cs" />
     <Compile Include="IConsumerBarrier.cs" />
     <Compile Include="IEntry.cs" />
-    <Compile Include="IEntryFactory.cs" />
     <Compile Include="IEntryTranslator.cs" />
     <Compile Include="IExceptionHandler.cs" />
     <Compile Include="IForceFillProducerBarrier.cs" />
@@ -65,7 +72,7 @@
     <Compile Include="NoOpConsumer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RingBuffer.cs" />
-    <Compile Include="RuntimeException.cs" />
+    <Compile Include="DisruptorFatalException.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="WaitStrategyFactory.cs" />
   </ItemGroup>
