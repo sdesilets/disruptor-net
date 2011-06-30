@@ -7,8 +7,8 @@ namespace Disruptor.PerfTestRunner
     {
         static void Main(string[] args)
         {
-            var uniCast1P1CPerfTest = new UniCast1P1CPerfTest(); 
-            uniCast1P1CPerfTest.ShouldCompareDisruptorVsQueues();
+            (new Pipeline3StepPerfTest()).ShouldCompareDisruptorVsQueues();
+            (new UniCast1P1CPerfTest()).ShouldCompareDisruptorVsQueues();
 
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey();

@@ -48,7 +48,12 @@
       <Link>Version.cs</Link>
     </Compile>
     <Compile Include="AbstractPerfTestQueueVsDisruptor.cs" />
+    <Compile Include="Pipeline3StepPerfTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Support\FunctionEntry.cs" />
+    <Compile Include="Support\FunctionHandler.cs" />
+    <Compile Include="Support\FunctionQueueConsumer.cs" />
+    <Compile Include="Support\FunctionStep.cs" />
     <Compile Include="Support\ValueAdditionHandler.cs" />
     <Compile Include="Support\ValueAdditionQueueConsumer.cs" />
     <Compile Include="Support\ValueEntry.cs" />
