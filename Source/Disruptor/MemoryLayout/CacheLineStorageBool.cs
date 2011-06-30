@@ -39,7 +39,7 @@ namespace Disruptor.MemoryLayout
         /// <summary>
         /// Expose data without fence
         /// </summary>
-        public bool Data
+        public bool Data //TODO remove that, use volatile all the time...
         {
             get { return _data; }
             set { _data = value; }

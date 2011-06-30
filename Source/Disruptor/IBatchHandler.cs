@@ -6,7 +6,7 @@ namespace Disruptor
     /// Callback interface to be implemented for processing <see cref="Entry{T}"/>s as they become available in the <see cref="RingBuffer{T}"/>
     /// </summary>
     /// <typeparam name="T">Data stored in the <see cref="Entry{T}"/> for sharing during exchange or parallel coordination of an event.</typeparam>
-    public interface IBatchHandler<T>
+    public interface IBatchHandler<in T>
     {
         /// <summary>
         /// Called when a publisher has committed an <see cref="Entry{T}"/> to the <see cref="RingBuffer{T}"/>
@@ -17,8 +17,8 @@ namespace Disruptor
         void OnAvailable(long sequence, T data);
 
         /// <summary>
-        /// Called after each batch of items has been have been processed before the next waitFor call on a {@link ConsumerBarrier}.
-        /// This can be taken as a hint to do flush type operations before waiting once again on the {@link ConsumerBarrier}.
+        /// Called after each batch of items has been have been processed before the next waitFor call on a <see cref="IConsumerBarrier{T}"/>.
+        /// This can be taken as a hint to do flush type operations before waiting once again on the <see cref="IConsumerBarrier{T}"/>.
         /// The user should not expect any pattern or frequency to the batch size.
         /// </summary>
         /// <exception cref="Exception">If the BatchHandler would like the exception handled further up the chain.</exception>

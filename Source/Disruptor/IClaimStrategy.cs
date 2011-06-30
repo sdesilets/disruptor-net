@@ -22,6 +22,6 @@
         /// </summary>
         /// <param name="sequence">sequence to wait for</param>
         /// <param name="ringBuffer">ringBuffer on which to wait forCursor</param>
-        void WaitForCursor<T>(long sequence, RingBuffer<T> ringBuffer);
+        void WaitForCursor(long sequence, ISequencable ringBuffer);
     }
 }

@@ -78,11 +78,11 @@ namespace Disruptor.PerfTests
 
         ///////////////////////////////////////////////////////////////////////////////////////////////
 
-        private readonly RingBuffer<long> _ringBuffer;
+        private readonly ValueTypeRingBuffer<long> _ringBuffer;
         private readonly IConsumerBarrier<long> _consumerBarrier;
         private readonly ValueAdditionHandler _handler;
         private readonly BatchConsumer<long> _batchConsumer;
-        private readonly IProducerBarrier<long> _producerBarrier;
+        private readonly IValueTypeProducerBarrier<long> _producerBarrier;
 
         ///////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -90,7 +90,7 @@ namespace Disruptor.PerfTests
         {
             _queueConsumer = new ValueAdditionQueueConsumer(_queue, Iterations);
 
-            _ringBuffer = new RingBuffer<long>(Size, 
+            _ringBuffer = new ValueTypeRingBuffer<long>(Size, 
                                                      ClaimStrategyFactory.ClaimStrategyOption.SingleThreaded,
                                                      WaitStrategyFactory.WaitStrategyOption.Yielding);
 
@@ -144,8 +144,7 @@ namespace Disruptor.PerfTests
 
             for (long i = 0; i < Iterations; i++)
             {
-                var sequence = _producerBarrier.NextEntry();
-                _producerBarrier.Commit(sequence, i);
+                _producerBarrier.Commit(i);
             }
 
             var expectedSequence = _ringBuffer.Cursor;
