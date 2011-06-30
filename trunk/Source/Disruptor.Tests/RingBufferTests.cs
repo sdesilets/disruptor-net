@@ -12,7 +12,7 @@ namespace Disruptor.Tests
     {
         private RingBuffer<StubData> _ringBuffer;
         private IConsumerBarrier<StubData> _consumerBarrier;
-        private IProducerBarrier<StubData> _producerBarrier;
+        private IReferenceTypeProducerBarrier<StubData> _producerBarrier;
 
         [SetUp]
         public void SetUp()

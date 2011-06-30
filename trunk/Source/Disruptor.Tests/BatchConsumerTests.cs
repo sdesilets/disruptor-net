@@ -14,7 +14,7 @@ namespace Disruptor.Tests
         private Mock<IBatchHandler<StubData>> _batchHandlerMock;
         private BatchConsumer<StubData> _batchConsumer;
         private CountdownEvent _countDownEvent;
-        private IProducerBarrier<StubData> _producerBarrier;
+        private IReferenceTypeProducerBarrier<StubData> _producerBarrier;
 
         [SetUp]
         public void Setup()

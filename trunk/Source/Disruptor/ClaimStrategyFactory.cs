@@ -59,7 +59,7 @@ namespace Disruptor
                 Interlocked.Exchange(ref _sequence, sequence);
             }
 
-            public void WaitForCursor<T>(long sequence, RingBuffer<T> ringBuffer)
+            public void WaitForCursor(long sequence, ISequencable ringBuffer)
             {
                 while (ringBuffer.Cursor != sequence)
                 {
@@ -85,7 +85,7 @@ namespace Disruptor
                 _sequence = sequence;
             }
 
-            public void WaitForCursor<T>(long sequence, RingBuffer<T> ringBuffer)
+            public void WaitForCursor(long sequence, ISequencable ringBuffer)
             {
                 // no op when on a single producer.
             }

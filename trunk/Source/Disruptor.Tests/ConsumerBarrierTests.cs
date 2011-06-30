@@ -14,7 +14,7 @@ namespace Disruptor.Tests
         private Mock<IConsumer> _consumerMock2;
         private Mock<IConsumer> _consumerMock3;
         private IConsumerBarrier<StubData> _consumerBarrier;
-        private IProducerBarrier<StubData> _producerBarrier;
+        private IReferenceTypeProducerBarrier<StubData> _producerBarrier;
 
         [SetUp]
         public void SetUp()
