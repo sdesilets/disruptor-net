@@ -1,18 +1,18 @@
 ﻿namespace Disruptor
 {
     /// <summary>
-    /// Strategies employed for claiming the sequence of <see cref="IEntry"/>s in the <see cref="RingBuffer{T}"/> by producers.
+    /// Strategies employed for claiming the sequence of <see cref="Entry{T}"/>s in the <see cref="RingBuffer{T}"/> by producers.
     /// </summary>
     public interface IClaimStrategy
     {
         /// <summary>
         /// Claim the next sequence index in the <see cref="RingBuffer{T}"/> and increment.
         /// </summary>
-        /// <returns>The <see cref="IEntry"/> index to be used for the producer.</returns>
+        /// <returns>The <see cref="Entry{T}"/> index to be used for the producer.</returns>
         long GetAndIncrement();
 
         /// <summary>
-        /// Set the current sequence value for claiming <see cref="IEntry"/> in the <see cref="RingBuffer{T}"/>
+        /// Set the current sequence value for claiming <see cref="Entry{T}"/> in the <see cref="RingBuffer{T}"/>
         /// </summary>
         /// <param name="sequence">sequence to be set as the current value.</param>
         void SetSequence(long sequence);
@@ -22,6 +22,6 @@
         /// </summary>
         /// <param name="sequence">sequence to wait for</param>
         /// <param name="ringBuffer">ringBuffer on which to wait forCursor</param>
-        void WaitForCursor<T>(long sequence, RingBuffer<T> ringBuffer) where T:IEntry;
+        void WaitForCursor<T>(long sequence, RingBuffer<T> ringBuffer);
     }
 }

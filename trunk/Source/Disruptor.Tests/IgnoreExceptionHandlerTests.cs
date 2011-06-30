@@ -14,8 +14,9 @@ namespace Disruptor.Tests
         {
             var loggerMock = new Mock<ILogger>();
             var ex = new Exception();
-            var entry = new StubEntry(1);
-            var exceptionHandler = new IgnoreExceptionHandler(loggerMock.Object);
+            var stub = new StubData(1);
+            var exceptionHandler = new IgnoreExceptionHandler<StubData>(loggerMock.Object);
+            var entry = new Entry<StubData>(-1, stub);
 
             //check no exception bubble here
             exceptionHandler.Handle(ex, entry);

@@ -5,25 +5,24 @@ namespace Disruptor
 {
     /// <summary>
     /// Convenience class for handling the batching semantics of consuming entries from a <see cref="RingBuffer{T}"/>
-    /// and delegating the available <see cref="IEntry"/>s to a <see cref="IBatchHandler{T}"/>.
+    /// and delegating the available <see cref="Entry{T}"/>s to a <see cref="IBatchHandler{T}"/>.
     /// </summary>
     /// <typeparam name="T">Entry implementation storing the data for sharing during exchange or parallel coordination of an event.</typeparam>
     public sealed class BatchConsumer<T> : IConsumer
-        where T:IEntry
     {
         private CacheLineStorageBool _running = new CacheLineStorageBool(true);
         private CacheLineStorageLong _sequence = new CacheLineStorageLong(-1L);
         private readonly IConsumerBarrier<T> _consumerBarrier;
         private readonly IBatchHandler<T> _handler;
         private readonly bool _noSequenceTracker;
-        private IExceptionHandler _exceptionHandler = new FatalExceptionHandler();
+        private IExceptionHandler<T> _exceptionHandler = new FatalExceptionHandler<T>();
 
         /// <summary>
         /// Construct a batch consumer that will automatically track the progress by updating its sequence when
         /// the <see cref="IBatchHandler{T}.OnAvailable"/> method returns.
         /// </summary>
         /// <param name="consumerBarrier">consumerBarrier on which it is waiting.</param>
-        /// <param name="handler">handler is the delegate to which <see cref="IEntry"/>s are dispatched.</param>
+        /// <param name="handler">handler is the delegate to which <see cref="Entry{T}"/>s are dispatched.</param>
         public BatchConsumer(IConsumerBarrier<T> consumerBarrier, IBatchHandler<T> handler)
         {
             _consumerBarrier = consumerBarrier;
@@ -47,10 +46,10 @@ namespace Disruptor
         }
 
         /// <summary>
-        /// Set a new <see cref="IExceptionHandler"/> for handling exceptions propagated out of the <see cref="BatchConsumer{T}"/>
+        /// Set a new <see cref="IExceptionHandler{T}"/> for handling exceptions propagated out of the <see cref="BatchConsumer{T}"/>
         /// </summary>
         /// <param name="exceptionHandler">exceptionHandler to replace the existing exceptionHandler.</param>
-        public void SetExceptionHandler(IExceptionHandler exceptionHandler)
+        public void SetExceptionHandler(IExceptionHandler<T> exceptionHandler)
         {
             if (exceptionHandler == null)
             {
@@ -75,7 +74,8 @@ namespace Disruptor
         public void Run()
         {
             _running.VolatileData = true;
-            var entry = default(T);
+            var data = default(T);
+            var i = 0L;
 
             while (_running.VolatileData)
             {
@@ -85,14 +85,14 @@ namespace Disruptor
                     var nextSequence = Sequence + 1;
                     var availableSeq = _consumerBarrier.WaitFor(nextSequence);
 
-                    for (var i = nextSequence; i <= availableSeq; i++)
+                    for (i = nextSequence; i <= availableSeq; i++)
                     {
-                        entry = _consumerBarrier.GetEntry(i);
-                        _handler.OnAvailable(entry);
+                        data = _consumerBarrier.GetEntry(i);
+                        _handler.OnAvailable(i, data);
 
                         if (_noSequenceTracker)
                         {
-                            Sequence = entry.Sequence;
+                            Sequence = i;
                         }
                     }
 
@@ -104,10 +104,10 @@ namespace Disruptor
                 }
                 catch (Exception ex)
                 {
-                    _exceptionHandler.Handle(ex, entry);
+                    _exceptionHandler.Handle(ex, new Entry<T>(i, data));
                     if (_noSequenceTracker)
                     {
-                        Sequence = entry.Sequence;
+                        Sequence = i;
                     }
                 }
             }
@@ -116,8 +116,8 @@ namespace Disruptor
         }
 
         /// <summary>
-        /// Get the sequence up to which this Consumer has consumed <see cref="IEntry"/>s
-        /// Return the sequence of the last consumed <see cref="IEntry"/>
+        /// Get the sequence up to which this Consumer has consumed <see cref="Entry{T}"/>s
+        /// Return the sequence of the last consumed <see cref="Entry{T}"/>
         /// </summary>
         public long Sequence
         {

@@ -16,7 +16,7 @@ namespace Disruptor
         /// <param name="sequence">sequence to be waited on.</param>
         /// <returns>the sequence that is available which may be greater than the requested sequence.</returns>
         /// <exception cref="AlertException">if the status of the Disruptor has changed.</exception>
-        long WaitFor<T>(IConsumer[] consumers, RingBuffer<T> ringBuffer, IConsumerBarrier<T> barrier, long sequence) where T:IEntry;
+        long WaitFor<T>(IConsumer[] consumers, RingBuffer<T> ringBuffer, IConsumerBarrier<T> barrier, long sequence);
 
         /// <summary>
         /// Wait for the given sequence to be available for consumption in a <see cref="RingBuffer{T}"/> with a timeout specified.
@@ -29,8 +29,7 @@ namespace Disruptor
         /// <param name="timeout">timeout value to abort after.</param>
         /// <returns>the sequence that is available which may be greater than the requested sequence.</returns>
         /// /// <exception cref="AlertException">if the status of the Disruptor has changed.</exception>
-        long WaitFor<T>(IConsumer[] consumers, RingBuffer<T> ringBuffer, IConsumerBarrier<T> barrier, long sequence,
-                        TimeSpan timeout) where T : IEntry;
+        long WaitFor<T>(IConsumer[] consumers, RingBuffer<T> ringBuffer, IConsumerBarrier<T> barrier, long sequence, TimeSpan timeout);
 
         /// <summary>
         /// Signal those waiting that the <see cref="RingBuffer{T}"/> cursor has advanced.

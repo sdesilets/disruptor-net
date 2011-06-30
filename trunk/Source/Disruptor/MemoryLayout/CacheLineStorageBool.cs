@@ -4,7 +4,7 @@ using System.Threading;
 namespace Disruptor.MemoryLayout
 {
     /// <summary>
-    /// A <see cref="long"/> wrapped in CacheLineStorage is guaranteed to live on its own cache line
+    /// A <see cref="bool"/> wrapped in CacheLineStorage is guaranteed to live on its own cache line
     /// </summary>
     /// <remarks>
     /// http://drdobbs.com/go-parallel/article/217500206?pgno=4
@@ -17,8 +17,8 @@ namespace Disruptor.MemoryLayout
     /// this is to allocate enough space both before and after data to ensure 
     /// that no other objects can share the cache line. 
     /// 
-    /// Why not a generic version of CacheLineStorage? Because: 
-    /// System.TypeLoadException : Could not load type 'Disruptor.CacheLineStorage{T} from 
+    /// Why not a generic version of CacheLineStorage? 
+    /// Because: System.TypeLoadException : Could not load type 'Disruptor.CacheLineStorage{T} from 
     /// assembly 'Disruptor' because generic types cannot have explicit layout. 
     /// </remarks>
     [StructLayout(LayoutKind.Explicit, Size = 2 * 64)]

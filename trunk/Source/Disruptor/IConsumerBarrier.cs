@@ -6,14 +6,13 @@ namespace Disruptor
     /// Coordination barrier for tracking the cursor for producers and sequence of
     /// dependent <see cref="IConsumer"/>s for a <see cref="RingBuffer{T}"/>
     /// </summary>
-    /// <typeparam name="T"><see cref="IEntry"/> implementation stored in the <see cref="RingBuffer{T}"/></typeparam>
-    public interface IConsumerBarrier<out T>where T:IEntry
+    public interface IConsumerBarrier<out T>
     {
         /// <summary>
-        /// Get the <see cref="IEntry"/> for a given sequence from the underlying <see cref="RingBuffer{T}"/>.
+        /// Get the data for a given sequence from the underlying <see cref="RingBuffer{T}"/>.
         /// </summary>
-        /// <param name="sequence">sequence of the {@link Entry} to get.</param>
-        /// <returns>the {@link Entry} for the sequence.</returns>
+        /// <param name="sequence">sequence of the entry to get.</param>
+        /// <returns>the data for the sequence.</returns>
         T GetEntry(long sequence);
 
         /// <summary>

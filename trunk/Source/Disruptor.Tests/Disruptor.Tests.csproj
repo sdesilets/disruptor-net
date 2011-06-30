@@ -54,12 +54,11 @@
     <Compile Include="BatchConsumerSequenceTrackingCallbackTests.cs" />
     <Compile Include="BatchConsumerTests.cs" />
     <Compile Include="ConsumerBarrierTests.cs" />
-    <Compile Include="EntryTranslatorTests.cs" />
     <Compile Include="FatalExceptionHandlerTests.cs" />
     <Compile Include="IgnoreExceptionHandlerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RingBufferTests.cs" />
-    <Compile Include="Support\StubEntry.cs" />
+    <Compile Include="Support\StubData.cs" />
     <Compile Include="Support\TestWaiter.cs" />
     <Compile Include="UtilTests.cs" />
   </ItemGroup>

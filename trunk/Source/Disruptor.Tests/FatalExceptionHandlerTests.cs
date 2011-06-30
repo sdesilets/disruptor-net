@@ -14,11 +14,13 @@ namespace Disruptor.Tests
         {
             var loggerMock = new Mock<ILogger>();
             var exception = new Exception();
-            var exceptionHandler = new FatalExceptionHandler(loggerMock.Object);
-            var entry = new StubEntry(-1);
+            var exceptionHandler = new FatalExceptionHandler<StubData>(loggerMock.Object);
+            var stub = new StubData(-1);
+            var entry = new Entry<StubData>(-1, stub);
 
             try
             {
+                
                 exceptionHandler.Handle(exception, entry);
             }
             catch (DisruptorFatalException e)
@@ -26,7 +28,7 @@ namespace Disruptor.Tests
                 Assert.AreSame(exception, e.InnerException);
             }
 
-            loggerMock.Verify(logger=> logger.Log(Level.Fatal, "Exception processing: " + entry, exception));
+            loggerMock.Verify(logger => logger.Log(Level.Fatal, "Exception processing: " + entry, exception));
         }
     }
 }

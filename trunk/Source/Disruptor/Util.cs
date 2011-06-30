@@ -37,10 +37,7 @@ namespace Disruptor
             for (var i = 0; i < consumers.Length; i++)
             {
                 var sequence = consumers[i].Sequence;
-                if(sequence < min)
-                {
-                    min = sequence;
-                }
+                min = min < sequence ? min : sequence;
             }
             return min;
         }

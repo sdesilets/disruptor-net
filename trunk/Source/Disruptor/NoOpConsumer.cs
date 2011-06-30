@@ -4,7 +4,7 @@
     /// No operation version of a <see cref="IConsumer"/> that simply tracks a <see cref="RingBuffer{T}"/>.
     ///  This is useful in tests or for pre-filling a <see cref="RingBuffer{T}"/> from a producer.
     /// </summary>
-    public sealed class NoOpConsumer<T>:IConsumer where T:IEntry
+    public sealed class NoOpConsumer<T>:IConsumer
     {
         private readonly RingBuffer<T> _ringBuffer;
 

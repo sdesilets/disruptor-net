@@ -1,19 +1,19 @@
-using System;
 using System.Collections.Concurrent;
-using System.Threading;
 
 namespace Disruptor.PerfTests.Support
 {
     public class ValueAdditionQueueConsumer
     {
-        private volatile bool _running;
         private long _sequence;
         private long _value;
         private readonly BlockingCollection<long> _queue;
+        private readonly long _iterations;
+        private volatile bool _done;
 
-        public ValueAdditionQueueConsumer(BlockingCollection<long> queue)
+        public ValueAdditionQueueConsumer(BlockingCollection<long> queue, long iterations)
         {
             _queue = queue;
+            _iterations = iterations;
         }
 
         public long Value
@@ -24,37 +24,23 @@ namespace Disruptor.PerfTests.Support
         public void Reset()
         {
             _value = 0L;
-            Sequence = -1L;
+            _sequence = -1L;
         }
 
-        public long Sequence
+        public bool Done
         {
-            get { return Thread.VolatileRead(ref _sequence); }
-            private set { Thread.VolatileWrite(ref _sequence, value); }
-        }
-
-        public void Halt()
-        {
-            _running = false;
+            get { return _done; }
         }
 
         public void Run()
         {
-            _running = true;
-            while (_running)
-            {                
-                try
-                {
-                    var value = _queue.Take();
-                    _value += value;
-                    _sequence++;
-                }
-                catch (Exception)
-                {
-                    break;
-                }
+            for(long i = 0; i<_iterations;i++)
+            {
+                var value = _queue.Take();
+                _value += value;
+                _sequence++;
             }
-            Sequence = _sequence; // publish
+            _done = true;
         }
     }
 }
