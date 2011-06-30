@@ -16,7 +16,10 @@ namespace Disruptor.PerfTests
                 GC.Collect();
 
                 disruptorOps = RunDisruptorPass(i);
+                Console.WriteLine("Run disruptor finished");
+
                 queueOps = RunQueuePass(i);
+                Console.WriteLine("Run queue finished");
 
                 PrintResults(GetType().Name, disruptorOps, queueOps, i);
             }

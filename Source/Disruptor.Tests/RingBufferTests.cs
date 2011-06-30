@@ -10,33 +10,34 @@ namespace Disruptor.Tests
     [TestFixture]
     public class RingBufferTests
     {
-        private RingBuffer<StubEntry> _ringBuffer;
-        private IConsumerBarrier<StubEntry> _consumerBarrier;
-        private IProducerBarrier<StubEntry> _producerBarrier;
+        private RingBuffer<StubData> _ringBuffer;
+        private IConsumerBarrier<StubData> _consumerBarrier;
+        private IProducerBarrier<StubData> _producerBarrier;
 
         [SetUp]
         public void SetUp()
         {
-            _ringBuffer = new RingBuffer<StubEntry>(()=>new StubEntry(-1), 20);
+            _ringBuffer = new RingBuffer<StubData>(()=>new StubData(-1), 20);
             _consumerBarrier = _ringBuffer.CreateConsumerBarrier();
-            _producerBarrier = _ringBuffer.CreateProducerBarrier(new NoOpConsumer<StubEntry>(_ringBuffer));
+            _producerBarrier = _ringBuffer.CreateProducerBarrier(new NoOpConsumer<StubData>(_ringBuffer));
         }
 
         [Test]
         public void ShouldClaimAndGet() 
         {
-            Assert.AreEqual(RingBuffer<StubEntry>.InitialCursorValue, _ringBuffer.Cursor);
+            Assert.AreEqual(RingBuffer<StubData>.InitialCursorValue, _ringBuffer.Cursor);
 
-            var expectedEntry = new StubEntry(2701);
+            var expectedEntry = new Entry<StubData>(-1, new StubData(2701));
 
-            var oldEntry = _producerBarrier.NextEntry();
-            oldEntry.Copy(expectedEntry);
-            _producerBarrier.Commit(oldEntry);
+            StubData oldData;
+            var seq = _producerBarrier.NextEntry(out oldData);
+            oldData.Value = expectedEntry.Data.Value;
+            _producerBarrier.Commit(seq);
 
             var sequence = _consumerBarrier.WaitFor(0);
             Assert.AreEqual(0L, sequence);
 
-            var entry = _ringBuffer.GetEntry(sequence);
+            var entry = _ringBuffer[sequence];
             Assert.AreEqual(expectedEntry, entry);
 
             Assert.AreEqual(0L, _ringBuffer.Cursor);
@@ -45,18 +46,19 @@ namespace Disruptor.Tests
         [Test]
         public void ShouldClaimAndGetWithTimeout() 
         {
-            Assert.AreEqual(RingBuffer<StubEntry>.InitialCursorValue, _ringBuffer.Cursor);
+            Assert.AreEqual(RingBuffer<StubData>.InitialCursorValue, _ringBuffer.Cursor);
 
-            var expectedEntry = new StubEntry(2701);
+            var expectedEntry = new Entry<StubData>(-1, new StubData(2701));
 
-            var oldEntry = _producerBarrier.NextEntry();
-            oldEntry.Copy(expectedEntry);
+            StubData oldData;
+            var oldEntry = _producerBarrier.NextEntry(out oldData);
+            oldData.Value = expectedEntry.Data.Value;
             _producerBarrier.Commit(oldEntry);
 
             var sequence = _consumerBarrier.WaitFor(0, TimeSpan.FromMilliseconds(5));
             Assert.AreEqual(0, sequence);
 
-            var entry = _ringBuffer.GetEntry(sequence);
+            var entry = _ringBuffer[sequence];
             Assert.AreEqual(expectedEntry, entry);
 
             Assert.AreEqual(0L, _ringBuffer.Cursor);
@@ -66,7 +68,7 @@ namespace Disruptor.Tests
         public void ShouldGetWithTimeout()
         {
             var sequence = _consumerBarrier.WaitFor(0, TimeSpan.FromMilliseconds(5));
-            Assert.AreEqual(RingBuffer<StubEntry>.InitialCursorValue, sequence);
+            Assert.AreEqual(RingBuffer<StubData>.InitialCursorValue, sequence);
         }
 
         [Test]
@@ -74,13 +76,15 @@ namespace Disruptor.Tests
         {
             var messages = GetMessages(0, 0);
 
-            var expectedEntry = new StubEntry(2701);
+            var expectedMessage = new StubData(2701);
 
-            var oldEntry = _producerBarrier.NextEntry();
-            oldEntry.Copy(expectedEntry);
-            _producerBarrier.Commit(oldEntry);
+            StubData oldData;
+            var sequence = _producerBarrier.NextEntry(out oldData);
+            oldData.Value = expectedMessage.Value;
 
-            Assert.AreEqual(expectedEntry, messages.Result[0]);
+            _producerBarrier.Commit(sequence);
+
+            Assert.AreEqual(expectedMessage, messages.Result[0]);
         }
 
         [Test]
@@ -89,8 +93,9 @@ namespace Disruptor.Tests
             var numMessages = _ringBuffer.Capacity;
             for (var i = 0; i < numMessages; i++)
             {
-                var entry = _producerBarrier.NextEntry();
-                entry.Value = i;
+                StubData data;
+                var entry = _producerBarrier.NextEntry(out data);
+                data.Value = i;
                 _producerBarrier.Commit(entry);
             }
 
@@ -100,7 +105,7 @@ namespace Disruptor.Tests
 
             for (var i = 0; i < numMessages; i++)
             {
-                Assert.AreEqual(i, _ringBuffer.GetEntry(i).Value);
+                Assert.AreEqual(i, _ringBuffer[i].Data.Value);
             }
         }
 
@@ -111,9 +116,10 @@ namespace Disruptor.Tests
             const int offset = 1000;
             for (var i = 0; i < numMessages + offset ; i++)
             {
-                var entry = _producerBarrier.NextEntry();
-                entry.Value = i;
-                _producerBarrier.Commit(entry);
+                StubData data;
+                var sequence = _producerBarrier.NextEntry(out data);
+                data.Value = i;
+                _producerBarrier.Commit(sequence);
             }
 
             var expectedSequence = numMessages + offset - 1;
@@ -122,7 +128,7 @@ namespace Disruptor.Tests
 
             for (var i = offset; i < numMessages + offset; i++)
             {
-                Assert.AreEqual(i, _ringBuffer.GetEntry(i).Value);
+                Assert.AreEqual(i, _ringBuffer[i].Data.Value);
             }
         }
 
@@ -130,22 +136,22 @@ namespace Disruptor.Tests
         public void ShouldSetAtSpecificSequence()
         {
             const long expectedSequence = 5;
-            var forceFillProducerBarrier = _ringBuffer.CreateForceFillProducerBarrier(new NoOpConsumer<StubEntry>(_ringBuffer));
+            var forceFillProducerBarrier = _ringBuffer.CreateForceFillProducerBarrier(new NoOpConsumer<StubData>(_ringBuffer));
 
-            var expectedEntry = forceFillProducerBarrier.ClaimEntry(expectedSequence);
-            expectedEntry.Value = (int)expectedSequence;
-            forceFillProducerBarrier.Commit(expectedEntry);
+            var expectedData = forceFillProducerBarrier.ClaimEntry(expectedSequence);
+            expectedData.Value = (int)expectedSequence;
+            forceFillProducerBarrier.Commit(expectedSequence);
 
             var sequence = _consumerBarrier.WaitFor(expectedSequence);
             Assert.AreEqual(expectedSequence, sequence);
 
-            StubEntry entry = _ringBuffer.GetEntry(sequence);
-            Assert.AreEqual(expectedEntry, entry);
+            var entry = _ringBuffer[sequence].Data;
+            Assert.AreEqual(expectedData, entry);
 
             Assert.AreEqual(expectedSequence, _ringBuffer.Cursor);
         }
 
-        private Task<Gen.List<StubEntry>> GetMessages(long initial, long toWaitFor)
+        private Task<Gen.List<StubData>> GetMessages(long initial, long toWaitFor)
         {
             var barrier = new Barrier(2);
             var consumerBarrier = _ringBuffer.CreateConsumerBarrier();

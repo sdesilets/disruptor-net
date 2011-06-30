@@ -9,16 +9,16 @@ namespace Disruptor
     public static class ClaimStrategyFactory
     {
         /// <summary>
-        /// Indicates the threading policy to be applied for claiming <see cref="IEntry"/>s by producers to the <see cref="RingBuffer{T}"/>.
+        /// Indicates the threading policy to be applied for claiming <see cref="Entry{T}"/>s by producers to the <see cref="RingBuffer{T}"/>.
         /// </summary>
         public enum ClaimStrategyOption
         {
             /// <summary>
-            /// Strategy to be used when there are multiple producer threads claiming <see cref="IEntry"/>s.
+            /// Strategy to be used when there are multiple producer threads claiming <see cref="Entry{T}"/>s.
             /// </summary>
             Multithreaded,
             /// <summary>
-            /// Optimised strategy can be used when there is a single producer thread claiming <see cref="IEntry"/>s.
+            /// Optimised strategy can be used when there is a single producer thread claiming <see cref="Entry{T}"/>s.
             /// </summary>
             SingleThreaded
         }
@@ -42,7 +42,7 @@ namespace Disruptor
         }
 
         /// <summary>
-        /// Strategy to be used when there are multiple producer threads claiming <see cref="IEntry"/>s.
+        /// Strategy to be used when there are multiple producer threads claiming <see cref="Entry{T}"/>s.
         /// </summary>
         private sealed class MultiThreadedStrategy : IClaimStrategy
         {
@@ -56,11 +56,10 @@ namespace Disruptor
 
             public void SetSequence(long sequence)
             {
-                //TODO review
                 Interlocked.Exchange(ref _sequence, sequence);
             }
 
-            public void WaitForCursor<T>(long sequence, RingBuffer<T> ringBuffer) where T:IEntry
+            public void WaitForCursor<T>(long sequence, RingBuffer<T> ringBuffer)
             {
                 while (ringBuffer.Cursor != sequence)
                 {
@@ -70,7 +69,7 @@ namespace Disruptor
         }
 
         /// <summary>
-        /// Optimised strategy can be used when there is a single producer thread claiming <see cref="IEntry"/>s.
+        /// Optimised strategy can be used when there is a single producer thread claiming <see cref="Entry{T}"/>s.
         /// </summary>
         private sealed class SingleThreadedStrategy : IClaimStrategy
         {
@@ -86,7 +85,7 @@ namespace Disruptor
                 _sequence = sequence;
             }
 
-            public void WaitForCursor<T>(long sequence, RingBuffer<T> ringBuffer) where T:IEntry
+            public void WaitForCursor<T>(long sequence, RingBuffer<T> ringBuffer)
             {
                 // no op when on a single producer.
             }

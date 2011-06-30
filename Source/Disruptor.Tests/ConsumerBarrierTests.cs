@@ -9,24 +9,24 @@ namespace Disruptor.Tests
     [TestFixture]
     public class ConsumerBarrierTests
     {
-        private RingBuffer<StubEntry> _ringBuffer;
+        private RingBuffer<StubData> _ringBuffer;
         private Mock<IConsumer> _consumerMock1;
         private Mock<IConsumer> _consumerMock2;
         private Mock<IConsumer> _consumerMock3;
-        private IConsumerBarrier<StubEntry> _consumerBarrier;
-        private IProducerBarrier<StubEntry> _producerBarrier;
+        private IConsumerBarrier<StubData> _consumerBarrier;
+        private IProducerBarrier<StubData> _producerBarrier;
 
         [SetUp]
         public void SetUp()
         {
-            _ringBuffer = new RingBuffer<StubEntry>(()=>new StubEntry(-1), 64);
+            _ringBuffer = new RingBuffer<StubData>(()=>new StubData(-1), 64);
 
             _consumerMock1 = new Mock<IConsumer>();
             _consumerMock2 = new Mock<IConsumer>();
             _consumerMock3 = new Mock<IConsumer>();
 
             _consumerBarrier = _ringBuffer.CreateConsumerBarrier(_consumerMock1.Object, _consumerMock2.Object, _consumerMock3.Object);
-            _producerBarrier = _ringBuffer.CreateProducerBarrier(new NoOpConsumer<StubEntry>(_ringBuffer));
+            _producerBarrier = _ringBuffer.CreateProducerBarrier(new NoOpConsumer<StubData>(_ringBuffer));
         }
 
         [Test]
@@ -64,13 +64,14 @@ namespace Disruptor.Tests
 
             new Thread(() =>
                     {
-                        var entry = _producerBarrier.NextEntry();
-                        entry.Value = (int) entry.Sequence;
-                        _producerBarrier.Commit(entry);
+                        StubData data;
+                        var sequence = _producerBarrier.NextEntry(out data);
+                        data.Value = (int)sequence; 
+                        _producerBarrier.Commit(sequence);
 
                         foreach (var stubWorker in workers)
                         {
-                            stubWorker.Sequence = entry.Sequence;
+                            stubWorker.Sequence = sequence;
                         }
                     })
                     .Start();
@@ -88,10 +89,24 @@ namespace Disruptor.Tests
             FillRingBuffer(expectedNumberMessages);
 
             var countdownEvent = new CountdownEvent(9);
+            var count = 0;
 
-            _consumerMock1.SetupGet(c => c.Sequence).Returns(8L).Callback(() => countdownEvent.Signal());
-            _consumerMock2.SetupGet(c => c.Sequence).Returns(8L).Callback(() => countdownEvent.Signal());
-            _consumerMock3.SetupGet(c => c.Sequence).Returns(8L).Callback(() => countdownEvent.Signal());
+            _consumerMock1.SetupGet(c => c.Sequence).Returns(8L).Callback(() =>
+                                                                              {
+                                                                                  
+                                                                                  count++;
+                                                                                  //countdownEvent.Signal();
+                                                                              });
+            _consumerMock2.SetupGet(c => c.Sequence).Returns(8L).Callback(() =>
+                                                                              {
+                                                                                  //countdownEvent.Signal();
+                                                                                  count++;
+                                                                              });
+            _consumerMock3.SetupGet(c => c.Sequence).Returns(8L).Callback(() =>
+                                                                              {
+                                                                                  //countdownEvent.Signal();
+                                                                                  count++;
+                                                                              });
 
             var alerted = new[] { false };
             var t = new Thread(() =>
@@ -114,6 +129,8 @@ namespace Disruptor.Tests
             Assert.IsTrue(countdownEvent.Wait(TimeSpan.FromMilliseconds(1000)));
             _consumerBarrier.Alert();
             t.Join();
+
+            Console.WriteLine("Count:" + count);
 
             Assert.IsTrue(alerted[0], "Thread was not interrupted");
 
@@ -165,9 +182,10 @@ namespace Disruptor.Tests
         {
             for (var i = 0; i < expectedNumberMessages; i++)
             {
-                var entry = _producerBarrier.NextEntry();
-                entry.Value = (int)i;
-                _producerBarrier.Commit(entry);
+                StubData data;
+                var sequence = _producerBarrier.NextEntry(out data);
+                data.Value = i;
+                _producerBarrier.Commit(sequence);
             }
         }
 

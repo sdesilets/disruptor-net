@@ -1,13 +1,13 @@
 ﻿namespace Disruptor
 {
     /// <summary>
-    /// EntryConsumers waitFor <see cref="IEntry"/>s to become available for consumption from the <see cref="RingBuffer{T}"/>
+    /// EntryConsumers waitFor entries to become available for consumption from the <see cref="RingBuffer{T}"/>
     /// </summary>
     public interface IConsumer : IRunnable //TODO remove IRunnable, useless in .NET
     {
         /// <summary>
-        /// Get the sequence up to which this Consumer has consumed <see cref="IEntry"/>s
-        /// Return the sequence of the last consumed <see cref="IEntry"/>
+        /// Get the sequence up to which this Consumer has consumed entries
+        /// Return the sequence of the last consumed entry
         /// </summary>
         long Sequence { get; }
 

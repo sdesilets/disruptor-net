@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace Disruptor
 {
     ///<summary>
-    /// Exceptions handled by <see cref="FatalExceptionHandler"/> are wrapped into a <see cref="DisruptorFatalException"/> before beeing thrown
+    /// Exceptions handled by <see cref="FatalExceptionHandler{T}"/> are wrapped into a <see cref="DisruptorFatalException"/> before beeing thrown
     ///</summary>
     [Serializable]
     public class DisruptorFatalException : Exception

@@ -1,6 +1,6 @@
 namespace Disruptor.PerfTests.Support
 {
-    public class ValueAdditionHandler:IBatchHandler<ValueEntry>
+    public class ValueAdditionHandler:IBatchHandler<long>
     {
         private long _value;
 
@@ -14,9 +14,9 @@ namespace Disruptor.PerfTests.Support
             _value = 0;
         }
 
-        public void OnAvailable(ValueEntry entry)
+        public void OnAvailable(long sequence, long value)
         {
-            _value += entry.Value;
+            _value += value;
         }
 
         public void OnEndOfBatch()

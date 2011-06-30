@@ -56,7 +56,7 @@ namespace Disruptor
         {
             private readonly object _gate = new object();
 
-            public long WaitFor<T>(IConsumer[] consumers, RingBuffer<T> ringBuffer, IConsumerBarrier<T> barrier, long sequence) where T : IEntry
+            public long WaitFor<T>(IConsumer[] consumers, RingBuffer<T> ringBuffer, IConsumerBarrier<T> barrier, long sequence)
             {
                 long availableSequence;
                 if ((availableSequence = ringBuffer.Cursor) < sequence)
@@ -89,7 +89,7 @@ namespace Disruptor
                 return availableSequence;
             }
 
-            public long WaitFor<T>(IConsumer[] consumers, RingBuffer<T> ringBuffer, IConsumerBarrier<T> barrier, long sequence, TimeSpan timeout) where T : IEntry
+            public long WaitFor<T>(IConsumer[] consumers, RingBuffer<T> ringBuffer, IConsumerBarrier<T> barrier, long sequence, TimeSpan timeout)
             {
                 long availableSequence;
                 if ((availableSequence = ringBuffer.Cursor) < sequence)
@@ -140,7 +140,7 @@ namespace Disruptor
         /// </summary>
         private sealed class YieldingStrategy:IWaitStrategy
         {
-            public long WaitFor<T>(IConsumer[] consumers, RingBuffer<T> ringBuffer, IConsumerBarrier<T> barrier, long sequence) where T : IEntry
+            public long WaitFor<T>(IConsumer[] consumers, RingBuffer<T> ringBuffer, IConsumerBarrier<T> barrier, long sequence)
             {
                 long availableSequence;
 
@@ -172,7 +172,7 @@ namespace Disruptor
                 return availableSequence;
             }
 
-            public long WaitFor<T>(IConsumer[] consumers, RingBuffer<T> ringBuffer, IConsumerBarrier<T> barrier, long sequence, TimeSpan timeout) where T : IEntry
+            public long WaitFor<T>(IConsumer[] consumers, RingBuffer<T> ringBuffer, IConsumerBarrier<T> barrier, long sequence, TimeSpan timeout)
             {
                 var expirationTime = DateTime.UtcNow + timeout;
                 long availableSequence;
@@ -226,7 +226,7 @@ namespace Disruptor
         /// </summary>
         private sealed class BusySpinStrategy:IWaitStrategy
         {
-            public long WaitFor<T>(IConsumer[] consumers, RingBuffer<T> ringBuffer, IConsumerBarrier<T> barrier, long sequence) where T : IEntry
+            public long WaitFor<T>(IConsumer[] consumers, RingBuffer<T> ringBuffer, IConsumerBarrier<T> barrier, long sequence)
             {
                 long availableSequence;
 
@@ -254,7 +254,7 @@ namespace Disruptor
                 return availableSequence;
             }
 
-            public long WaitFor<T>(IConsumer[] consumers, RingBuffer<T> ringBuffer, IConsumerBarrier<T> barrier, long sequence, TimeSpan timeout) where T : IEntry
+            public long WaitFor<T>(IConsumer[] consumers, RingBuffer<T> ringBuffer, IConsumerBarrier<T> barrier, long sequence, TimeSpan timeout)
             {
                 var expirationTime = DateTime.UtcNow + timeout;
                 long availableSequence;

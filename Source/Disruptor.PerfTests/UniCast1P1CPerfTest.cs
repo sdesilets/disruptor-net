@@ -55,7 +55,6 @@ namespace Disruptor.PerfTests
     public class UniCast1P1CPerfTest : AbstractPerfTestQueueVsDisruptor
     {
         private const int Size = 1024 * 32;
-        //private const long Iterations = 1000L * 1000L * 500L;
         private const long Iterations = 1000L * 1000L * 10L;
 
         private static long ExpectedResult
@@ -79,25 +78,25 @@ namespace Disruptor.PerfTests
 
         ///////////////////////////////////////////////////////////////////////////////////////////////
 
-        private readonly RingBuffer<ValueEntry> _ringBuffer;
-        private readonly IConsumerBarrier<ValueEntry> _consumerBarrier;
+        private readonly RingBuffer<long> _ringBuffer;
+        private readonly IConsumerBarrier<long> _consumerBarrier;
         private readonly ValueAdditionHandler _handler;
-        private readonly BatchConsumer<ValueEntry> _batchConsumer;
-        private readonly IProducerBarrier<ValueEntry> _producerBarrier;
+        private readonly BatchConsumer<long> _batchConsumer;
+        private readonly IProducerBarrier<long> _producerBarrier;
 
         ///////////////////////////////////////////////////////////////////////////////////////////////
 
         public UniCast1P1CPerfTest()
         {
-            _queueConsumer = new ValueAdditionQueueConsumer(_queue);
+            _queueConsumer = new ValueAdditionQueueConsumer(_queue, Iterations);
 
-            _ringBuffer = new RingBuffer<ValueEntry>(()=> new ValueEntry(), Size, 
+            _ringBuffer = new RingBuffer<long>(Size, 
                                                      ClaimStrategyFactory.ClaimStrategyOption.SingleThreaded,
                                                      WaitStrategyFactory.WaitStrategyOption.Yielding);
 
             _consumerBarrier = _ringBuffer.CreateConsumerBarrier();
             _handler = new ValueAdditionHandler();
-            _batchConsumer = new BatchConsumer<ValueEntry>(_consumerBarrier, _handler);
+            _batchConsumer = new BatchConsumer<long>(_consumerBarrier, _handler);
             _producerBarrier = _ringBuffer.CreateProducerBarrier(_batchConsumer);
         }
 
@@ -121,14 +120,12 @@ namespace Disruptor.PerfTests
                 _queue.Add(i);
             }
 
-            const long expectedSequence = Iterations - 1L;
-            while (_queueConsumer.Sequence < expectedSequence)
+            while (!_queueConsumer.Done)
             {
                 // busy spin
             }
 
             var opsPerSecond = (Iterations * 1000L) / (sw.ElapsedMilliseconds);
-            _queueConsumer.Halt();
 
             cts.Cancel(true);
 
@@ -147,9 +144,8 @@ namespace Disruptor.PerfTests
 
             for (long i = 0; i < Iterations; i++)
             {
-                var entry = _producerBarrier.NextEntry();
-                entry.Value = i;
-                _producerBarrier.Commit(entry);
+                var sequence = _producerBarrier.NextEntry();
+                _producerBarrier.Commit(sequence, i);
             }
 
             var expectedSequence = _ringBuffer.Cursor;

@@ -4,7 +4,6 @@ namespace Disruptor
 {
     /// <summary>
     /// Used to alert consumers waiting at a <see cref="IConsumerBarrier{T}"/> of status changes.
-    /// TODO It does not fill in a stack trace for performance reasons.
     /// </summary>
     [Serializable]
     public class AlertException : Exception
@@ -21,7 +20,7 @@ namespace Disruptor
         {
         }
 
-        //TODO
+        //TODO I don't think we can do that in .NET
         /*
      * Overridden so the stack trace is not filled in for this exception for performance reasons.
      *

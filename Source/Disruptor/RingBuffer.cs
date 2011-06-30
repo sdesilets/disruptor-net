@@ -5,10 +5,10 @@ using Disruptor.MemoryLayout;
 namespace Disruptor
 {
     /// <summary>
-    /// Ring based store of reusable entries containing the data representing an <see cref="IEntry"/> being exchanged between producers and consumers.
+    /// Ring based store of reusable entries containing the data representing an <see cref="Entry{T}"/> being exchanged between producers and consumers.
     /// </summary>
     /// <typeparam name="T">Entry implementation storing the data for sharing during exchange or parallel coordination of an event.</typeparam>
-    public sealed class RingBuffer<T> where T : IEntry
+    public sealed class RingBuffer<T>
     {
         /// <summary>
         /// Initial cursor value, set to -1 as sequence starting point 
@@ -17,7 +17,7 @@ namespace Disruptor
 
         private CacheLineStorageLong _cursor = new CacheLineStorageLong(InitialCursorValue);
 
-        private readonly T[] _entries;
+        private readonly Entry<T>[] _entries;
         private readonly int _ringModMask;
 
         private readonly IClaimStrategy _claimStrategy;
@@ -25,16 +25,45 @@ namespace Disruptor
 
         /// <summary>
         /// Construct a RingBuffer with the full option set.
+        /// Use this constructor is T is a value type, otherwise use the other constructor which require a factory to fill the <see cref="RingBuffer{T}"/> with pre-allocated instances of T
         /// </summary>
-        /// <param name="entryFactory"> entryFactory to create<see cref="IEntry"/>s for filling the RingBuffer</param>
         /// <param name="size">size of the RingBuffer that will be rounded up to the next power of 2</param>
-        /// <param name="claimStrategyOption"> threading strategy for producers claiming <see cref="IEntry"/>s in the ring.</param>
-        /// <param name="waitStrategyOption">waiting strategy employed by consumers waiting on <see cref="IEntry"/>s becoming available.</param>
-        public RingBuffer(Func<T> entryFactory, int size, ClaimStrategyFactory.ClaimStrategyOption claimStrategyOption = ClaimStrategyFactory.ClaimStrategyOption.Multithreaded, WaitStrategyFactory.WaitStrategyOption waitStrategyOption = WaitStrategyFactory.WaitStrategyOption.Blocking)
+        /// <param name="claimStrategyOption"> threading strategy for producers claiming <see cref="Entry{T}"/>s in the ring.</param>
+        /// <param name="waitStrategyOption">waiting strategy employed by consumers waiting on <see cref="Entry{T}"/>s becoming available.</param>
+        public RingBuffer(int size, ClaimStrategyFactory.ClaimStrategyOption claimStrategyOption = ClaimStrategyFactory.ClaimStrategyOption.Multithreaded, WaitStrategyFactory.WaitStrategyOption waitStrategyOption = WaitStrategyFactory.WaitStrategyOption.Blocking)
         {
+            if(!typeof(T).IsValueType)
+            {
+                throw new InvalidOperationException(
+                    "This constructor should be used only when T is a value type (struct)");
+            }
+
             var sizeAsPowerOfTwo = Util.CeilingNextPowerOfTwo(size);
             _ringModMask = sizeAsPowerOfTwo - 1;
-            _entries = new T[sizeAsPowerOfTwo];
+            _entries = new Entry<T>[sizeAsPowerOfTwo];
+
+            _claimStrategy = ClaimStrategyFactory.GetInstance(claimStrategyOption);
+            _waitStrategy = WaitStrategyFactory.GetInstance(waitStrategyOption);
+        }
+
+        /// <summary>
+        /// Construct a RingBuffer with the full option set.
+        /// </summary>
+        /// <param name="entryFactory"> entryFactory to create instances of T for filling the RingBuffer</param>
+        /// <param name="size">size of the RingBuffer that will be rounded up to the next power of 2</param>
+        /// <param name="claimStrategyOption"> threading strategy for producers claiming entries in the ring.</param>
+        /// <param name="waitStrategyOption">waiting strategy employed by consumers waiting on entries becoming available.</param>
+        public RingBuffer(Func<T> entryFactory, int size, ClaimStrategyFactory.ClaimStrategyOption claimStrategyOption = ClaimStrategyFactory.ClaimStrategyOption.Multithreaded, WaitStrategyFactory.WaitStrategyOption waitStrategyOption = WaitStrategyFactory.WaitStrategyOption.Blocking)
+        {
+            if (typeof(T).IsValueType)
+            {
+                throw new InvalidOperationException(
+                    "This constructor should be used only when T is a reference type (class, array, etc)");
+            }
+
+            var sizeAsPowerOfTwo = Util.CeilingNextPowerOfTwo(size);
+            _ringModMask = sizeAsPowerOfTwo - 1;
+            _entries = new Entry<T>[sizeAsPowerOfTwo];
 
             _claimStrategy = ClaimStrategyFactory.GetInstance(claimStrategyOption);
             _waitStrategy = WaitStrategyFactory.GetInstance(waitStrategyOption);
@@ -90,22 +119,24 @@ namespace Disruptor
             private set{ _cursor.VolatileData = value;}
         }
 
-        /// <summary>
-        /// Get the <see cref="IEntry"/> for a given sequence in the RingBuffer.
-        /// </summary>
-        /// <param name="sequence">sequence for the <see cref="IEntry"/></param>
-        /// <returns><see cref="IEntry"/> for the sequence</returns>
-        public T GetEntry(long sequence)
+        ///<summary>
+        /// Get the <see cref="Entry{T}"/> for a given sequence in the RingBuffer.
+        ///</summary>
+        ///<param name="sequence">sequence for the <see cref="Entry{T}"/></param>
+        public Entry<T> this[long sequence]
         {
-            //TODO replace by indexer?
-            return _entries[(int)sequence & _ringModMask];
+            get
+            {
+                return _entries[(int)sequence & _ringModMask];
+            }
         }
 
         private void Fill(Func<T> entryEntryFactory)
         {
             for (var i = 0; i < _entries.Length; i++)
             {
-                _entries[i] = entryEntryFactory();
+                var data = entryEntryFactory();
+                _entries[i] = new Entry<T>(-1, data);
             }
         }
 
@@ -113,7 +144,7 @@ namespace Disruptor
         /// ConsumerBarrier handed out for gating consumers of the RingBuffer and dependent <see cref="IConsumer"/>(s)
         /// </summary>
         /// <typeparam name="TU"></typeparam>
-        private sealed class ConsumerTrackingConsumerBarrier<TU> : IConsumerBarrier<TU> where TU : IEntry
+        private sealed class ConsumerTrackingConsumerBarrier<TU> : IConsumerBarrier<TU>
         {
             public CacheLinePadding CacheLinePadding1;
             private readonly IConsumer[] _consumers;
@@ -133,7 +164,7 @@ namespace Disruptor
 
             public TU GetEntry(long sequence)
             {
-                return _ringBuffer._entries[(int)sequence & _ringBuffer._ringModMask];
+                return _ringBuffer._entries[(int)sequence & _ringBuffer._ringModMask].Data;
             }
 
             public long WaitFor(long sequence)
@@ -170,7 +201,7 @@ namespace Disruptor
 
         /// <summary>
         /// <see cref="IProducerBarrier{T}"/> that tracks multiple <see cref="IConsumer"/>s when trying to claim
-        /// a <see cref="IEntry"/> in the <see cref="RingBuffer{T}"/>.
+        /// a <see cref="Entry{T}"/> in the <see cref="RingBuffer{T}"/>.
         /// </summary>
         private sealed class ConsumerTrackingProducerBarrier : IProducerBarrier<T>
         {
@@ -188,20 +219,37 @@ namespace Disruptor
                 _consumers = consumers;
             }
 
-            public T NextEntry()
+            public long NextEntry(out T data)
             {
                 var sequence = _ringBuffer._claimStrategy.GetAndIncrement();
                 EnsureConsumersAreInRange(sequence);
 
-                var entry = _ringBuffer._entries[(int)sequence & _ringBuffer._ringModMask];
-                entry.Sequence = sequence;
+                data = _ringBuffer._entries[(int)sequence & _ringBuffer._ringModMask].Data;
 
-                return entry;
+                return sequence;
             }
 
-            public void Commit(T entry)
+            public long NextEntry()
             {
-                var sequence = entry.Sequence;
+                var sequence = _ringBuffer._claimStrategy.GetAndIncrement();
+                EnsureConsumersAreInRange(sequence);
+                return sequence;
+            }
+
+            // TODO refactor with 2 distinct interfaces
+
+            // reference type, data in the ring buffer as been modified through the reference
+            public void Commit(long sequence)
+            {
+                _ringBuffer._claimStrategy.WaitForCursor(sequence - 1L, _ringBuffer);
+                _ringBuffer.Cursor = sequence;
+                _ringBuffer._waitStrategy.SignalAll();
+            }
+
+            // value type, data needs to be copied back to the ring buffer
+            public void Commit(long sequence, T data)
+            {
+                _ringBuffer._entries[(int)sequence & _ringBuffer._ringModMask] = new Entry<T>(sequence, data);
                 _ringBuffer._claimStrategy.WaitForCursor(sequence - 1L, _ringBuffer);
                 _ringBuffer.Cursor = sequence;
                 _ringBuffer._waitStrategy.SignalAll();
@@ -223,7 +271,7 @@ namespace Disruptor
 
         /// <summary>
         /// <see cref="IForceFillProducerBarrier{T}"/> that tracks multiple <see cref="IConsumer"/>s when trying to claim
-        ///  a <see cref="IEntry"/> in the <see cref="RingBuffer{T}"/>.
+        ///  a <see cref="Entry{T}"/> in the <see cref="RingBuffer{T}"/>.
         /// </summary>
         private sealed class ForceFillConsumerTrackingProducerBarrier : IForceFillProducerBarrier<T>
         {
@@ -241,27 +289,44 @@ namespace Disruptor
                 _consumers = consumers;
             }
 
+            public void ClaimEntryValueType(long sequence)
+            {
+                EnsureConsumersAreInRange(sequence);
+            }
+
             public T ClaimEntry(long sequence)
             {
                 EnsureConsumersAreInRange(sequence);
 
                 var entry = _ringBuffer._entries[(int)sequence & _ringBuffer._ringModMask];
-                entry.Sequence = sequence;
 
-                return entry;
+                return entry.Data;
             }
 
-            public void Commit(T entry)
+            //value type
+            public void Commit(long sequence, T data)
             {
-                var sequence = entry.Sequence;
+                _ringBuffer._entries[(int)sequence & _ringBuffer._ringModMask] = new Entry<T>(sequence, data);
+
                 _ringBuffer._claimStrategy.SetSequence(sequence + 1L);
                 _ringBuffer.Cursor = sequence;
                 _ringBuffer._waitStrategy.SignalAll();
             }
 
-            public long GetCursor()
+            //reference type
+            public void Commit(long sequence)
             {
-                return _ringBuffer.Cursor;
+                _ringBuffer._claimStrategy.SetSequence(sequence + 1L);
+                _ringBuffer.Cursor = sequence;
+                _ringBuffer._waitStrategy.SignalAll();
+            }
+
+            public long Cursor
+            {
+                get
+                {
+                    return _ringBuffer.Cursor;    
+                }
             }
 
             private void EnsureConsumersAreInRange(long sequence)
