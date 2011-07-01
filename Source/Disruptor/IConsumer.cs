@@ -3,7 +3,7 @@
     /// <summary>
     /// EntryConsumers waitFor entries to become available for consumption from the <see cref="RingBuffer{T}"/>
     /// </summary>
-    public interface IConsumer : IRunnable //TODO remove IRunnable, useless in .NET
+    public interface IConsumer
     {
         /// <summary>
         /// Get the sequence up to which this Consumer has consumed entries
@@ -16,5 +16,10 @@
         /// It will call <see cref="IConsumerBarrier{T}.Alert"/> to notify the thread to check status.
         /// </summary>
         void Halt();
+
+        /// <summary>
+        /// Starts the consumer 
+        /// </summary>
+        void Run();
     }
 }
