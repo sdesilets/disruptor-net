@@ -3,12 +3,21 @@ using Disruptor.PerfTests;
 
 namespace Disruptor.PerfTestRunner
 {
-    public class Program
+    public static class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
-            (new Pipeline3StepPerfTest()).ShouldCompareDisruptorVsQueues();
-            (new UniCast1P1CPerfTest()).ShouldCompareDisruptorVsQueues();
+            try
+            {
+                (new UniCast1P1CPerfTest()).ShouldCompareDisruptorVsQueues();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception thrown in UniCast1P1CPerfTest:" + e);
+                throw;
+            }
+
+            //(new Pipeline3StepPerfTest()).ShouldCompareDisruptorVsQueues();
 
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey();

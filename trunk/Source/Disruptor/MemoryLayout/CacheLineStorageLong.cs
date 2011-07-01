@@ -37,18 +37,9 @@ namespace Disruptor.MemoryLayout
         }
 
         /// <summary>
-        /// Expose data without fence
-        /// </summary>
-        public long Data
-        {
-            get{return _data;}
-            set{_data=value;}
-        }
-
-        /// <summary>
         /// Expose data with full fence on read and write
         /// </summary>
-        public long VolatileData
+        public long Data
         {
             get 
             { 

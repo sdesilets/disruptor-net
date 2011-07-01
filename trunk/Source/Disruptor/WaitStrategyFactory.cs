@@ -58,8 +58,8 @@ namespace Disruptor
 
             public long WaitFor<T>(IConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence)
             {
-                long availableSequence;
-                if ((availableSequence = ringBuffer.Cursor) < sequence)
+                var availableSequence = ringBuffer.Cursor;
+                if (availableSequence < sequence)
                 {
                     lock(_gate)
                     {
@@ -77,7 +77,7 @@ namespace Disruptor
 
                 if (0 != consumers.Length)
                 {
-                    while ((availableSequence = Util.GetMinimumSequence(consumers)) < sequence)
+                    while ((availableSequence = consumers.GetMinimumSequence()) < sequence)
                     {
                         if (barrier.IsAlerted)
                         {
@@ -113,7 +113,7 @@ namespace Disruptor
 
                 if (0 != consumers.Length)
                 {
-                    while ((availableSequence = Util.GetMinimumSequence(consumers)) < sequence)
+                    while ((availableSequence = consumers.GetMinimumSequence()) < sequence)
                     {
                         if (barrier.IsAlerted)
                         {
@@ -158,7 +158,7 @@ namespace Disruptor
                 }
                 else
                 {
-                    while ((availableSequence = Util.GetMinimumSequence(consumers)) < sequence)
+                    while ((availableSequence = consumers.GetMinimumSequence()) < sequence)
                     {
                         if (barrier.IsAlerted)
                         {
@@ -196,7 +196,7 @@ namespace Disruptor
                 }
                 else
                 {
-                    while ((availableSequence = Util.GetMinimumSequence(consumers)) < sequence)
+                    while ((availableSequence = consumers.GetMinimumSequence()) < sequence)
                     {
                         if (barrier.IsAlerted)
                         {
@@ -242,7 +242,7 @@ namespace Disruptor
                 }
                 else
                 {
-                    while ((availableSequence = Util.GetMinimumSequence(consumers)) < sequence)
+                    while ((availableSequence = consumers.GetMinimumSequence()) < sequence)
                     {
                         if (barrier.IsAlerted)
                         {
@@ -276,7 +276,7 @@ namespace Disruptor
                 }
                 else
                 {
-                    while ((availableSequence = Util.GetMinimumSequence(consumers)) < sequence)
+                    while ((availableSequence = consumers.GetMinimumSequence()) < sequence)
                     {
                         if (barrier.IsAlerted)
                         {

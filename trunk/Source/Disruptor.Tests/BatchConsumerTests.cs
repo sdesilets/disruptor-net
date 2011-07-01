@@ -62,11 +62,6 @@ namespace Disruptor.Tests
                                   handlerOk = handlerOk &&(sequenceCounter[0] == 1);
                                   sequenceCounter[0]++;
                               });
-            _batchHandlerMock.Setup(bh => bh.OnCompletion())
-                            .Callback(() =>
-                            {
-                                handlerOk = handlerOk && (sequenceCounter[0] == 2);
-                            }); 
 
             var thread = new Thread(_batchConsumer.Run);
             thread.Start();
@@ -92,7 +87,6 @@ namespace Disruptor.Tests
             _batchHandlerMock.Setup(bh => bh.OnAvailable(1, _ringBuffer[1].Data));
             _batchHandlerMock.Setup(bh => bh.OnAvailable(2, _ringBuffer[2].Data));
             _batchHandlerMock.Setup(bh => bh.OnEndOfBatch()).Callback(() => _countDownEvent.Signal());
-            _batchHandlerMock.Setup(bh => bh.OnCompletion());
 
             StubData data;
             _producerBarrier.Commit(_producerBarrier.NextEntry(out data));
@@ -122,7 +116,6 @@ namespace Disruptor.Tests
                              .Callback(() => { throw ex; });
             exceptionHandlerMock.Setup(handler => handler.Handle(ex, It.IsAny<Entry<StubData>>()))
                              .Callback(() => _countDownEvent.Signal());
-            _batchHandlerMock.Setup(bh => bh.OnCompletion());
 
             var thread = new Thread(_batchConsumer.Run);
             thread.Start();

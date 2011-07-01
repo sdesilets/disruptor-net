@@ -1,0 +1,44 @@
+﻿participant Producer
+participant ProducerBarrier
+participant ClaimStrategy
+participant RingBuffer
+participant WaitStrategy
+participant ConsumerBarrier
+participant BatchConsumer
+participant BatchHandler
+
+BatchConsumer->ConsumerBarrier:WaitFor(sequence)
+ConsumerBarrier->WaitStrategy:WaitFor(sequence)
+activate WaitStrategy
+
+Producer->ProducerBarrier: NextEntry
+activate ProducerBarrier
+ProducerBarrier->ClaimStrategy:GetAndIncrement
+ProducerBarrier->ProducerBarrier:EnsureConsumersAreInRange
+ProducerBarrier->Producer:return sequence and data
+deactivate ProducerBarrier
+note left of Producer: ProducerBarrier returns a reference \nto the recycled object pre-allocated\n in the RingBuffer (to prevent allocation).
+
+Producer->Producer: Update recycled object
+Producer->ProducerBarrier: Commit(sequence)
+activate ProducerBarrier
+ProducerBarrier->ClaimStrategy:WaitForCursor
+note left of ProducerBarrier:Wait for other producers
+ProducerBarrier->RingBuffer:Set cursor to sequence
+note left of ProducerBarrier: notifies waiting consumers\nthey can progress
+ProducerBarrier->WaitStrategy:SignalAll()
+ProducerBarrier->Producer:Commit returns
+deactivate ProducerBarrier
+
+WaitStrategy->ConsumerBarrier:WaitFor returns
+deactivate WaitStrategy
+ConsumerBarrier->BatchConsumer:WaitFor returns
+
+
+BatchConsumer->ConsumerBarrier:GetEntry(sequence)
+BatchConsumer->BatchHandler:OnAvailable(sequence, data)
+BatchConsumer->BatchHandler:OnEndOfBatch()
+BatchConsumer->BatchConsumer:_sequence=sequence
+
+BatchConsumer->ConsumerBarrier:WaitFor(_sequence+1)
+

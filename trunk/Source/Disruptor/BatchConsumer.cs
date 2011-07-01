@@ -6,16 +6,20 @@ namespace Disruptor
     /// <summary>
     /// Convenience class for handling the batching semantics of consuming entries from a <see cref="RingBuffer{T}"/>
     /// and delegating the available <see cref="Entry{T}"/>s to a <see cref="IBatchHandler{T}"/>.
+    /// 
+    /// If the {@link BatchHandler} also implements {@link LifecycleAware} it will be notified just after the thread
+    /// is started and just before the thread is shutdown.
     /// </summary>
     /// <typeparam name="T">Entry implementation storing the data for sharing during exchange or parallel coordination of an event.</typeparam>
     public sealed class BatchConsumer<T> : IConsumer
     {
-        private CacheLineStorageBool _running = new CacheLineStorageBool(true);
-        private CacheLineStorageLong _sequence = new CacheLineStorageLong(-1L);
         private readonly IConsumerBarrier<T> _consumerBarrier;
         private readonly IBatchHandler<T> _handler;
         private readonly bool _noSequenceTracker;
         private IExceptionHandler<T> _exceptionHandler = new FatalExceptionHandler<T>();
+
+        private CacheLineStorageBool _running = new CacheLineStorageBool(true);
+        private CacheLineStorageLong _sequence = new CacheLineStorageLong(-1L);
 
         /// <summary>
         /// Construct a batch consumer that will automatically track the progress by updating its sequence when
@@ -67,21 +71,25 @@ namespace Disruptor
             get { return _consumerBarrier; }
         }
 
-
         /// <summary>
         /// It is ok to have another thread rerun this method after a halt().
         /// </summary>
         public void Run()
         {
-            _running.VolatileData = true;
+            _running.Data = true;
             var data = default(T);
             var i = 0L;
 
-            while (_running.VolatileData)
+            var lifecycleAware = _handler as ILifecycleAware;
+            if(lifecycleAware != null)
+            {
+                lifecycleAware.OnStart();
+            }
+
+            while (_running.Data)
             {
                 try
                 {
-                    
                     var nextSequence = Sequence + 1;
                     var availableSeq = _consumerBarrier.WaitFor(nextSequence);
 
@@ -90,6 +98,7 @@ namespace Disruptor
                         data = _consumerBarrier.GetEntry(i);
                         _handler.OnAvailable(i, data);
 
+                        //TODO move after _handler.OnEndOfBatch(); (does not work in my code but they changed that in the java version)
                         if (_noSequenceTracker)
                         {
                             Sequence = i;
@@ -112,7 +121,10 @@ namespace Disruptor
                 }
             }
 
-            _handler.OnCompletion();
+            if (lifecycleAware != null)
+            {
+                lifecycleAware.OnStop();
+            }
         }
 
         /// <summary>
@@ -121,8 +133,8 @@ namespace Disruptor
         /// </summary>
         public long Sequence
         {
-            get { return _sequence.VolatileData; }
-            private set { _sequence.VolatileData = value;}
+            get { return _sequence.Data; }
+            private set { _sequence.Data = value;}
         }
 
         /// <summary>
@@ -131,7 +143,7 @@ namespace Disruptor
         /// </summary>
         public void Halt()
         {
-            _running.VolatileData = false;
+            _running.Data = false;
             _consumerBarrier.Alert();
         }
 

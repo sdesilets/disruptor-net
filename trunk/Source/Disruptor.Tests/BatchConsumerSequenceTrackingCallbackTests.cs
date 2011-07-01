@@ -15,7 +15,7 @@ namespace Disruptor.Tests
         [Ignore("Test to fix, the Sequence in BatchConsumer appears to not increment properly, have to dig...")]
         public void ShouldReportProgressByUpdatingSequenceViaCallback()
         {
-            var ringBuffer = new RingBuffer<StubData>(()=>new StubData(-1), 16);
+            var ringBuffer = new RingBuffer<StubData>(() => new StubData(-1), 16);
             var consumerBarrier = ringBuffer.CreateConsumerBarrier();
             var handler = new TestSequenceTrackingHandler(_onAvailableCountdown, _readyToCallbackCountdown);
             var batchConsumer = new BatchConsumer<StubData>(consumerBarrier, handler);
@@ -66,10 +66,6 @@ namespace Disruptor.Tests
             }
 
             public void OnEndOfBatch()
-            {
-            }
-
-            public void OnCompletion()
             {
             }
 

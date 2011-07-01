@@ -48,7 +48,9 @@
     </Compile>
     <Compile Include="AlertException.cs" />
     <Compile Include="BatchConsumer.cs" />
+    <Compile Include="ConsumerExtensions.cs" />
     <Compile Include="Entry.cs" />
+    <Compile Include="ILifecycleAware.cs" />
     <Compile Include="IReferenceTypeForceFillProducerBarrier.cs" />
     <Compile Include="IReferenceTypeProducerBarrier.cs" />
     <Compile Include="ISequencable.cs" />
@@ -81,6 +83,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Java\collections\Histogram.java" />
+    <Content Include="SequenceDiagram.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="DisruptorClassDiagram.cd" />
