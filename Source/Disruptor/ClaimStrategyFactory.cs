@@ -46,12 +46,12 @@ namespace Disruptor
         /// </summary>
         private sealed class MultiThreadedStrategy : IClaimStrategy
         {
-            private long _sequence = -1L;
+            private long _sequence;
 
             public long GetAndIncrement()
             {
-                Interlocked.Increment(ref _sequence);
-                return _sequence;
+                var value = Interlocked.Increment(ref _sequence);
+                return value - 1;
             }
 
             public void SetSequence(long sequence)
@@ -73,7 +73,7 @@ namespace Disruptor
         /// </summary>
         private sealed class SingleThreadedStrategy : IClaimStrategy
         {
-            private long _sequence = -1L;
+            private long _sequence;
 
             public long GetAndIncrement()
             {

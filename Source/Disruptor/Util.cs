@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace Disruptor
+﻿namespace Disruptor
 {
     /// <summary>
     /// Set of common functions used by the Disruptor
@@ -16,30 +14,12 @@ namespace Disruptor
         {
             var result = 2;
 
-            while(result < x)
+            while (result < x)
             {
                 result *= 2;
             }
 
             return result;
-        }
-
-        /// <summary>
-        /// Get the minimum sequence from an array of <see cref="IConsumer"/>s.
-        /// </summary>
-        /// <param name="consumers">consumers to compare.</param>
-        /// <returns>the minimum sequence found or lon.MaxValue if the array is empty.</returns>
-        public static long GetMinimumSequence(IConsumer[] consumers)
-        {
-            if (consumers.Length == 0) return long.MaxValue;
-
-            var min = long.MaxValue;
-            for (var i = 0; i < consumers.Length; i++)
-            {
-                var sequence = consumers[i].Sequence;
-                min = min < sequence ? min : sequence;
-            }
-            return min;
         }
     }
 }

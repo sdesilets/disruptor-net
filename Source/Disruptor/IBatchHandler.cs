@@ -4,6 +4,7 @@ namespace Disruptor
 {
     /// <summary>
     /// Callback interface to be implemented for processing <see cref="Entry{T}"/>s as they become available in the <see cref="RingBuffer{T}"/>
+    /// <see cref="BatchConsumer{T}.SetExceptionHandler"/> if you want to handle exceptions propagated out of the handler.
     /// </summary>
     /// <typeparam name="T">Data stored in the <see cref="Entry{T}"/> for sharing during exchange or parallel coordination of an event.</typeparam>
     public interface IBatchHandler<in T>
@@ -23,10 +24,5 @@ namespace Disruptor
         /// </summary>
         /// <exception cref="Exception">If the BatchHandler would like the exception handled further up the chain.</exception>
         void OnEndOfBatch();
-
-        /// <summary>
-        /// Called when processing of <see cref="Entry{T}"/>s is complete for clean up.
-        /// </summary>
-        void OnCompletion();
     }
 }

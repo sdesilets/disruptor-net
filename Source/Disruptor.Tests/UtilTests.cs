@@ -35,7 +35,7 @@ namespace Disruptor.Tests
             consumerMock2.SetupGet(c => c.Sequence).Returns(4);
             consumerMock3.SetupGet(c => c.Sequence).Returns(13);
 
-            Assert.AreEqual(4L, Util.GetMinimumSequence(consumers));
+            Assert.AreEqual(4L, consumers.GetMinimumSequence());
 
             consumerMock1.Verify();
             consumerMock2.Verify();
@@ -47,7 +47,7 @@ namespace Disruptor.Tests
         {
             var consumers = new IConsumer[0];
 
-            Assert.AreEqual(long.MaxValue, Util.GetMinimumSequence(consumers));
+            Assert.AreEqual(long.MaxValue, consumers.GetMinimumSequence());
         }
     }
 }

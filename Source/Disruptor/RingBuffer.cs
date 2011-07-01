@@ -84,8 +84,8 @@ namespace Disruptor
         /// </summary>
         public long Cursor
         {
-            get { return _cursor.VolatileData; }
-            private set{ _cursor.VolatileData = value;}
+            get { return _cursor.Data; }
+            private set{ _cursor.Data = value;}
         }
 
         ///<summary>
@@ -176,6 +176,7 @@ namespace Disruptor
         {
             private readonly RingBuffer<T> _ringBuffer;
             private readonly IConsumer[] _consumers;
+            private long _lastConsumerMinimum;
 
             public ReferenceTypeConsumerTrackingProducerBarrier(RingBuffer<T> ringBuffer, params IConsumer[] consumers)
             {
@@ -212,9 +213,15 @@ namespace Disruptor
 
             private void EnsureConsumersAreInRange(long sequence)
             {
-                while ((sequence - Util.GetMinimumSequence(_consumers)) >= _ringBuffer._entries.Length)
+                var wrapPoint = sequence - _ringBuffer._entries.Length;
+                if (_lastConsumerMinimum <= wrapPoint)
                 {
-                    Thread.Yield();
+                    _lastConsumerMinimum = _consumers.GetMinimumSequence();
+                    while (_lastConsumerMinimum <= wrapPoint)
+                    {
+                        Thread.Yield();
+                        _lastConsumerMinimum = _consumers.GetMinimumSequence();
+                    }
                 }
             }
         }
@@ -227,6 +234,7 @@ namespace Disruptor
         {
             private readonly RingBuffer<T> _ringBuffer;
             private readonly IConsumer[] _consumers;
+            private long _lastConsumerMinimum;
 
             public ReferenceTypeForceFillConsumerTrackingProducerBarrier(RingBuffer<T> ringBuffer, params IConsumer[] consumers)
             {
@@ -265,9 +273,15 @@ namespace Disruptor
 
             private void EnsureConsumersAreInRange(long sequence)
             {
-                while ((sequence - Util.GetMinimumSequence(_consumers)) >= _ringBuffer._entries.Length)
+                var wrapPoint = sequence - _ringBuffer._entries.Length;
+                if (_lastConsumerMinimum <= wrapPoint)
                 {
-                    Thread.Yield();
+                    _lastConsumerMinimum = _consumers.GetMinimumSequence();
+                    while (_lastConsumerMinimum <= wrapPoint)
+                    {
+                        Thread.Yield();
+                        _lastConsumerMinimum = _consumers.GetMinimumSequence();
+                    }
                 }
             }
         }

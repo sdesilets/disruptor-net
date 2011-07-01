@@ -1,5 +1,4 @@
 ﻿using System.Runtime.InteropServices;
-using System.Threading;
 
 namespace Disruptor.MemoryLayout
 {
@@ -25,7 +24,7 @@ namespace Disruptor.MemoryLayout
     public struct CacheLineStorageBool
     {
         [FieldOffset(64)]
-        private bool _data;
+        private volatile bool _data;
 
         ///<summary>
         /// Initialise a new instance of CacheLineStorage
@@ -37,30 +36,12 @@ namespace Disruptor.MemoryLayout
         }
 
         /// <summary>
-        /// Expose data without fence
+        /// Expose data with full fence on read and write
         /// </summary>
-        public bool Data //TODO remove that, use volatile all the time...
+        public bool Data
         {
             get { return _data; }
             set { _data = value; }
-        }
-
-        /// <summary>
-        /// Expose data with full fence on read and write
-        /// </summary>
-        public bool VolatileData
-        {
-            get
-            {
-                var data = _data;
-                Thread.MemoryBarrier();
-                return data;
-            }
-            set
-            {
-                Thread.MemoryBarrier();
-                _data = value;
-            }
         }
     }
 }

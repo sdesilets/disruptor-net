@@ -43,9 +43,5 @@ namespace Disruptor.PerfTests.Support
         public void OnEndOfBatch()
         {
         }
-
-        public void OnCompletion()
-        {
-        }
     }
 }
