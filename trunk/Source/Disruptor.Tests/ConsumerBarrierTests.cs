@@ -82,30 +82,20 @@ namespace Disruptor.Tests
         }
 
         [Test]
-        [Ignore("Test to review, not working ATM")] //TODO
         public void ShouldInterruptDuringBusySpin()
         {
             const long expectedNumberMessages = 10;
             FillRingBuffer(expectedNumberMessages);
 
             var countdownEvent = new CountdownEvent(9);
-            var count = 0;
 
-            _consumerMock1.SetupGet(c => c.Sequence).Returns(8L).Callback(() =>
-                                                                              {
-                                                                                  
-                                                                                  count++;
-                                                                                  countdownEvent.Signal();
-                                                                              });
-            _consumerMock2.SetupGet(c => c.Sequence).Returns(8L).Callback(() =>
-                                                                              {
-                                                                                  countdownEvent.Signal();
-                                                                                  count++;
-                                                                              });
+            _consumerMock1.SetupGet(c => c.Sequence).Returns(8L).Callback(() => countdownEvent.Signal());
+            _consumerMock2.SetupGet(c => c.Sequence).Returns(8L).Callback(() => countdownEvent.Signal());
             _consumerMock3.SetupGet(c => c.Sequence).Returns(8L).Callback(() =>
                                                                               {
                                                                                   countdownEvent.Signal();
-                                                                                  count++;
+                                                                                  Thread.Sleep(1); // wait a bit to prevent race (otherwise the WaitStrategy 
+                                                                                  // does another iterations which decrease the countdown event below 0
                                                                               });
 
             var alerted = new[] { false };
@@ -119,18 +109,12 @@ namespace Disruptor.Tests
                     {
                         alerted[0] = true;
                     }
-                    //catch (InterruptedException e) // TODO
-                    //{
-                    //    // don't care
-                    //}
             });
 
             t.Start();
-            Assert.IsTrue(countdownEvent.Wait(TimeSpan.FromMilliseconds(1000)));
+            Assert.IsTrue(countdownEvent.Wait(TimeSpan.FromMilliseconds(100000000)));
             _consumerBarrier.Alert();
             t.Join();
-
-            Console.WriteLine("Count:" + count);
 
             Assert.IsTrue(alerted[0], "Thread was not interrupted");
 
