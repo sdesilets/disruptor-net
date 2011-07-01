@@ -95,16 +95,16 @@ namespace Disruptor.Tests
                                                                               {
                                                                                   
                                                                                   count++;
-                                                                                  //countdownEvent.Signal();
+                                                                                  countdownEvent.Signal();
                                                                               });
             _consumerMock2.SetupGet(c => c.Sequence).Returns(8L).Callback(() =>
                                                                               {
-                                                                                  //countdownEvent.Signal();
+                                                                                  countdownEvent.Signal();
                                                                                   count++;
                                                                               });
             _consumerMock3.SetupGet(c => c.Sequence).Returns(8L).Callback(() =>
                                                                               {
-                                                                                  //countdownEvent.Signal();
+                                                                                  countdownEvent.Signal();
                                                                                   count++;
                                                                               });
 

@@ -67,7 +67,6 @@
     <Compile Include="IValueTypeForceFillProducerBarrier.cs" />
     <Compile Include="IgnoreExceptionHandler.cs" />
     <Compile Include="IValueTypeProducerBarrier.cs" />
-    <Compile Include="IRunnable.cs" />
     <Compile Include="ISequenceTrackingHandler.cs" />
     <Compile Include="IWaitStrategy.cs" />
     <Compile Include="Logging\ILogger.cs" />
