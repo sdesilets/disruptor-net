@@ -1,0 +1,20 @@
+===4th July 2011===
+ * ported latency test
+ * ported latest disruptor (Java) changes
+ *fixed bugs
+ *performance (throughput) is now equivalent to the Java version
+
+===3rd July 2011===
+ * removed IEntry and replaced it with struct Entry: data processed by the disruptor no longer need to implement a specific interface
+ * split the implementation in 2: RingBuffer for reference type and ValueTypeRingBuffer for value types.
+
+===28th June 2011===
+ * automated build process
+ * imported several .net performance test tools ([http://www.microsoft.com/download/en/details.aspx?id=16273 ClrProfiler], [http://bcl.codeplex.com/wikipage?title=PerfMonitor&referringTitle=Home Perf Monitor]) and found one source of allocation. This is now fixed, the disruptor does not create any garbage once started.
+ * first perf test ported (1 producer, 1 consumer): first results show about 9-10 million msg/sec on my dual core i7 @ 2.67GHz
+ * perf test does not stop properly all the time, to investigate...
+
+===27th June 2011===
+ * code base: all classes have been ported except Histogram.java
+ * unit tests: all unit tests have been ported but 2 are failing and need to be fixed.
+ * perf tests: TODO
