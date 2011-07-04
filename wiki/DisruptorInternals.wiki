@@ -1,0 +1,19 @@
+In this section we will (try to) explain how the disruptor works.
+
+Let's first introduce some vocabulary ([http://domaindrivendesign.org/node/132 ubiquitous language]):
+ * Sequence: this is an incremental number (Int64) used to keep track of the current position in the `RingBuffer` and other parts of the system. Sequence numbers are 0 based.
+ * Message: the disruptor passes messages between a producer and a consumer. Any [http://en.wikipedia.org/wiki/Plain_Old_CLR_Object POCO] is supported (value types and reference types)
+ * `RingBuffer`: this is the central component in the disruptor, storing messages in an array
+ * Cursor: this is the current sequence number of the `RingBuffer`. If cursor is 10, it means message with sequence 10 is available in the `RingBuffer` and can be processed by consumers
+ * `ProducerBarrier`: producers do not publish directly to the `RingBuffer`, instead they create a producer barrier (there is a factory method on `RingBuffer`) and use the barrier to interact with the RingBuffer
+ * `ConsumerBarrier`: like producers, consumers use a barrier to interact with the `RingBuffer`
+ * Batch: if a consumer barrier notice that several new messages are available in the `RingBuffer`, the producer will be notified that a batch is available. To be more accurate the producer will be notified that the batch is finished (for instance: `Available(msg1)`, `Available(msg1)`, ... , `Available(msgN)`, `BatchComplete`)
+ 
+Let start with a simple scenario: 1 producer and 1 consumer exchanging message of type Int64 (long).
+
+To implement this scenario with a disruptor this is what you have to do:
+ * create a class which implements `IBatchHandler<long>`: this class is basically the consumer. The method `OnAvailable` is called each time a new message is available and the method 
+ * create a `RingBuffer` 
+ 
+ To be continued (soon)...
+
