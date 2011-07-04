@@ -15,7 +15,6 @@ namespace Disruptor
     {
         private readonly IConsumerBarrier<T> _consumerBarrier;
         private readonly IBatchHandler<T> _handler;
-        private readonly bool _noSequenceTracker;
         private IExceptionHandler<T> _exceptionHandler = new FatalExceptionHandler<T>();
 
         private CacheLineStorageBool _running = new CacheLineStorageBool(true);
@@ -31,12 +30,13 @@ namespace Disruptor
         {
             _consumerBarrier = consumerBarrier;
             _handler = handler;
-            _noSequenceTracker = true;
         }
 
         /// <summary>
         /// Construct a batch consumer that will rely on the <see cref="ISequenceTrackingHandler{T}"/>
-        /// to callback via the <see cref="BatchConsumer{T}.SequenceTrackerCallback"/> when it has completed with a sequence.
+        /// to callback via the <see cref="BatchConsumer{T}.SequenceTrackerCallback"/> when it has
+        /// completed with a sequence within a batch.  Sequence will be updated at the end of
+        /// a batch regardless.
         /// </summary>
         /// <param name="consumerBarrier"></param>
         /// <param name="entryHandler"></param>
@@ -44,7 +44,6 @@ namespace Disruptor
         {
             _consumerBarrier = consumerBarrier;
             _handler = entryHandler;
-            _noSequenceTracker = false;
 
             entryHandler.SetSequenceTrackerCallback(new SequenceTrackerCallback(this));
         }
@@ -99,10 +98,7 @@ namespace Disruptor
                         _handler.OnAvailable(i, data);
 
                         //TODO move after _handler.OnEndOfBatch(); (does not work in my code but they changed that in the java version)
-                        if (_noSequenceTracker)
-                        {
-                            Sequence = i;
-                        }
+                        Sequence = i;
                     }
 
                     _handler.OnEndOfBatch();
@@ -114,10 +110,7 @@ namespace Disruptor
                 catch (Exception ex)
                 {
                     _exceptionHandler.Handle(ex, new Entry<T>(i, data));
-                    if (_noSequenceTracker)
-                    {
-                        Sequence = i;
-                    }
+                    Sequence = i;
                 }
             }
 
