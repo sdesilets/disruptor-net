@@ -41,16 +41,13 @@ namespace Disruptor.MemoryLayout
         /// </summary>
         public long Data
         {
-            get 
-            { 
-                var data = _data;
-                Thread.MemoryBarrier();
-                return data;
+            get
+            {
+                return Thread.VolatileRead(ref _data);
             }
             set
             {
-                Thread.MemoryBarrier();
-                _data = value;
+                Thread.VolatileWrite(ref _data, value);
             }
         }
     }

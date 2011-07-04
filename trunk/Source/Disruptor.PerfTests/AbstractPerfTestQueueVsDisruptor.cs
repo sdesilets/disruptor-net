@@ -29,7 +29,7 @@ namespace Disruptor.PerfTests
 
         public static void PrintResults(string className, long disruptorOps, long queueOps, int i)
         {
-            Console.WriteLine("{0} OpsPerSecond run {1}: BlockingQueues={2:N}, Disruptor={3:N}", className, i, queueOps, disruptorOps);
+            Console.WriteLine("{0} OpsPerSecond run {1}: BlockingQueues={2:N}, Disruptor={3:N}, Ratio=x{4:0.0}", className, i, queueOps, disruptorOps, disruptorOps/queueOps);
         }
 
         protected abstract long RunQueuePass(int passNumber);

@@ -58,14 +58,6 @@ namespace Disruptor
             {
                 Interlocked.Exchange(ref _sequence, sequence);
             }
-
-            public void WaitForCursor(long sequence, ISequencable ringBuffer)
-            {
-                while (ringBuffer.Cursor != sequence)
-                {
-                    // busy spin
-                }
-            }
         }
 
         /// <summary>
@@ -83,11 +75,6 @@ namespace Disruptor
             public void SetSequence(long sequence)
             {
                 _sequence = sequence;
-            }
-
-            public void WaitForCursor(long sequence, ISequencable ringBuffer)
-            {
-                // no op when on a single producer.
             }
         }
     }
