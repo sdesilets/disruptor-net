@@ -60,6 +60,7 @@ namespace Disruptor.PerfTests
      *
      * </pre>
      */
+    [TestFixture]
     public class Pipeline3StepPerfTest : AbstractPerfTestQueueVsDisruptor
     {
         private const  int Size = 1024 * 32;

@@ -10,8 +10,6 @@ namespace Disruptor.PerfTests.Support
         private readonly BlockingCollection<long> _stepTwoQueue;
         private readonly BlockingCollection<long> _stepThreeQueue;
         private readonly long _iterations;
-
-        private volatile int _sequence;
         private long _stepThreeCounter;
         private volatile bool _done;
 
@@ -47,7 +45,6 @@ namespace Disruptor.PerfTests.Support
         public void Reset()
         {
             _stepThreeCounter = 0L;
-            _sequence = -1;
             _done = false;
         }
 
@@ -84,8 +81,6 @@ namespace Disruptor.PerfTests.Support
                                 break;
                             }
                     }
-
-                    _sequence++;
                 }
                 catch (Exception)
                 {
