@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using Disruptor.Tests.Support;
 using NUnit.Framework;
@@ -8,32 +7,30 @@ namespace Disruptor.Tests
     [TestFixture]
     public class BatchConsumerSequenceTrackingCallbackTests
     {
-        private readonly CountdownEvent _onAvailableCountdown = new CountdownEvent(2);
-        private readonly CountdownEvent _readyToCallbackCountdown = new CountdownEvent(1);
+        private readonly CountdownEvent _callbackCountdown = new CountdownEvent(1);
+        private readonly CountdownEvent _endOfBatchCountdown = new CountdownEvent(1);
 
         [Test]
-        [Ignore("Test to fix, the Sequence in BatchConsumer appears to not increment properly, have to dig...")]
         public void ShouldReportProgressByUpdatingSequenceViaCallback()
         {
             var ringBuffer = new RingBuffer<StubData>(() => new StubData(-1), 16);
             var consumerBarrier = ringBuffer.CreateConsumerBarrier();
-            var handler = new TestSequenceTrackingHandler(_onAvailableCountdown, _readyToCallbackCountdown);
+            var handler = new TestSequenceTrackingHandler(_callbackCountdown, _endOfBatchCountdown);
             var batchConsumer = new BatchConsumer<StubData>(consumerBarrier, handler);
             var producerBarrier = ringBuffer.CreateProducerBarrier(batchConsumer);
             StubData data;
 
-            var thread = new Thread(batchConsumer.Run);
+            var thread = new Thread(batchConsumer.Run) {IsBackground = true};
             thread.Start();
 
             Assert.AreEqual(-1L, batchConsumer.Sequence);
             producerBarrier.Commit(producerBarrier.NextEntry(out data));
-            producerBarrier.Commit(producerBarrier.NextEntry(out data));
-            _onAvailableCountdown.Wait();
-            Assert.AreEqual(-1L, batchConsumer.Sequence);
 
-            producerBarrier.Commit(producerBarrier.NextEntry(out data));
-            _readyToCallbackCountdown.Wait();
-            Assert.AreEqual(2L, batchConsumer.Sequence);
+            _callbackCountdown.Wait();
+            Assert.AreEqual(0L, batchConsumer.Sequence);
+
+            _endOfBatchCountdown.Signal();
+            Assert.AreEqual(0L, batchConsumer.Sequence);
 
             batchConsumer.Halt();
             thread.Join();
@@ -41,32 +38,25 @@ namespace Disruptor.Tests
 
         private class TestSequenceTrackingHandler : ISequenceTrackingHandler<StubData>
         {
-            private readonly CountdownEvent _onAvailableCountdown;
-            private readonly CountdownEvent _readyToCallbackCountdown;
+            private readonly CountdownEvent _callbackCountdown;
+            private readonly CountdownEvent _endOfBatchCountdown;
             private BatchConsumer<StubData>.SequenceTrackerCallback _sequenceTrackerCallback;
 
-            public TestSequenceTrackingHandler(CountdownEvent onAvailableCountdown, CountdownEvent readyToCallbackCountdown)
+            public TestSequenceTrackingHandler(CountdownEvent callbackCountdown, CountdownEvent endOfBatchCountdown)
             {
-                _onAvailableCountdown = onAvailableCountdown;
-                _readyToCallbackCountdown = readyToCallbackCountdown;
+                _callbackCountdown = callbackCountdown;
+                _endOfBatchCountdown = endOfBatchCountdown;
             }
 
             public void OnAvailable(long sequence, StubData data)
             {
-                Console.WriteLine("Recieved: {0} with sequence {1}", data, sequence);
-                if (sequence == 2L)
-                {
-                    _sequenceTrackerCallback.OnComplete(sequence);
-                    _readyToCallbackCountdown.Signal();
-                }
-                else
-                {
-                    _onAvailableCountdown.Signal();
-                }
+                _sequenceTrackerCallback.OnComplete(sequence);
+                _callbackCountdown.Signal();
             }
 
             public void OnEndOfBatch()
             {
+                _endOfBatchCountdown.Wait();
             }
 
             public void SetSequenceTrackerCallback(BatchConsumer<StubData>.SequenceTrackerCallback sequenceTrackerCallback)
