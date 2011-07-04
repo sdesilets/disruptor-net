@@ -103,11 +103,11 @@ namespace Disruptor
             }
         }
 
-        private void Fill(Func<T> entryEntryFactory)
+        private void Fill(Func<T> entryFactory)
         {
             for (var i = 0; i < _entries.Length; i++)
             {
-                var data = entryEntryFactory();
+                var data = entryFactory();
                 _entries[i] = new Entry<T>(-1, data);
             }
         }
