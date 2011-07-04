@@ -53,6 +53,7 @@
     </Compile>
     <Compile Include="BatchConsumerSequenceTrackingCallbackTests.cs" />
     <Compile Include="BatchConsumerTests.cs" />
+    <Compile Include="Collections\HistogramTests.cs" />
     <Compile Include="ConsumerBarrierTests.cs" />
     <Compile Include="FatalExceptionHandlerTests.cs" />
     <Compile Include="IgnoreExceptionHandlerTests.cs" />
@@ -68,9 +69,6 @@
       <Project>{37FBDBE1-8524-4489-B082-CC109B0F5EA3}</Project>
       <Name>Disruptor</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Java\collections\HistogramTest.java" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
