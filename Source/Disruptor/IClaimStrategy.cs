@@ -16,12 +16,5 @@
         /// </summary>
         /// <param name="sequence">sequence to be set as the current value.</param>
         void SetSequence(long sequence);
-
-        /// <summary>
-        /// Wait for the current commit to reach a given sequence.
-        /// </summary>
-        /// <param name="sequence">sequence to wait for</param>
-        /// <param name="ringBuffer">ringBuffer on which to wait forCursor</param>
-        void WaitForCursor(long sequence, ISequencable ringBuffer);
     }
 }

@@ -76,32 +76,27 @@ namespace Disruptor
         public void Run()
         {
             _running.Data = true;
-            var data = default(T);
-            var i = 0L;
+            
+            OnStart();
 
-            var lifecycleAware = _handler as ILifecycleAware;
-            if(lifecycleAware != null)
-            {
-                lifecycleAware.OnStart();
-            }
+            var data = default(T);
+            var nextSequence = Sequence + 1;
 
             while (_running.Data)
             {
                 try
                 {
-                    var nextSequence = Sequence + 1;
-                    var availableSeq = _consumerBarrier.WaitFor(nextSequence);
+                    var availableSequence = _consumerBarrier.WaitFor(nextSequence);
 
-                    for (i = nextSequence; i <= availableSeq; i++)
+                    for (; nextSequence <= availableSequence; nextSequence++)
                     {
-                        data = _consumerBarrier.GetEntry(i);
-                        _handler.OnAvailable(i, data);
-
-                        //TODO move after _handler.OnEndOfBatch(); (does not work in my code but they changed that in the java version)
-                        Sequence = i;
+                        data = _consumerBarrier.GetEntry(nextSequence);
+                        _handler.OnAvailable(nextSequence, data);
                     }
 
                     _handler.OnEndOfBatch();
+
+                    Sequence = nextSequence;
                 }
                 catch (AlertException)
                 {
@@ -109,14 +104,29 @@ namespace Disruptor
                 }
                 catch (Exception ex)
                 {
-                    _exceptionHandler.Handle(ex, new Entry<T>(i, data));
-                    Sequence = i;
+                    _exceptionHandler.Handle(ex, new Entry<T>(nextSequence, data));
+                    Sequence = nextSequence;
                 }
             }
 
+            OnStop();
+        }
+
+        private void OnStop()
+        {
+            var lifecycleAware = _handler as ILifecycleAware;
             if (lifecycleAware != null)
             {
                 lifecycleAware.OnStop();
+            }
+        }
+
+        private void OnStart()
+        {
+            var lifecycleAware = _handler as ILifecycleAware;
+            if(lifecycleAware != null)
+            {
+                lifecycleAware.OnStart();
             }
         }
 

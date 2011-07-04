@@ -10,6 +10,8 @@ namespace Disruptor
     /// <typeparam name="T">Entry implementation storing the data for sharing during exchange or parallel coordination of an event.</typeparam>
     public sealed class ValueTypeRingBuffer<T> : ISequencable where T:struct
     {
+        private readonly ClaimStrategyFactory.ClaimStrategyOption _claimStrategyOption;
+
         /// <summary>
         /// Initial cursor value, set to -1 as sequence starting point 
         /// </summary>
@@ -30,6 +32,7 @@ namespace Disruptor
         /// <param name="waitStrategyOption">waiting strategy employed by consumers waiting on <see cref="Entry{T}"/>s becoming available.</param>
         public ValueTypeRingBuffer(int size, ClaimStrategyFactory.ClaimStrategyOption claimStrategyOption = ClaimStrategyFactory.ClaimStrategyOption.Multithreaded, WaitStrategyFactory.WaitStrategyOption waitStrategyOption = WaitStrategyFactory.WaitStrategyOption.Blocking)
         {
+            _claimStrategyOption = claimStrategyOption;
             var sizeAsPowerOfTwo = Util.CeilingNextPowerOfTwo(size);
             _ringModMask = sizeAsPowerOfTwo - 1;
             _entries = new Entry<T>[sizeAsPowerOfTwo];
@@ -185,7 +188,16 @@ namespace Disruptor
                 EnsureConsumersAreInRange(sequence);
 
                 _ringBuffer._entries[(int)sequence & _ringBuffer._ringModMask] = new Entry<T>(sequence, data);
-                _ringBuffer._claimStrategy.WaitForCursor(sequence - 1L, _ringBuffer);
+
+                if (_ringBuffer._claimStrategyOption == ClaimStrategyFactory.ClaimStrategyOption.Multithreaded)
+                {
+                    var sequenceMinusOne = sequence - 1;
+                    while (sequenceMinusOne != Cursor)
+                    {
+                        //busy spin
+                    }
+                }
+
                 _ringBuffer.Cursor = sequence;
                 _ringBuffer._waitStrategy.SignalAll();
             }
@@ -198,14 +210,9 @@ namespace Disruptor
             private void EnsureConsumersAreInRange(long sequence)
             {
                 var wrapPoint = sequence - _ringBuffer._entries.Length;
-                if (_lastConsumerMinimum <= wrapPoint)
+                while (wrapPoint >= _lastConsumerMinimum && wrapPoint >= (_lastConsumerMinimum = _consumers.GetMinimumSequence()))
                 {
-                    _lastConsumerMinimum = _consumers.GetMinimumSequence();
-                    while (_lastConsumerMinimum <= wrapPoint)
-                    {
-                        Thread.Yield();
-                        _lastConsumerMinimum = _consumers.GetMinimumSequence();
-                    }
+                    Thread.Yield();
                 }
             }
         }
@@ -256,14 +263,9 @@ namespace Disruptor
             private void EnsureConsumersAreInRange(long sequence)
             {
                 var wrapPoint = sequence - _ringBuffer._entries.Length;
-                if (_lastConsumerMinimum <= wrapPoint)
+                while (wrapPoint >= _lastConsumerMinimum && wrapPoint >= (_lastConsumerMinimum = _consumers.GetMinimumSequence()))
                 {
-                    _lastConsumerMinimum = _consumers.GetMinimumSequence();
-                    while (_lastConsumerMinimum <= wrapPoint)
-                    {
-                        Thread.Yield();
-                        _lastConsumerMinimum = _consumers.GetMinimumSequence();
-                    }
+                    Thread.Yield();
                 }
             }
         }
