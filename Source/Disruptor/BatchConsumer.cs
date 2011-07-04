@@ -88,15 +88,16 @@ namespace Disruptor
                 {
                     var availableSequence = _consumerBarrier.WaitFor(nextSequence);
 
-                    for (; nextSequence <= availableSequence; nextSequence++)
+                    while (nextSequence <= availableSequence)
                     {
                         data = _consumerBarrier.GetEntry(nextSequence);
                         _handler.OnAvailable(nextSequence, data);
+                        nextSequence++;
                     }
 
                     _handler.OnEndOfBatch();
 
-                    Sequence = nextSequence;
+                    Sequence = nextSequence - 1;
                 }
                 catch (AlertException)
                 {
@@ -104,6 +105,7 @@ namespace Disruptor
                 }
                 catch (Exception ex)
                 {
+                    //TODO review this handler, logic is crap
                     _exceptionHandler.Handle(ex, new Entry<T>(nextSequence, data));
                     Sequence = nextSequence;
                 }
