@@ -1,6 +1,6 @@
 - port the remaining performance tests:
-	- DiamondPath1P3CPerfTest (Olivier)
-	- MultiCast1P3CPerfTest
+	- DiamondPath1P3CPerfTest (Olivier) - done
+	- MultiCast1P3CPerfTest (Olivier)
 	- Sequencer3P1CPerfTest
 - try to get rid of IBatchHandler using lambdas instead of an interface,
 - add a fluent API to configure the consumer barriers (this is quite verbose to build that manually)

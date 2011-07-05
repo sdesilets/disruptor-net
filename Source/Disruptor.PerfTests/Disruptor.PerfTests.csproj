@@ -48,9 +48,14 @@
       <Link>Version.cs</Link>
     </Compile>
     <Compile Include="AbstractPerfTestQueueVsDisruptor.cs" />
+    <Compile Include="DiamondPath1P3CPerfTest.cs" />
     <Compile Include="Pipeline3StepLatencyPerfTest.cs" />
     <Compile Include="Pipeline3StepPerfTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Support\FizzBuzzEntry.cs" />
+    <Compile Include="Support\FizzBuzzHandler.cs" />
+    <Compile Include="Support\FizzBuzzQueueConsumer.cs" />
+    <Compile Include="Support\FizzBuzzStep.cs" />
     <Compile Include="Support\FunctionEntry.cs" />
     <Compile Include="Support\FunctionHandler.cs" />
     <Compile Include="Support\FunctionQueueConsumer.cs" />
@@ -69,13 +74,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Java\DiamondPath1P3CPerfTest.java" />
     <Content Include="Java\MultiCast1P3CPerfTest.java" />
     <Content Include="Java\Sequencer3P1CPerfTest.java" />
-    <Content Include="Java\support\FizzBuzzEntry.java" />
-    <Content Include="Java\support\FizzBuzzHandler.java" />
-    <Content Include="Java\support\FizzBuzzQueueConsumer.java" />
-    <Content Include="Java\support\FizzBuzzStep.java" />
     <Content Include="Java\support\Operation.java" />
     <Content Include="Java\support\ValueMutationHandler.java" />
     <Content Include="Java\support\ValueMutationQueueConsumer.java" />
