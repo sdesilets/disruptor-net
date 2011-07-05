@@ -129,37 +129,71 @@ namespace Disruptor.PerfTests
         private readonly BlockingCollection<long> _stepTwoQueue = new BlockingCollection<long>(Size);
         private readonly BlockingCollection<long> _stepThreeQueue = new BlockingCollection<long>(Size);
 
-        private readonly LatencyStepQueueConsumer _stepOneQueueConsumer;
-        private readonly LatencyStepQueueConsumer _stepTwoQueueConsumer;
-        private readonly LatencyStepQueueConsumer _stepThreeQueueConsumer;
+        private LatencyStepQueueConsumer _stepOneQueueConsumer;
+        private LatencyStepQueueConsumer _stepTwoQueueConsumer;
+        private LatencyStepQueueConsumer _stepThreeQueueConsumer;
 
         ///////////////////////////////////////////////////////////////////////////////////////////////
 
-        private readonly ValueTypeRingBuffer<long> _ringBuffer;
+        private ValueTypeRingBuffer<long> _ringBuffer;
 
-        private readonly IConsumerBarrier<long> _stepOneConsumerBarrier;
-        private readonly LatencyStepHandler _stepOneFunctionHandler;
-        private readonly BatchConsumer<long> _stepOneBatchConsumer;
+        private IConsumerBarrier<long> _stepOneConsumerBarrier;
+        private LatencyStepHandler _stepOneFunctionHandler;
+        private BatchConsumer<long> _stepOneBatchConsumer;
 
-        private readonly IConsumerBarrier<long> _stepTwoConsumerBarrier;
-        private readonly LatencyStepHandler _stepTwoFunctionHandler;
-        private readonly BatchConsumer<long> _stepTwoBatchConsumer;
+        private IConsumerBarrier<long> _stepTwoConsumerBarrier;
+        private LatencyStepHandler _stepTwoFunctionHandler;
+        private BatchConsumer<long> _stepTwoBatchConsumer;
 
-        private readonly IConsumerBarrier<long> _stepThreeConsumerBarrier;
-        private readonly LatencyStepHandler _stepThreeFunctionHandler;
-        private readonly BatchConsumer<long> _stepThreeBatchConsumer;
+        private IConsumerBarrier<long> _stepThreeConsumerBarrier;
+        private LatencyStepHandler _stepThreeFunctionHandler;
+        private BatchConsumer<long> _stepThreeBatchConsumer;
 
-        private readonly IValueTypeProducerBarrier<long> _producerBarrier;
+        private IValueTypeProducerBarrier<long> _producerBarrier;
 
         ///////////////////////////////////////////////////////////////////////////////////////////////
 
         public Pipeline3StepLatencyPerfTest()
         {
             _ticksToNanos = 1000 * 1000 * 1000 / (double)Stopwatch.Frequency;
+        }
 
-           _stepOneQueueConsumer = new LatencyStepQueueConsumer(FunctionStep.One, _stepOneQueue, _stepTwoQueue, Histogram, StopwatchTimestampCostInNano, _ticksToNanos, Iterations);
-           _stepTwoQueueConsumer = new LatencyStepQueueConsumer(FunctionStep.Two, _stepTwoQueue, _stepThreeQueue, Histogram, StopwatchTimestampCostInNano, _ticksToNanos, Iterations);
-           _stepThreeQueueConsumer = new LatencyStepQueueConsumer(FunctionStep.Three, _stepThreeQueue, null, Histogram, StopwatchTimestampCostInNano, _ticksToNanos, Iterations);
+        [Test]
+        public void ShouldCompareDisruptorVsQueues()
+        {
+            const int runs = 3;
+
+            Assert.IsTrue(Stopwatch.IsHighResolution, "The test requires high resolution");
+
+            for (var i = 0; i < runs; i++)
+            {
+                GC.Collect();
+
+                SetUp();
+
+                Histogram.Clear();
+                RunDisruptorPass();
+                Assert.AreEqual(Iterations, Histogram.Count);
+                Console.WriteLine("{0} run {1} Disruptor {2}\n", GetType().Name, i, Histogram);
+                var disruptorMeanLatency = Histogram.Mean;
+                DumpHistogram();
+
+                Histogram.Clear();
+                RunQueuePass();
+                Assert.AreEqual(Iterations, Histogram.Count);
+                var queueMeanLatency = Histogram.Mean;
+                Console.WriteLine("{0} run {1} Queues {2}\n", GetType().Name, i, Histogram);
+                DumpHistogram();
+
+                Assert.IsTrue(queueMeanLatency > disruptorMeanLatency);
+            }
+        }
+
+        private void SetUp()
+        {
+            _stepOneQueueConsumer = new LatencyStepQueueConsumer(FunctionStep.One, _stepOneQueue, _stepTwoQueue, Histogram, StopwatchTimestampCostInNano, _ticksToNanos, Iterations);
+            _stepTwoQueueConsumer = new LatencyStepQueueConsumer(FunctionStep.Two, _stepTwoQueue, _stepThreeQueue, Histogram, StopwatchTimestampCostInNano, _ticksToNanos, Iterations);
+            _stepThreeQueueConsumer = new LatencyStepQueueConsumer(FunctionStep.Three, _stepThreeQueue, null, Histogram, StopwatchTimestampCostInNano, _ticksToNanos, Iterations);
 
 
             /////////////////////////////////////////////
@@ -179,35 +213,6 @@ namespace Disruptor.PerfTests
             _stepThreeBatchConsumer = new BatchConsumer<long>(_stepThreeConsumerBarrier, _stepThreeFunctionHandler);
 
             _producerBarrier = _ringBuffer.CreateProducerBarrier(_stepThreeBatchConsumer);
-        }
-
-        [Test]
-        public void ShouldCompareDisruptorVsQueues()
-        {
-            const int runs = 3;
-
-            Assert.IsTrue(Stopwatch.IsHighResolution, "The test requires high resolution");
-
-            for (var i = 0; i < runs; i++)
-            {
-                GC.Collect();
-
-                Histogram.Clear();
-                RunDisruptorPass();
-                Assert.AreEqual(Iterations, Histogram.Count);
-                Console.WriteLine("{0} run {1} Disruptor {2}\n", GetType().Name, i, Histogram);
-                var disruptorMeanLatency = Histogram.Mean;
-                DumpHistogram();
-
-                Histogram.Clear();
-                RunQueuePass();
-                Assert.AreEqual(Iterations, Histogram.Count);
-                var queueMeanLatency = Histogram.Mean;
-                Console.WriteLine("{0} run {1} Queues {2}\n", GetType().Name, i, Histogram);
-                DumpHistogram();
-
-                Assert.IsTrue(queueMeanLatency > disruptorMeanLatency);
-            }
         }
 
         private void DumpHistogram()

@@ -65,7 +65,6 @@
  * </pre>
  */
 
-using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
@@ -113,10 +112,8 @@ namespace Disruptor.PerfTests
 
         ///////////////////////////////////////////////////////////////////////////////////////////////
 
-        private readonly ValueTypeRingBuffer<long> _ringBuffer;
-
-        private readonly IConsumerBarrier<long> _consumerBarrier;
-
+        private ValueTypeRingBuffer<long> _ringBuffer;
+        private IConsumerBarrier<long> _consumerBarrier;
         private readonly ValueMutationHandler[] _handlers = new []
                                                                {
                                                                    new ValueMutationHandler(Operation.Addition),
@@ -124,31 +121,8 @@ namespace Disruptor.PerfTests
                                                                    new ValueMutationHandler(Operation.And),
                                                                };
 
-        private readonly BatchConsumer<long>[] _batchConsumers;
-
-        private readonly IValueTypeProducerBarrier<long> _producerBarrier;
-
-        public MultiCast1P3CPerfTest()
-        {
-            _queueConsumers[0] = new ValueMutationQueueConsumer(_blockingQueues[0], Operation.Addition, Iterations);
-            _queueConsumers[1] = new ValueMutationQueueConsumer(_blockingQueues[1], Operation.Substraction, Iterations);
-            _queueConsumers[2] = new ValueMutationQueueConsumer(_blockingQueues[2], Operation.And, Iterations);
-
-            ///////////////////////////////////////////////////////////////////////////////////////////////
-
-            _ringBuffer = new ValueTypeRingBuffer<long>(Size,
-                                       ClaimStrategyFactory.ClaimStrategyOption.SingleThreaded,
-                                       WaitStrategyFactory.WaitStrategyOption.Yielding);
-            _consumerBarrier = _ringBuffer.CreateConsumerBarrier();
-
-            _batchConsumers = new []
-                                 {
-                                     new BatchConsumer<long>(_consumerBarrier, _handlers[0]),
-                                     new BatchConsumer<long>(_consumerBarrier, _handlers[1]),
-                                     new BatchConsumer<long>(_consumerBarrier, _handlers[2])
-                                 };
-            _producerBarrier = _ringBuffer.CreateProducerBarrier(_batchConsumers);
-        }
+        private BatchConsumer<long>[] _batchConsumers;
+        private IValueTypeProducerBarrier<long> _producerBarrier;
 
         protected override long RunQueuePass(int passNumber)
         {
@@ -220,6 +194,28 @@ namespace Disruptor.PerfTests
         protected override long RunTplDataflowPass(int passNumber)
         {
             return 0;
+        }
+
+        protected override void SetUp(int passNumber)
+        {
+            _queueConsumers[0] = new ValueMutationQueueConsumer(_blockingQueues[0], Operation.Addition, Iterations);
+            _queueConsumers[1] = new ValueMutationQueueConsumer(_blockingQueues[1], Operation.Substraction, Iterations);
+            _queueConsumers[2] = new ValueMutationQueueConsumer(_blockingQueues[2], Operation.And, Iterations);
+
+            ///////////////////////////////////////////////////////////////////////////////////////////////
+
+            _ringBuffer = new ValueTypeRingBuffer<long>(Size,
+                                       ClaimStrategyFactory.ClaimStrategyOption.SingleThreaded,
+                                       WaitStrategyFactory.WaitStrategyOption.Yielding);
+            _consumerBarrier = _ringBuffer.CreateConsumerBarrier();
+
+            _batchConsumers = new[]
+                                 {
+                                     new BatchConsumer<long>(_consumerBarrier, _handlers[0]),
+                                     new BatchConsumer<long>(_consumerBarrier, _handlers[1]),
+                                     new BatchConsumer<long>(_consumerBarrier, _handlers[2])
+                                 };
+            _producerBarrier = _ringBuffer.CreateProducerBarrier(_batchConsumers);
         }
 
         [Test]

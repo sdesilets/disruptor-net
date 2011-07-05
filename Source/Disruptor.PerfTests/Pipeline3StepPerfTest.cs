@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
@@ -100,61 +99,32 @@ namespace Disruptor.PerfTests
         private readonly BlockingCollection<long> _stepTwoQueue = new BlockingCollection<long>(Size);
         private readonly BlockingCollection<long> _stepThreeQueue = new BlockingCollection<long>(Size);
 
-        private readonly FunctionQueueConsumer _stepOneQueueConsumer;
-        private readonly FunctionQueueConsumer _stepTwoQueueConsumer;
-        private readonly FunctionQueueConsumer _stepThreeQueueConsumer;
+        private FunctionQueueConsumer _stepOneQueueConsumer;
+        private FunctionQueueConsumer _stepTwoQueueConsumer;
+        private FunctionQueueConsumer _stepThreeQueueConsumer;
 
-        private readonly RingBuffer<FunctionEntry> _ringBuffer;
+        private RingBuffer<FunctionEntry> _ringBuffer;
 
-        private readonly IConsumerBarrier<FunctionEntry> _stepOneConsumerBarrier;
-        private readonly BatchConsumer<FunctionEntry> _stepOneBatchConsumer;
+        private IConsumerBarrier<FunctionEntry> _stepOneConsumerBarrier;
+        private BatchConsumer<FunctionEntry> _stepOneBatchConsumer;
 
-        private readonly IConsumerBarrier<FunctionEntry> _stepTwoConsumerBarrier;
-        private readonly BatchConsumer<FunctionEntry> _stepTwoBatchConsumer;
+        private IConsumerBarrier<FunctionEntry> _stepTwoConsumerBarrier;
+        private BatchConsumer<FunctionEntry> _stepTwoBatchConsumer;
 
-        private readonly IConsumerBarrier<FunctionEntry> _stepThreeConsumerBarrier;
-        private readonly FunctionHandler _stepThreeFunctionHandler;
-        private readonly BatchConsumer<FunctionEntry> _stepThreeBatchConsumer;
+        private IConsumerBarrier<FunctionEntry> _stepThreeConsumerBarrier;
+        private FunctionHandler _stepThreeFunctionHandler;
+        private BatchConsumer<FunctionEntry> _stepThreeBatchConsumer;
 
-        private readonly IReferenceTypeProducerBarrier<FunctionEntry> _producerBarrier;
+        private IReferenceTypeProducerBarrier<FunctionEntry> _producerBarrier;
         
-        private readonly BufferBlock<long[]> _stepOneTPL = new BufferBlock<long[]>();
-        private readonly BufferBlock<long> _stepTwoTPL = new BufferBlock<long>();
-        private readonly BufferBlock<long> _stepThreeTPL = new BufferBlock<long>();
+        private readonly BufferBlock<long[]> _stepOneTpl = new BufferBlock<long[]>();
+        private readonly BufferBlock<long> _stepTwoTpl = new BufferBlock<long>();
+        private readonly BufferBlock<long> _stepThreeTpl = new BufferBlock<long>();
 
-        private ActionBlock<long[]> _stepOneAB;
-        private ActionBlock<long> _stepTwoAB;
+        private ActionBlock<long[]> _stepOneAb;
+        private ActionBlock<long> _stepTwoAb;
 
         ///////////////////////////////////////////////////////////////////////////////////////////////
-    
-        public Pipeline3StepPerfTest()
-        {
-            _stepOneQueueConsumer = new FunctionQueueConsumer(FunctionStep.One, _stepOneQueue, _stepTwoQueue, _stepThreeQueue, Iterations);
-            _stepTwoQueueConsumer = new FunctionQueueConsumer(FunctionStep.Two, _stepOneQueue, _stepTwoQueue, _stepThreeQueue, Iterations);
-            _stepThreeQueueConsumer = new FunctionQueueConsumer(FunctionStep.Three, _stepOneQueue, _stepTwoQueue, _stepThreeQueue, Iterations);
-
-            _ringBuffer = new RingBuffer<FunctionEntry>(() => new FunctionEntry(), Size,
-                                      ClaimStrategyFactory.ClaimStrategyOption.SingleThreaded,
-                                      WaitStrategyFactory.WaitStrategyOption.Yielding);
-
-            _stepOneConsumerBarrier = _ringBuffer.CreateConsumerBarrier();
-            _stepOneBatchConsumer = new BatchConsumer<FunctionEntry>(_stepOneConsumerBarrier, new FunctionHandler(FunctionStep.One));
-
-            _stepTwoConsumerBarrier = _ringBuffer.CreateConsumerBarrier(_stepOneBatchConsumer);
-            _stepTwoBatchConsumer = new BatchConsumer<FunctionEntry>(_stepTwoConsumerBarrier, new FunctionHandler(FunctionStep.Two));
-
-            _stepThreeConsumerBarrier = _ringBuffer.CreateConsumerBarrier(_stepTwoBatchConsumer);
-            _stepThreeFunctionHandler = new FunctionHandler(FunctionStep.Three);
-            _stepThreeBatchConsumer = new BatchConsumer<FunctionEntry>(_stepThreeConsumerBarrier, _stepThreeFunctionHandler);
-
-            _producerBarrier = _ringBuffer.CreateProducerBarrier(_stepThreeBatchConsumer);
-
-            _stepOneAB = new ActionBlock<long[]>(values => _stepTwoTPL.Post(values[0] + values[1]));
-            _stepTwoAB = new ActionBlock<long>(value => _stepThreeTPL.Post(value + 3));
-
-            _stepOneTPL.LinkTo(_stepOneAB);
-            _stepTwoTPL.LinkTo(_stepTwoAB);
-        }
 
         protected override long RunQueuePass(int passNumber)
         {
@@ -231,7 +201,7 @@ namespace Disruptor.PerfTests
             _tplValue = 0L;
             for (long i = 0; i < Iterations; i++)
             {
-                long value = _stepThreeTPL.Receive();
+                long value = _stepThreeTpl.Receive();
                 var testValue = value;
                 if ((testValue & 4L) == 4L)
                 {
@@ -252,7 +222,7 @@ namespace Disruptor.PerfTests
                 var values = new long[2];
                 values[0] = i;
                 values[1] = operandTwo--;
-                _stepOneTPL.Post(values);
+                _stepOneTpl.Post(values);
             }
 
             Task.WaitAll(c);
@@ -263,6 +233,35 @@ namespace Disruptor.PerfTests
             Assert.AreEqual(ExpectedResult, _tplValue);
 
             return opsPerSecond;
+        }
+
+        protected override void SetUp(int passNumber)
+        {
+            _stepOneQueueConsumer = new FunctionQueueConsumer(FunctionStep.One, _stepOneQueue, _stepTwoQueue, _stepThreeQueue, Iterations);
+            _stepTwoQueueConsumer = new FunctionQueueConsumer(FunctionStep.Two, _stepOneQueue, _stepTwoQueue, _stepThreeQueue, Iterations);
+            _stepThreeQueueConsumer = new FunctionQueueConsumer(FunctionStep.Three, _stepOneQueue, _stepTwoQueue, _stepThreeQueue, Iterations);
+
+            _ringBuffer = new RingBuffer<FunctionEntry>(() => new FunctionEntry(), Size,
+                                      ClaimStrategyFactory.ClaimStrategyOption.SingleThreaded,
+                                      WaitStrategyFactory.WaitStrategyOption.Yielding);
+
+            _stepOneConsumerBarrier = _ringBuffer.CreateConsumerBarrier();
+            _stepOneBatchConsumer = new BatchConsumer<FunctionEntry>(_stepOneConsumerBarrier, new FunctionHandler(FunctionStep.One));
+
+            _stepTwoConsumerBarrier = _ringBuffer.CreateConsumerBarrier(_stepOneBatchConsumer);
+            _stepTwoBatchConsumer = new BatchConsumer<FunctionEntry>(_stepTwoConsumerBarrier, new FunctionHandler(FunctionStep.Two));
+
+            _stepThreeConsumerBarrier = _ringBuffer.CreateConsumerBarrier(_stepTwoBatchConsumer);
+            _stepThreeFunctionHandler = new FunctionHandler(FunctionStep.Three);
+            _stepThreeBatchConsumer = new BatchConsumer<FunctionEntry>(_stepThreeConsumerBarrier, _stepThreeFunctionHandler);
+
+            _producerBarrier = _ringBuffer.CreateProducerBarrier(_stepThreeBatchConsumer);
+
+            _stepOneAb = new ActionBlock<long[]>(values => _stepTwoTpl.Post(values[0] + values[1]));
+            _stepTwoAb = new ActionBlock<long>(value => _stepThreeTpl.Post(value + 3));
+
+            _stepOneTpl.LinkTo(_stepOneAb);
+            _stepTwoTpl.LinkTo(_stepTwoAb);
         }
 
         [Test]

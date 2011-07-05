@@ -102,8 +102,6 @@ namespace Disruptor.PerfTests
         {
             _queueConsumer = new ValueAdditionQueueConsumer(_blockingQueue, Iterations);
 
-            ///////////////////////////////////////////////////////////////////////////////////////////////
-
             _ringBuffer = new ValueTypeRingBuffer<long>(Size, 
                                    ClaimStrategyFactory.ClaimStrategyOption.Multithreaded,
                                    WaitStrategyFactory.WaitStrategyOption.Yielding);
@@ -112,32 +110,8 @@ namespace Disruptor.PerfTests
             _producerBarrier = _ringBuffer.CreateProducerBarrier(_batchConsumer);
         }
 
-
-        private void Reset()
-        {
-            // had to create this method, there is no way to reset a Barrier in .NET...
-
-            _testStartBarrier = new Barrier(NumProducers + 1);
-            
-            _valueQueueProducers = new[]
-                                      {
-                                          new ValueQueueProducer(_testStartBarrier, _blockingQueue, Iterations),
-                                          new ValueQueueProducer(_testStartBarrier, _blockingQueue, Iterations),
-                                          new ValueQueueProducer(_testStartBarrier, _blockingQueue, Iterations)
-                                      };
-
-            _valueProducers = new[]
-                                 {
-                                     new ValueProducer(_testStartBarrier, _producerBarrier, Iterations),
-                                     new ValueProducer(_testStartBarrier, _producerBarrier, Iterations),
-                                     new ValueProducer(_testStartBarrier, _producerBarrier, Iterations)
-                                 };
-        }
-
         protected override long RunQueuePass(int passNumber)
         {
-            Reset();
-
             _queueConsumer.Reset();
 
             for (var i = 0; i < NumProducers; i++)
@@ -162,8 +136,6 @@ namespace Disruptor.PerfTests
 
         protected override long RunDisruptorPass(int passNumber)
         {
-            Reset();
-            
             for (var i = 0; i < NumProducers; i++)
             {
                 (new Thread(_valueProducers[i].Run) { Name = "Value producer " + i }).Start();
@@ -188,6 +160,25 @@ namespace Disruptor.PerfTests
         protected override long RunTplDataflowPass(int passNumber)
         {
             return 0L;
+        }
+
+        protected override void SetUp(int passNumber)
+        {
+            _testStartBarrier = new Barrier(NumProducers + 1);
+
+            _valueQueueProducers = new[]
+                                      {
+                                          new ValueQueueProducer(_testStartBarrier, _blockingQueue, Iterations),
+                                          new ValueQueueProducer(_testStartBarrier, _blockingQueue, Iterations),
+                                          new ValueQueueProducer(_testStartBarrier, _blockingQueue, Iterations)
+                                      };
+
+            _valueProducers = new[]
+                                 {
+                                     new ValueProducer(_testStartBarrier, _producerBarrier, Iterations),
+                                     new ValueProducer(_testStartBarrier, _producerBarrier, Iterations),
+                                     new ValueProducer(_testStartBarrier, _producerBarrier, Iterations)
+                                 };
         }
 
         [Test]

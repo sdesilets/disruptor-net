@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
@@ -76,35 +75,21 @@ namespace Disruptor.PerfTests
         ///////////////////////////////////////////////////////////////////////////////////////////////
 
         private readonly BlockingCollection<long> _queue = new BlockingCollection<long>(Size);
-        private readonly ValueAdditionQueueConsumer _queueConsumer;
+        private ValueAdditionQueueConsumer _queueConsumer;
 
         ///////////////////////////////////////////////////////////////////////////////////////////////
 
-        private readonly ValueTypeRingBuffer<long> _ringBuffer;
-        private readonly IConsumerBarrier<long> _consumerBarrier;
-        private readonly ValueAdditionHandler _handler;
-        private readonly BatchConsumer<long> _batchConsumer;
-        private readonly IValueTypeProducerBarrier<long> _producerBarrier;
+        private ValueTypeRingBuffer<long> _ringBuffer;
+        private IConsumerBarrier<long> _consumerBarrier;
+        private ValueAdditionHandler _handler;
+        private BatchConsumer<long> _batchConsumer;
+        private IValueTypeProducerBarrier<long> _producerBarrier;
 
         ///////////////////////////////////////////////////////////////////////////////////////////////
 
         private readonly BufferBlock<long> _bufferBlock = new BufferBlock<long>();
 
         ///////////////////////////////////////////////////////////////////////////////////////////////
-
-        public UniCast1P1CPerfTest()
-        {
-            _queueConsumer = new ValueAdditionQueueConsumer(_queue, Iterations);
-
-            _ringBuffer = new ValueTypeRingBuffer<long>(Size, 
-                                                     ClaimStrategyFactory.ClaimStrategyOption.SingleThreaded,
-                                                     WaitStrategyFactory.WaitStrategyOption.Yielding);
-
-            _consumerBarrier = _ringBuffer.CreateConsumerBarrier();
-            _handler = new ValueAdditionHandler();
-            _batchConsumer = new BatchConsumer<long>(_consumerBarrier, _handler);
-            _producerBarrier = _ringBuffer.CreateProducerBarrier(_batchConsumer);
-        }
 
         private long _tplValue;
         private void Consumer()
@@ -115,6 +100,20 @@ namespace Disruptor.PerfTests
                 long value = _bufferBlock.Receive();
                 _tplValue += value;
             }
+        }
+
+        protected override void SetUp(int passNumber)
+        {
+            _queueConsumer = new ValueAdditionQueueConsumer(_queue, Iterations);
+
+            _ringBuffer = new ValueTypeRingBuffer<long>(Size,
+                                                     ClaimStrategyFactory.ClaimStrategyOption.SingleThreaded,
+                                                     WaitStrategyFactory.WaitStrategyOption.Yielding);
+
+            _consumerBarrier = _ringBuffer.CreateConsumerBarrier();
+            _handler = new ValueAdditionHandler();
+            _batchConsumer = new BatchConsumer<long>(_consumerBarrier, _handler);
+            _producerBarrier = _ringBuffer.CreateProducerBarrier(_batchConsumer);
         }
 
         [Test]

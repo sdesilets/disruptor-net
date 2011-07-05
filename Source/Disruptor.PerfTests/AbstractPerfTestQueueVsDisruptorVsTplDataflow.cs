@@ -10,11 +10,13 @@ namespace Disruptor.PerfTests
             const int runs = 3;
             var disruptorOps = 0L;
             var queueOps = 0L;
-            var tplDtaflowOps = 0L;
+            var tplDataflowOps = 0L;
 
             for (var i = 0; i < runs; i++)
             {
                 GC.Collect();
+
+                SetUp(i);
 
                 disruptorOps = RunDisruptorPass(i);
                 Console.WriteLine("Run disruptor finished");
@@ -22,18 +24,19 @@ namespace Disruptor.PerfTests
                 queueOps = RunQueuePass(i);
                 Console.WriteLine("Run queue finished");
 
-                tplDtaflowOps = RunTplDataflowPass(i);
+                tplDataflowOps = RunTplDataflowPass(i);
                 Console.WriteLine("Run Tpl Dataflow finished");
 
-                PrintResults(GetType().Name, disruptorOps, queueOps, tplDtaflowOps, i);
+                PrintResults(GetType().Name, disruptorOps, queueOps, tplDataflowOps, i);
             }
 
-            Assert.IsTrue(disruptorOps > queueOps, "Performance degraded");
+            Assert.IsTrue(disruptorOps > queueOps, "Performance degraded (Queue vs Disruptor)");
+            Assert.IsTrue(disruptorOps > tplDataflowOps, "Performance degraded (BufferBlock vs Disruptor)");
         }
 
         public static void PrintResults(string className, long disruptorOps, long queueOps, long tplDtaflowOps, int i)
         {
-            Console.WriteLine("{0} OpsPerSecond run {1}: BlockingQueues={2:N}, Disruptor={3:N}, TPLDataFlow={4:N}, QueueDisruptorRatio=x{5:0.0}", className, i, queueOps, disruptorOps, tplDtaflowOps, disruptorOps / queueOps);
+            Console.WriteLine("{0} OpsPerSecond run {1}: BlockingQueues={2:N}, Disruptor={3:N}, TPLDataFlow={4:N}, QueueDisruptorRatio=x{5:0.0}", className, i, queueOps, disruptorOps, tplDtaflowOps, disruptorOps / (double)queueOps);
         }
 
         protected abstract long RunQueuePass(int passNumber);
@@ -41,6 +44,8 @@ namespace Disruptor.PerfTests
         protected abstract long RunDisruptorPass(int passNumber);
 
         protected abstract long RunTplDataflowPass(int passNumber);
+
+        protected abstract void SetUp(int passNumber);
 
         public abstract void ShouldCompareDisruptorVsQueues();
     }
