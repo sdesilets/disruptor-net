@@ -49,6 +49,7 @@
     </Compile>
     <Compile Include="AbstractPerfTestQueueVsDisruptor.cs" />
     <Compile Include="DiamondPath1P3CPerfTest.cs" />
+    <Compile Include="MultiCast1P3CPerfTest.cs" />
     <Compile Include="Pipeline3StepLatencyPerfTest.cs" />
     <Compile Include="Pipeline3StepPerfTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -62,9 +63,13 @@
     <Compile Include="Support\FunctionStep.cs" />
     <Compile Include="Support\LatencyStepHandler.cs" />
     <Compile Include="Support\LatencyStepQueueConsumer.cs" />
+    <Compile Include="Support\Operation.cs" />
+    <Compile Include="Support\OperationExtensions.cs" />
     <Compile Include="Support\ValueAdditionHandler.cs" />
     <Compile Include="Support\ValueAdditionQueueConsumer.cs" />
     <Compile Include="Support\ValueEntry.cs" />
+    <Compile Include="Support\ValueMutationHandler.cs" />
+    <Compile Include="Support\ValueMutationQueueConsumer.cs" />
     <Compile Include="UniCast1P1CPerfTest.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -74,11 +79,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Java\MultiCast1P3CPerfTest.java" />
     <Content Include="Java\Sequencer3P1CPerfTest.java" />
-    <Content Include="Java\support\Operation.java" />
-    <Content Include="Java\support\ValueMutationHandler.java" />
-    <Content Include="Java\support\ValueMutationQueueConsumer.java" />
     <Content Include="Java\support\ValueProducer.java" />
     <Content Include="Java\support\ValueQueueProducer.java" />
   </ItemGroup>

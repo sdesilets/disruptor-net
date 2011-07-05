@@ -7,10 +7,11 @@ namespace Disruptor.PerfTestRunner
     {
         static void Main()
         {
-            RunTest(new UniCast1P1CPerfTest());
-            RunTest(new Pipeline3StepPerfTest());
-            RunTest(new DiamondPath1P3CPerfTest());
-            RunLatencyTest();
+            //RunTest(new UniCast1P1CPerfTest());
+            //RunTest(new Pipeline3StepPerfTest());
+            //RunTest(new DiamondPath1P3CPerfTest());
+            RunTest(new MultiCast1P3CPerfTest());
+            //RunLatencyTest();
 
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey();

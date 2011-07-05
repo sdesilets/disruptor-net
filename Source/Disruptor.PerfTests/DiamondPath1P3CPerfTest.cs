@@ -75,6 +75,7 @@ using NUnit.Framework;
 
 namespace Disruptor.PerfTests
 {
+    [TestFixture]
     public class DiamondPath1P3CPerfTest : AbstractPerfTestQueueVsDisruptor
     {
         private const int Size = 1024 * 32;
@@ -222,6 +223,7 @@ namespace Disruptor.PerfTests
             return opsPerSecond;
         }
 
+        [Test]
         public override void ShouldCompareDisruptorVsQueues()
         {
             TestImplementations();
