@@ -10,8 +10,8 @@
  * performance (throughput) is now equivalent to the Java version
 
 ===3rd July 2011===
- * removed IEntry and replaced it with struct Entry: data processed by the disruptor no longer need to implement a specific interface
- * split the implementation in 2: RingBuffer for reference type and ValueTypeRingBuffer for value types.
+ * removed `IEntry` and replaced it with struct `Entry<T>`: data processed by the disruptor no longer need to implement a specific interface
+ * split the implementation in 2: `RingBuffer<T>` for reference type and `ValueTypeRingBuffer<T>` for value types.
 
 ===28th June 2011===
  * automated build process
