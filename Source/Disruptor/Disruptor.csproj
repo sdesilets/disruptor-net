@@ -83,6 +83,10 @@
     <Compile Include="WaitStrategyFactory.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Fluent\Java\ConsumerGroup.java" />
+    <Content Include="Fluent\Java\ConsumerInfo.java" />
+    <Content Include="Fluent\Java\ConsumerRepository.java" />
+    <Content Include="Fluent\Java\DisruptorWizard.java" />
     <Content Include="SequenceDiagram.txt" />
   </ItemGroup>
   <ItemGroup>
