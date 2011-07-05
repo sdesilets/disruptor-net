@@ -67,7 +67,6 @@
  * </pre>
  */
 
-using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
@@ -111,55 +110,30 @@ namespace Disruptor.PerfTests
         private readonly BlockingCollection<bool> _fizzOutputQueue = new BlockingCollection<bool>(Size);
         private readonly BlockingCollection<bool> _buzzOutputQueue = new BlockingCollection<bool>(Size);
 
-        private readonly FizzBuzzQueueConsumer _fizzQueueConsumer;
-        private readonly FizzBuzzQueueConsumer _buzzQueueConsumer;
-        private readonly FizzBuzzQueueConsumer _fizzBuzzQueueConsumer;
+        private FizzBuzzQueueConsumer _fizzQueueConsumer;
+        private FizzBuzzQueueConsumer _buzzQueueConsumer;
+        private FizzBuzzQueueConsumer _fizzBuzzQueueConsumer;
 
         ///////////////////////////////////////////////////////////////////////////////////////////////
 
-        private readonly RingBuffer<FizzBuzzEntry> _ringBuffer;
-        private readonly IConsumerBarrier<FizzBuzzEntry> _consumerBarrier;
+        private RingBuffer<FizzBuzzEntry> _ringBuffer;
+        private IConsumerBarrier<FizzBuzzEntry> _consumerBarrier;
 
-        private readonly FizzBuzzHandler _fizzHandler;
-        private readonly BatchConsumer<FizzBuzzEntry> _batchConsumerFizz;
+        private FizzBuzzHandler _fizzHandler;
+        private BatchConsumer<FizzBuzzEntry> _batchConsumerFizz;
 
-        private readonly FizzBuzzHandler _buzzHandler;
-        private readonly BatchConsumer<FizzBuzzEntry> _batchConsumerBuzz;
+        private FizzBuzzHandler _buzzHandler;
+        private BatchConsumer<FizzBuzzEntry> _batchConsumerBuzz;
 
-        private readonly IConsumerBarrier<FizzBuzzEntry> _consumerBarrierFizzBuzz;
+        private IConsumerBarrier<FizzBuzzEntry> _consumerBarrierFizzBuzz;
 
-        private readonly FizzBuzzHandler _fizzBuzzHandler;
-        private readonly BatchConsumer<FizzBuzzEntry> _batchConsumerFizzBuzz;
+        private FizzBuzzHandler _fizzBuzzHandler;
+        private BatchConsumer<FizzBuzzEntry> _batchConsumerFizzBuzz;
 
-        private readonly IReferenceTypeProducerBarrier<FizzBuzzEntry> _producerBarrier;
+        private IReferenceTypeProducerBarrier<FizzBuzzEntry> _producerBarrier;
 
         ///////////////////////////////////////////////////////////////////////////////////////////////
         
-        public DiamondPath1P3CPerfTest()
-        {
-            _fizzQueueConsumer = new FizzBuzzQueueConsumer(FizzBuzzStep.Fizz, _fizzInputQueue, _buzzInputQueue, _fizzOutputQueue, _buzzOutputQueue, Iterations);
-            _buzzQueueConsumer = new FizzBuzzQueueConsumer(FizzBuzzStep.Buzz, _fizzInputQueue, _buzzInputQueue, _fizzOutputQueue, _buzzOutputQueue, Iterations);
-            _fizzBuzzQueueConsumer = new FizzBuzzQueueConsumer(FizzBuzzStep.FizzBuzz, _fizzInputQueue, _buzzInputQueue, _fizzOutputQueue, _buzzOutputQueue, Iterations);
-
-            ///////////////////////////////////////////////////////////////////////////////////////////////
-
-            _ringBuffer = new RingBuffer<FizzBuzzEntry>(() => new FizzBuzzEntry(), Size,
-                                          ClaimStrategyFactory.ClaimStrategyOption.SingleThreaded,
-                                          WaitStrategyFactory.WaitStrategyOption.Yielding);
-            _consumerBarrier = _ringBuffer.CreateConsumerBarrier();
-            _fizzHandler = new FizzBuzzHandler(FizzBuzzStep.Fizz);
-            _batchConsumerFizz = new BatchConsumer<FizzBuzzEntry>(_consumerBarrier, _fizzHandler);
-
-            _buzzHandler = new FizzBuzzHandler(FizzBuzzStep.Buzz);
-            _batchConsumerBuzz = new BatchConsumer<FizzBuzzEntry>(_consumerBarrier, _buzzHandler);
-            _consumerBarrierFizzBuzz = _ringBuffer.CreateConsumerBarrier(_batchConsumerFizz, _batchConsumerBuzz);
-
-            _fizzBuzzHandler = new FizzBuzzHandler(FizzBuzzStep.FizzBuzz);
-            _batchConsumerFizzBuzz = new BatchConsumer<FizzBuzzEntry>(_consumerBarrierFizzBuzz, _fizzBuzzHandler);
-
-            _producerBarrier = _ringBuffer.CreateProducerBarrier(_batchConsumerFizzBuzz);
-        }
-
         protected override long RunQueuePass(int passNumber)
         {
             _fizzBuzzQueueConsumer.Reset();
@@ -227,6 +201,31 @@ namespace Disruptor.PerfTests
         protected override long RunTplDataflowPass(int passNumber)
         {
             return 0;
+        }
+
+        protected override void SetUp(int passNumber)
+        {
+            _fizzQueueConsumer = new FizzBuzzQueueConsumer(FizzBuzzStep.Fizz, _fizzInputQueue, _buzzInputQueue, _fizzOutputQueue, _buzzOutputQueue, Iterations);
+            _buzzQueueConsumer = new FizzBuzzQueueConsumer(FizzBuzzStep.Buzz, _fizzInputQueue, _buzzInputQueue, _fizzOutputQueue, _buzzOutputQueue, Iterations);
+            _fizzBuzzQueueConsumer = new FizzBuzzQueueConsumer(FizzBuzzStep.FizzBuzz, _fizzInputQueue, _buzzInputQueue, _fizzOutputQueue, _buzzOutputQueue, Iterations);
+
+            ///////////////////////////////////////////////////////////////////////////////////////////////
+
+            _ringBuffer = new RingBuffer<FizzBuzzEntry>(() => new FizzBuzzEntry(), Size,
+                                          ClaimStrategyFactory.ClaimStrategyOption.SingleThreaded,
+                                          WaitStrategyFactory.WaitStrategyOption.Yielding);
+            _consumerBarrier = _ringBuffer.CreateConsumerBarrier();
+            _fizzHandler = new FizzBuzzHandler(FizzBuzzStep.Fizz);
+            _batchConsumerFizz = new BatchConsumer<FizzBuzzEntry>(_consumerBarrier, _fizzHandler);
+
+            _buzzHandler = new FizzBuzzHandler(FizzBuzzStep.Buzz);
+            _batchConsumerBuzz = new BatchConsumer<FizzBuzzEntry>(_consumerBarrier, _buzzHandler);
+            _consumerBarrierFizzBuzz = _ringBuffer.CreateConsumerBarrier(_batchConsumerFizz, _batchConsumerBuzz);
+
+            _fizzBuzzHandler = new FizzBuzzHandler(FizzBuzzStep.FizzBuzz);
+            _batchConsumerFizzBuzz = new BatchConsumer<FizzBuzzEntry>(_consumerBarrierFizzBuzz, _fizzBuzzHandler);
+
+            _producerBarrier = _ringBuffer.CreateProducerBarrier(_batchConsumerFizzBuzz);
         }
 
         [Test]
