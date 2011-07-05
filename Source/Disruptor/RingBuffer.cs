@@ -226,7 +226,7 @@ namespace Disruptor
             {
                 var wrapPoint = sequence - _ringBuffer._entries.Length;
                 
-                while (wrapPoint >= _lastConsumerMinimum && wrapPoint >= (_lastConsumerMinimum = _consumers.GetMinimumSequence()))
+                while (wrapPoint > _lastConsumerMinimum && wrapPoint > (_lastConsumerMinimum = _consumers.GetMinimumSequence()))
                 {
                     Thread.Yield();
                 }
@@ -282,7 +282,7 @@ namespace Disruptor
             {
                 var wrapPoint = sequence - _ringBuffer._entries.Length;
 
-                while (wrapPoint >= _lastConsumerMinimum && wrapPoint >= (_lastConsumerMinimum = _consumers.GetMinimumSequence()))
+                while (wrapPoint > _lastConsumerMinimum && wrapPoint > (_lastConsumerMinimum = _consumers.GetMinimumSequence()))
                 {
                     Thread.Yield();
                 }

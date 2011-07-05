@@ -210,7 +210,7 @@ namespace Disruptor
             private void EnsureConsumersAreInRange(long sequence)
             {
                 var wrapPoint = sequence - _ringBuffer._entries.Length;
-                while (wrapPoint >= _lastConsumerMinimum && wrapPoint >= (_lastConsumerMinimum = _consumers.GetMinimumSequence()))
+                while (wrapPoint > _lastConsumerMinimum && wrapPoint > (_lastConsumerMinimum = _consumers.GetMinimumSequence()))
                 {
                     Thread.Yield();
                 }
@@ -263,7 +263,7 @@ namespace Disruptor
             private void EnsureConsumersAreInRange(long sequence)
             {
                 var wrapPoint = sequence - _ringBuffer._entries.Length;
-                while (wrapPoint >= _lastConsumerMinimum && wrapPoint >= (_lastConsumerMinimum = _consumers.GetMinimumSequence()))
+                while (wrapPoint > _lastConsumerMinimum && wrapPoint > (_lastConsumerMinimum = _consumers.GetMinimumSequence()))
                 {
                     Thread.Yield();
                 }
