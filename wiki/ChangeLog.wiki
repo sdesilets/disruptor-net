@@ -1,12 +1,13 @@
 ===5th July 2011===
  * Added Microsoft TPL Dataflow comparison to Uni and Pipe perf tests
  * Ported all remaining performance tests. All Java code has now been ported.
+ * Added a new constructor to `BatchConsumer` taking 2 actions: onAvailable and onEndOfBatch -> we no longer need to implement IBatchHandler for every use case.
 
 ===4th July 2011===
  * ported latency test
  * ported latest disruptor (Java) changes
- *fixed bugs
- *performance (throughput) is now equivalent to the Java version
+ * fixed bugs
+ * performance (throughput) is now equivalent to the Java version
 
 ===3rd July 2011===
  * removed IEntry and replaced it with struct Entry: data processed by the disruptor no longer need to implement a specific interface
