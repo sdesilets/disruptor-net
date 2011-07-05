@@ -91,17 +91,6 @@ namespace Disruptor.PerfTests
 
         ///////////////////////////////////////////////////////////////////////////////////////////////
 
-        private long _tplValue;
-        private void Consumer()
-        {
-            _tplValue = 0L;
-            for (long i = 0; i < Iterations; i++)
-            {
-                long value = _bufferBlock.Receive();
-                _tplValue += value;
-            }
-        }
-
         protected override void SetUp(int passNumber)
         {
             _queueConsumer = new ValueAdditionQueueConsumer(_queue, Iterations);
@@ -177,6 +166,17 @@ namespace Disruptor.PerfTests
             return opsPerSecond;
         }
 
+        private long _tplValue;
+        private void Consumer()
+        {
+            _tplValue = 0L;
+            for (long i = 0; i < Iterations; i++)
+            {
+                long value = _bufferBlock.Receive();
+                _tplValue += value;
+            }
+        }
+
         protected override long RunTplDataflowPass(int passNumber)
         {
             var c = Task.Factory.StartNew(Consumer);
@@ -188,7 +188,6 @@ namespace Disruptor.PerfTests
                 _bufferBlock.Post(i);
             }
             Task.WaitAll(c);
-
 
             var opsPerSecond = (Iterations * 1000L) / (sw.ElapsedMilliseconds);
 
