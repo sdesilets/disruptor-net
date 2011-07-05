@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 using Disruptor.PerfTests.Support;
 using NUnit.Framework;
 
@@ -52,7 +54,7 @@ namespace Disruptor.PerfTests
     * </pre>
     */
     [TestFixture]
-    public class UniCast1P1CPerfTest : AbstractPerfTestQueueVsDisruptor
+    public class UniCast1P1CPerfTest : AbstractPerfTestQueueVsDisruptorVsTplDataflow
     {
         private const int Size = 1024 * 32;
         private const long Iterations = 1000L * 1000L * 10L;
@@ -86,6 +88,10 @@ namespace Disruptor.PerfTests
 
         ///////////////////////////////////////////////////////////////////////////////////////////////
 
+        private readonly BufferBlock<long> _bufferBlock = new BufferBlock<long>();
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+
         public UniCast1P1CPerfTest()
         {
             _queueConsumer = new ValueAdditionQueueConsumer(_queue, Iterations);
@@ -98,6 +104,17 @@ namespace Disruptor.PerfTests
             _handler = new ValueAdditionHandler();
             _batchConsumer = new BatchConsumer<long>(_consumerBarrier, _handler);
             _producerBarrier = _ringBuffer.CreateProducerBarrier(_batchConsumer);
+        }
+
+        private long _tplValue;
+        private void Consumer()
+        {
+            _tplValue = 0L;
+            for (long i = 0; i < Iterations; i++)
+            {
+                long value = _bufferBlock.Receive();
+                _tplValue += value;
+            }
         }
 
         [Test]
@@ -157,6 +174,26 @@ namespace Disruptor.PerfTests
             _batchConsumer.Halt();
 
             Assert.AreEqual(ExpectedResult, _handler.Value);
+
+            return opsPerSecond;
+        }
+
+        protected override long RunTplDataflowPass(int passNumber)
+        {
+            var c = Task.Factory.StartNew(Consumer);
+
+            var sw = Stopwatch.StartNew();
+
+            for (long i = 0; i < Iterations; i++)
+            {
+                _bufferBlock.Post(i);
+            }
+            Task.WaitAll(c);
+
+
+            var opsPerSecond = (Iterations * 1000L) / (sw.ElapsedMilliseconds);
+
+            Assert.AreEqual(ExpectedResult, _tplValue);
 
             return opsPerSecond;
         }

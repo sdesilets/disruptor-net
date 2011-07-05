@@ -75,7 +75,7 @@ using NUnit.Framework;
 namespace Disruptor.PerfTests
 {
     [TestFixture]
-    public class MultiCast1P3CPerfTest : AbstractPerfTestQueueVsDisruptor
+    public class MultiCast1P3CPerfTest : AbstractPerfTestQueueVsDisruptorVsTplDataflow
     {
         private const int NumConsumers = 3;
         private const int Size = 1024 * 32;
@@ -215,6 +215,11 @@ namespace Disruptor.PerfTests
             }
 
             return opsPerSecond;
+        }
+
+        protected override long RunTplDataflowPass(int passNumber)
+        {
+            return 0;
         }
 
         [Test]
