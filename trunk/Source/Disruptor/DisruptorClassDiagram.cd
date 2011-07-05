@@ -1,24 +1,24 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
   <Class Name="Disruptor.RingBuffer&lt;T&gt;">
-    <Position X="4.5" Y="1.5" Width="2.25" />
+    <Position X="2.75" Y="1.5" Width="2.25" />
     <Compartments>
       <Compartment Name="Fields" Collapsed="true" />
     </Compartments>
     <NestedTypes>
-      <Class Name="Disruptor.RingBuffer&lt;T&gt;.ConsumerTrackingConsumerBarrier&lt;U&gt;" Collapsed="true">
+      <Class Name="Disruptor.RingBuffer&lt;T&gt;.ConsumerTrackingConsumerBarrier&lt;TU&gt;" Collapsed="true">
         <TypeIdentifier>
           <NewMemberFileName>RingBuffer.cs</NewMemberFileName>
         </TypeIdentifier>
         <Lollipop Position="0.2" />
       </Class>
-      <Class Name="Disruptor.RingBuffer&lt;T&gt;.ConsumerTrackingProducerBarrier" Collapsed="true">
+      <Class Name="Disruptor.RingBuffer&lt;T&gt;.ReferenceTypeConsumerTrackingProducerBarrier" Collapsed="true">
         <TypeIdentifier>
           <NewMemberFileName>RingBuffer.cs</NewMemberFileName>
         </TypeIdentifier>
         <Lollipop Position="0.2" />
       </Class>
-      <Class Name="Disruptor.RingBuffer&lt;T&gt;.ForceFillConsumerTrackingProducerBarrier" Collapsed="true">
+      <Class Name="Disruptor.RingBuffer&lt;T&gt;.ReferenceTypeForceFillConsumerTrackingProducerBarrier" Collapsed="true">
         <TypeIdentifier>
           <NewMemberFileName>RingBuffer.cs</NewMemberFileName>
         </TypeIdentifier>
@@ -27,37 +27,38 @@
     </NestedTypes>
     <AssociationLine Name="_waitStrategy" Type="Disruptor.IWaitStrategy" FixedFromPoint="true" FixedToPoint="true">
       <Path>
-        <Point X="6.75" Y="3.812" />
-        <Point X="7.969" Y="3.812" />
-        <Point X="7.969" Y="5" />
+        <Point X="5" Y="3.812" />
+        <Point X="6.219" Y="3.812" />
+        <Point X="6.219" Y="5" />
       </Path>
     </AssociationLine>
     <TypeIdentifier>
-      <HashCode>CAAAJAAAAQQAAQEAAAAAIAACCqEgCAAAgAAQABIIQAA=</HashCode>
+      <HashCode>AAAAJAAAAQAAAAEACAAAIAACCCAAKAAAAAAAABIIAAA=</HashCode>
       <FileName>RingBuffer.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
       <Field Name="_claimStrategy" />
       <Field Name="_waitStrategy" />
     </ShowAsAssociation>
+    <Lollipop Position="0.2" />
   </Class>
   <Class Name="Disruptor.ClaimStrategyFactory">
-    <Position X="4" Y="5" Width="2" />
+    <Position X="2.25" Y="5" Width="2" />
     <Compartments>
       <Compartment Name="Nested Types" Collapsed="false" />
     </Compartments>
     <NestedTypes>
+      <Enum Name="Disruptor.ClaimStrategyFactory.ClaimStrategyOption">
+        <TypeIdentifier>
+          <NewMemberFileName>ClaimStrategyFactory.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
       <Class Name="Disruptor.ClaimStrategyFactory.MultiThreadedStrategy" Collapsed="true">
         <TypeIdentifier>
           <NewMemberFileName>ClaimStrategyFactory.cs</NewMemberFileName>
         </TypeIdentifier>
         <Lollipop Position="0.2" />
       </Class>
-      <Enum Name="Disruptor.ClaimStrategyFactory.ClaimStrategyOption">
-        <TypeIdentifier>
-          <NewMemberFileName>ClaimStrategyFactory.cs</NewMemberFileName>
-        </TypeIdentifier>
-      </Enum>
       <Class Name="Disruptor.ClaimStrategyFactory.SingleThreadedStrategy" Collapsed="true">
         <TypeIdentifier>
           <NewMemberFileName>ClaimStrategyFactory.cs</NewMemberFileName>
@@ -71,7 +72,7 @@
     </TypeIdentifier>
   </Class>
   <Class Name="Disruptor.WaitStrategyFactory">
-    <Position X="9.25" Y="5" Width="2.25" />
+    <Position X="7.5" Y="5" Width="2.25" />
     <Compartments>
       <Compartment Name="Nested Types" Collapsed="false" />
     </Compartments>
@@ -106,52 +107,38 @@
     </TypeIdentifier>
   </Class>
   <Interface Name="Disruptor.IClaimStrategy">
-    <Position X="2.25" Y="5" Width="1.5" />
+    <Position X="0.5" Y="5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAABAAAAAQAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAQAAA=</HashCode>
       <FileName>IClaimStrategy.cs</FileName>
     </TypeIdentifier>
   </Interface>
   <Interface Name="Disruptor.IWaitStrategy">
-    <Position X="7.5" Y="5" Width="1.5" />
+    <Position X="5.75" Y="5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAA=</HashCode>
       <FileName>IWaitStrategy.cs</FileName>
     </TypeIdentifier>
   </Interface>
-  <Interface Name="Disruptor.IEntryFactory&lt;T&gt;">
-    <Position X="1" Y="0.5" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAA=</HashCode>
-      <FileName>IEntryFactory.cs</FileName>
-    </TypeIdentifier>
-  </Interface>
-  <Interface Name="Disruptor.IEntry">
-    <Position X="1" Y="1.75" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAA=</HashCode>
-      <FileName>IEntry.cs</FileName>
-    </TypeIdentifier>
-  </Interface>
   <Interface Name="Disruptor.IConsumerBarrier&lt;T&gt;">
-    <Position X="8.5" Y="2.5" Width="1.75" />
+    <Position X="6.75" Y="2.5" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAUAAAQAAAAAAAAAAAAAAACAABAAAAAAAAAI=</HashCode>
       <FileName>IConsumerBarrier.cs</FileName>
     </TypeIdentifier>
   </Interface>
   <Interface Name="Disruptor.IConsumer">
-    <Position X="11" Y="2.25" Width="1.5" />
+    <Position X="9.25" Y="2.25" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAEAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAEAAAI=</HashCode>
       <FileName>IConsumer.cs</FileName>
     </TypeIdentifier>
   </Interface>
-  <Interface Name="Disruptor.IProducerBarrier&lt;T&gt;">
-    <Position X="8.5" Y="0.5" Width="1.5" />
+  <Interface Name="Disruptor.IValueTypeProducerBarrier&lt;T&gt;">
+    <Position X="6.75" Y="0.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAEAAAQAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>IProducerBarrier.cs</FileName>
+      <HashCode>AAAAAEAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>IValueTypeProducerBarrier.cs</FileName>
     </TypeIdentifier>
   </Interface>
   <Font Name="Tahoma" Size="8.25" />
