@@ -79,7 +79,7 @@ namespace Disruptor.PerfTests
     {
         private const int NumConsumers = 3;
         private const int Size = 1024 * 32;
-        private const long Iterations = 1000 * 1000 * 20L;
+        private const long Iterations = 1000 * 1000 * 10L;
         private long[] _results;
 
         private long[] ExpectedResults
