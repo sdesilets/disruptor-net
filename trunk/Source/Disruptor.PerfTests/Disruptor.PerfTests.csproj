@@ -71,14 +71,11 @@
   <ItemGroup>
     <Content Include="Java\DiamondPath1P3CPerfTest.java" />
     <Content Include="Java\MultiCast1P3CPerfTest.java" />
-    <Content Include="Java\Pipeline3StepLatencyPerfTest.java" />
     <Content Include="Java\Sequencer3P1CPerfTest.java" />
     <Content Include="Java\support\FizzBuzzEntry.java" />
     <Content Include="Java\support\FizzBuzzHandler.java" />
     <Content Include="Java\support\FizzBuzzQueueConsumer.java" />
     <Content Include="Java\support\FizzBuzzStep.java" />
-    <Content Include="Java\support\LatencyStepHandler.java" />
-    <Content Include="Java\support\LatencyStepQueueConsumer.java" />
     <Content Include="Java\support\Operation.java" />
     <Content Include="Java\support\ValueMutationHandler.java" />
     <Content Include="Java\support\ValueMutationQueueConsumer.java" />
