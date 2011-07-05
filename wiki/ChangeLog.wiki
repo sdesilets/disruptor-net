@@ -1,3 +1,6 @@
+===5th July 2011===
+ * Added Microsoft TPL Dataflow comparison to Uni and Pipe perf tests
+
 ===4th July 2011===
  * ported latency test
  * ported latest disruptor (Java) changes
