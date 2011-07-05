@@ -66,6 +66,7 @@
  *
  * </pre>
  */
+using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
@@ -75,7 +76,7 @@ using NUnit.Framework;
 namespace Disruptor.PerfTests
 {
     [TestFixture]
-    public class Sequencer3P1CPerfTest : AbstractPerfTestQueueVsDisruptor
+    public class Sequencer3P1CPerfTest : AbstractPerfTestQueueVsDisruptorVsTplDataflow
     {
         private const int NumProducers = 3;
         private const int Size = 1024 * 32;
@@ -182,6 +183,11 @@ namespace Disruptor.PerfTests
             _batchConsumer.Halt();
 
             return opsPerSecond;
+        }
+
+        protected override long RunTplDataflowPass(int passNumber)
+        {
+            return 0L;
         }
 
         [Test]

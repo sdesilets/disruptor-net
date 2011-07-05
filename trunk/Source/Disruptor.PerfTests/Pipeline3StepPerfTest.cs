@@ -1,6 +1,9 @@
+using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 using Disruptor.PerfTests.Support;
 using NUnit.Framework;
 
@@ -61,7 +64,7 @@ namespace Disruptor.PerfTests
      * </pre>
      */
     [TestFixture]
-    public class Pipeline3StepPerfTest : AbstractPerfTestQueueVsDisruptor
+    public class Pipeline3StepPerfTest : AbstractPerfTestQueueVsDisruptorVsTplDataflow
     {
         private const  int Size = 1024 * 32;
         private const long Iterations = 1000 * 1000 * 10L;
@@ -115,6 +118,12 @@ namespace Disruptor.PerfTests
 
         private readonly IReferenceTypeProducerBarrier<FunctionEntry> _producerBarrier;
         
+        private readonly BufferBlock<long[]> _stepOneTPL = new BufferBlock<long[]>();
+        private readonly BufferBlock<long> _stepTwoTPL = new BufferBlock<long>();
+        private readonly BufferBlock<long> _stepThreeTPL = new BufferBlock<long>();
+
+        private ActionBlock<long[]> _stepOneAB;
+        private ActionBlock<long> _stepTwoAB;
 
         ///////////////////////////////////////////////////////////////////////////////////////////////
     
@@ -139,6 +148,12 @@ namespace Disruptor.PerfTests
             _stepThreeBatchConsumer = new BatchConsumer<FunctionEntry>(_stepThreeConsumerBarrier, _stepThreeFunctionHandler);
 
             _producerBarrier = _ringBuffer.CreateProducerBarrier(_stepThreeBatchConsumer);
+
+            _stepOneAB = new ActionBlock<long[]>(values => _stepTwoTPL.Post(values[0] + values[1]));
+            _stepTwoAB = new ActionBlock<long>(value => _stepThreeTPL.Post(value + 3));
+
+            _stepOneTPL.LinkTo(_stepOneAB);
+            _stepTwoTPL.LinkTo(_stepTwoAB);
         }
 
         protected override long RunQueuePass(int passNumber)
@@ -205,6 +220,47 @@ namespace Disruptor.PerfTests
             _stepThreeBatchConsumer.Halt();
 
             Assert.AreEqual(ExpectedResult, _stepThreeFunctionHandler.StepThreeCounter);
+
+            return opsPerSecond;
+        }
+
+        private long _tplValue;
+
+        private void Consumer()
+        {
+            _tplValue = 0L;
+            for (long i = 0; i < Iterations; i++)
+            {
+                long value = _stepThreeTPL.Receive();
+                var testValue = value;
+                if ((testValue & 4L) == 4L)
+                {
+                    ++_tplValue;
+                }
+            }
+        }
+
+        protected override long RunTplDataflowPass(int passNumber)
+        {
+            var c = Task.Factory.StartNew(Consumer);
+
+            var sw = Stopwatch.StartNew();
+
+            var operandTwo = OperandTwoInitialValue;
+            for (long i = 0; i < Iterations; i++)
+            {
+                var values = new long[2];
+                values[0] = i;
+                values[1] = operandTwo--;
+                _stepOneTPL.Post(values);
+            }
+
+            Task.WaitAll(c);
+
+
+            var opsPerSecond = (Iterations * 1000L) / (sw.ElapsedMilliseconds);
+
+            Assert.AreEqual(ExpectedResult, _tplValue);
 
             return opsPerSecond;
         }

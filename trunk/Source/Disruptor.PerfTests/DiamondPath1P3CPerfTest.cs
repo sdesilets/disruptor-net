@@ -67,6 +67,7 @@
  * </pre>
  */
 
+using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
@@ -76,7 +77,7 @@ using NUnit.Framework;
 namespace Disruptor.PerfTests
 {
     [TestFixture]
-    public class DiamondPath1P3CPerfTest : AbstractPerfTestQueueVsDisruptor
+    public class DiamondPath1P3CPerfTest : AbstractPerfTestQueueVsDisruptorVsTplDataflow
     {
         private const int Size = 1024 * 32;
         private const long Iterations = 1000 * 1000 * 10L;
@@ -221,6 +222,11 @@ namespace Disruptor.PerfTests
             Assert.AreEqual(ExpectedResult, _fizzBuzzHandler.FizzBuzzCounter);
 
             return opsPerSecond;
+        }
+
+        protected override long RunTplDataflowPass(int passNumber)
+        {
+            return 0;
         }
 
         [Test]

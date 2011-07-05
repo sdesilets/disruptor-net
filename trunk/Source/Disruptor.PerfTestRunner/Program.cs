@@ -30,7 +30,7 @@ namespace Disruptor.PerfTestRunner
             }
         }
 
-        private static void RunTest(AbstractPerfTestQueueVsDisruptor test)
+        private static void RunTest(AbstractPerfTestQueueVsDisruptorVsTplDataflow test)
         {
             try
             {

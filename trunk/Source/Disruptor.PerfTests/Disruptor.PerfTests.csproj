@@ -37,6 +37,10 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Threading.Tasks.Dataflow, Version=0.0.4098.29463, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Lib\System.Threading.Tasks.Dataflow.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -47,7 +51,7 @@
     <Compile Include="..\Version.cs">
       <Link>Version.cs</Link>
     </Compile>
-    <Compile Include="AbstractPerfTestQueueVsDisruptor.cs" />
+    <Compile Include="AbstractPerfTestQueueVsDisruptorVsTplDataflow.cs" />
     <Compile Include="DiamondPath1P3CPerfTest.cs" />
     <Compile Include="MultiCast1P3CPerfTest.cs" />
     <Compile Include="Pipeline3StepLatencyPerfTest.cs" />
@@ -80,6 +84,11 @@
       <Project>{37FBDBE1-8524-4489-B082-CC109B0F5EA3}</Project>
       <Name>Disruptor</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Java\Sequencer3P1CPerfTest.java" />
+    <Content Include="Java\support\ValueProducer.java" />
+    <Content Include="Java\support\ValueQueueProducer.java" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
