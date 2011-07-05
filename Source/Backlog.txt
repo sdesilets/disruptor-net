@@ -1,10 +1,10 @@
 - port the remaining performance tests:
 	- DiamondPath1P3CPerfTest (Olivier) - done
-	- MultiCast1P3CPerfTest (Olivier)
-	- Sequencer3P1CPerfTest
+	- MultiCast1P3CPerfTest (Olivier) - done
+	- Sequencer3P1CPerfTest (Olivier) - done
 - try to get rid of IBatchHandler using lambdas instead of an interface,
 - add a fluent API to configure the consumer barriers (this is quite verbose to build that manually)
-- add test coverage
+- add test coverage (NCover? DotCover?)
 - improve test coverage and test properly ValueTypeRingBuffer and its nested classes
 - improve build process to do automatic release builds (tag SVN, set version number, create packages)
 - generate API documentation in the build process

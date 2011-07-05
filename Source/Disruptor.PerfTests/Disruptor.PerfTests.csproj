@@ -53,6 +53,7 @@
     <Compile Include="Pipeline3StepLatencyPerfTest.cs" />
     <Compile Include="Pipeline3StepPerfTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Sequencer3P1CPerfTest.cs" />
     <Compile Include="Support\FizzBuzzEntry.cs" />
     <Compile Include="Support\FizzBuzzHandler.cs" />
     <Compile Include="Support\FizzBuzzQueueConsumer.cs" />
@@ -70,6 +71,8 @@
     <Compile Include="Support\ValueEntry.cs" />
     <Compile Include="Support\ValueMutationHandler.cs" />
     <Compile Include="Support\ValueMutationQueueConsumer.cs" />
+    <Compile Include="Support\ValueProducer.cs" />
+    <Compile Include="Support\ValueQueueProducer.cs" />
     <Compile Include="UniCast1P1CPerfTest.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -77,11 +80,6 @@
       <Project>{37FBDBE1-8524-4489-B082-CC109B0F5EA3}</Project>
       <Name>Disruptor</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Java\Sequencer3P1CPerfTest.java" />
-    <Content Include="Java\support\ValueProducer.java" />
-    <Content Include="Java\support\ValueQueueProducer.java" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

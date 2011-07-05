@@ -4,7 +4,6 @@ namespace Disruptor.PerfTests.Support
 {
     public class ValueAdditionQueueConsumer
     {
-        private long _sequence;
         private long _value;
         private readonly BlockingCollection<long> _queue;
         private readonly long _iterations;
@@ -24,7 +23,7 @@ namespace Disruptor.PerfTests.Support
         public void Reset()
         {
             _value = 0L;
-            _sequence = -1L;
+            _done = false;
         }
 
         public bool Done
@@ -38,7 +37,6 @@ namespace Disruptor.PerfTests.Support
             {
                 var value = _queue.Take();
                 _value += value;
-                _sequence++;
             }
             _done = true;
         }
