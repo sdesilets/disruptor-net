@@ -25,6 +25,19 @@ namespace Disruptor
         /// the <see cref="IBatchHandler{T}.OnAvailable"/> method returns.
         /// </summary>
         /// <param name="consumerBarrier">consumerBarrier on which it is waiting.</param>
+        /// <param name="onAvailable">an <see cref="Action{T,U}"/> to execute when a new entry is dispatched</param>
+        /// <param name="onEndOfBatch">an optional <see cref="Action"/> to execute when a batch completes</param>
+        public BatchConsumer(IConsumerBarrier<T> consumerBarrier, Action<long, T> onAvailable, Action onEndOfBatch = null)
+        {
+            _consumerBarrier = consumerBarrier;
+            _handler = new ActionBatchHandler<T>(onAvailable, onEndOfBatch);
+        }
+
+        /// <summary>
+        /// Construct a batch consumer that will automatically track the progress by updating its sequence when
+        /// the <see cref="IBatchHandler{T}.OnAvailable"/> method returns.
+        /// </summary>
+        /// <param name="consumerBarrier">consumerBarrier on which it is waiting.</param>
         /// <param name="handler">handler is the delegate to which <see cref="Entry{T}"/>s are dispatched.</param>
         public BatchConsumer(IConsumerBarrier<T> consumerBarrier, IBatchHandler<T> handler)
         {
