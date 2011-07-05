@@ -1,5 +1,6 @@
 ===5th July 2011===
  * Added Microsoft TPL Dataflow comparison to Uni and Pipe perf tests
+ * Ported all remaining performance tests. All Java code has now been ported.
 
 ===4th July 2011===
  * ported latency test
