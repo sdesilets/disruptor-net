@@ -37,7 +37,7 @@ namespace Disruptor.Tests
             var sequence = _consumerBarrier.WaitFor(0);
             Assert.AreEqual(0L, sequence);
 
-            var entry = _ringBuffer[sequence];
+            var entry = _ringBuffer[sequence.Value];
             Assert.AreEqual(expectedEntry, entry);
 
             Assert.AreEqual(0L, _ringBuffer.Cursor);
@@ -58,7 +58,7 @@ namespace Disruptor.Tests
             var sequence = _consumerBarrier.WaitFor(0, TimeSpan.FromMilliseconds(5));
             Assert.AreEqual(0, sequence);
 
-            var entry = _ringBuffer[sequence];
+            var entry = _ringBuffer[sequence.Value];
             Assert.AreEqual(expectedEntry, entry);
 
             Assert.AreEqual(0L, _ringBuffer.Cursor);
@@ -145,7 +145,7 @@ namespace Disruptor.Tests
             var sequence = _consumerBarrier.WaitFor(expectedSequence);
             Assert.AreEqual(expectedSequence, sequence);
 
-            var entry = _ringBuffer[sequence].Data;
+            var entry = _ringBuffer[sequence.Value].Data;
             Assert.AreEqual(expectedData, entry);
 
             Assert.AreEqual(expectedSequence, _ringBuffer.Cursor);

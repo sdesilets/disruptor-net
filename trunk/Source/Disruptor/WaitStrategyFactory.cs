@@ -56,7 +56,7 @@ namespace Disruptor
         {
             private readonly object _gate = new object();
 
-            public long WaitFor<T>(IConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence)
+            public long? WaitFor<T>(IConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence)
             {
                 var availableSequence = ringBuffer.Cursor; // volatile read
                 if (availableSequence < sequence)
@@ -67,7 +67,7 @@ namespace Disruptor
                         {
                             if (barrier.IsAlerted)
                             {
-                                throw AlertException.Instance;
+                                return null;
                             }
 
                             Monitor.Wait(_gate);
@@ -81,7 +81,7 @@ namespace Disruptor
                     {
                         if (barrier.IsAlerted)
                         {
-                            throw AlertException.Instance;
+                            return null;
                         }
                     }
                 }
@@ -89,7 +89,7 @@ namespace Disruptor
                 return availableSequence;
             }
 
-            public long WaitFor<T>(IConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence, TimeSpan timeout)
+            public long? WaitFor<T>(IConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence, TimeSpan timeout)
             {
                 long availableSequence;
                 if ((availableSequence = ringBuffer.Cursor) < sequence) // volatile read
@@ -100,7 +100,7 @@ namespace Disruptor
                         {
                             if (barrier.IsAlerted)
                             {
-                                throw AlertException.Instance;
+                                return null;
                             }
 
                             if(!Monitor.Wait(_gate, timeout))
@@ -117,7 +117,7 @@ namespace Disruptor
                     {
                         if (barrier.IsAlerted)
                         {
-                            throw AlertException.Instance;
+                            return null;
                         }
                     }
                 }
@@ -140,7 +140,7 @@ namespace Disruptor
         /// </summary>
         private sealed class YieldingStrategy:IWaitStrategy
         {
-            public long WaitFor<T>(IConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence)
+        	public long? WaitFor<T>(IConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence)
             {
                 long availableSequence;
 
@@ -150,7 +150,7 @@ namespace Disruptor
                     {
                         if (barrier.IsAlerted)
                         {
-                            throw AlertException.Instance;
+                            return null;
                         }
 
                         Thread.Yield();
@@ -162,7 +162,7 @@ namespace Disruptor
                     {
                         if (barrier.IsAlerted)
                         {
-                            throw AlertException.Instance;
+                            return null;
                         }
 
                         Thread.Yield();
@@ -172,7 +172,7 @@ namespace Disruptor
                 return availableSequence;
             }
 
-            public long WaitFor<T>(IConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence, TimeSpan timeout)
+            public long? WaitFor<T>(IConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence, TimeSpan timeout)
             {
                 var expirationTime = DateTime.UtcNow + timeout;
                 long availableSequence;
@@ -183,7 +183,7 @@ namespace Disruptor
                     {
                         if (barrier.IsAlerted)
                         {
-                            throw AlertException.Instance;
+                            return null;
                         }
 
                         Thread.Yield();
@@ -200,7 +200,7 @@ namespace Disruptor
                     {
                         if (barrier.IsAlerted)
                         {
-                            throw AlertException.Instance;
+                            return null;
                         }
 
                         Thread.Yield();
@@ -226,7 +226,7 @@ namespace Disruptor
         /// </summary>
         private sealed class BusySpinStrategy:IWaitStrategy
         {
-            public long WaitFor<T>(IConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence)
+            public long? WaitFor<T>(IConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence)
             {
                 long availableSequence;
 
@@ -236,7 +236,7 @@ namespace Disruptor
                     {
                         if (barrier.IsAlerted)
                         {
-                            throw AlertException.Instance;
+                            return null;
                         }
                     }
                 }
@@ -246,7 +246,7 @@ namespace Disruptor
                     {
                         if (barrier.IsAlerted)
                         {
-                            throw AlertException.Instance;
+                            return null;
                         }
                     }
                 }
@@ -254,7 +254,7 @@ namespace Disruptor
                 return availableSequence;
             }
 
-            public long WaitFor<T>(IConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence, TimeSpan timeout)
+            public long? WaitFor<T>(IConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence, TimeSpan timeout)
             {
                 var expirationTime = DateTime.UtcNow + timeout;
                 long availableSequence;
@@ -265,7 +265,7 @@ namespace Disruptor
                     {
                         if (barrier.IsAlerted)
                         {
-                            throw AlertException.Instance;
+                            return null;
                         }
 
                         if (DateTime.UtcNow> expirationTime)
@@ -280,7 +280,7 @@ namespace Disruptor
                     {
                         if (barrier.IsAlerted)
                         {
-                            throw AlertException.Instance;
+                            return null;
                         }
 
                         if (DateTime.UtcNow> expirationTime)

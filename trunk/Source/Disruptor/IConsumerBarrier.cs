@@ -20,8 +20,7 @@ namespace Disruptor
         /// </summary>
         /// <param name="sequence">sequence to wait for</param>
         /// <returns>the sequence up to which is available</returns>
-        /// <exception cref="AlertException">if a status change has occurred for the Disruptor</exception>
-        long WaitFor(long sequence);
+        long? WaitFor(long sequence);
 
         /// <summary>
         ///  Wait for the given sequence to be available for consumption with a time out.
@@ -29,8 +28,7 @@ namespace Disruptor
         /// <param name="sequence">sequence to wait for</param>
         /// <param name="timeout">timeout value</param>
         /// <returns>the sequence up to which is available</returns>
-        /// <exception cref="AlertException">if a status change has occurred for the Disruptor</exception>
-        long WaitFor(long sequence, TimeSpan timeout);
+        long? WaitFor(long sequence, TimeSpan timeout);
 
         /// <summary>
         /// Delegate a call to the <see cref="RingBuffer{T}.Cursor"/>
