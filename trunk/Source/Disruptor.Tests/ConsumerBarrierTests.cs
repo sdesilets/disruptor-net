@@ -188,8 +188,16 @@ namespace Disruptor.Tests
 
             public long Sequence
             {
-                get { return Thread.VolatileRead(ref _sequence); }
-                set{ Thread.VolatileWrite(ref _sequence, value);}
+                get
+                {
+                    Thread.MemoryBarrier();
+                    return _sequence;
+                }
+                set
+                {
+                    Thread.MemoryBarrier();
+                    _sequence =  value;
+                }
             }
 
             public void Halt()
