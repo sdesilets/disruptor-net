@@ -118,20 +118,14 @@ namespace Disruptor
         /// <typeparam name="TU"></typeparam>
         private sealed class ConsumerTrackingConsumerBarrier<TU> : IConsumerBarrier<TU> where TU : class
         {
-            public CacheLinePadding CacheLinePadding1;
             private readonly IConsumer[] _consumers;
-            private volatile bool _alerted;
-            public CacheLinePadding CacheLinePadding2;
+            private CacheLineStorageBool _alerted;
             private readonly RingBuffer<TU> _ringBuffer;
 
             public ConsumerTrackingConsumerBarrier(RingBuffer<TU> ringBuffer, params IConsumer[] consumers)
             {
                 _ringBuffer = ringBuffer;
                 _consumers = consumers;
-
-                // to make compiler happy
-                CacheLinePadding1 = new CacheLinePadding();
-                CacheLinePadding2 = new CacheLinePadding();
             }
 
             public TU GetEntry(long sequence)
@@ -156,18 +150,18 @@ namespace Disruptor
 
             public bool IsAlerted
             {
-                get { return _alerted; }
+                get { return _alerted.Data; }
             }
 
             public void Alert()
             {
-                _alerted = true;
+                _alerted.Data = true;
                 _ringBuffer._waitStrategy.SignalAll();
             }
 
             public void ClearAlert()
             {
-                _alerted = false;
+                _alerted.Data = false;
             }
         }
 
@@ -207,13 +201,13 @@ namespace Disruptor
                 if (_ringBuffer._claimStrategyOption == ClaimStrategyFactory.ClaimStrategyOption.Multithreaded)
                 {
                     var sequenceMinusOne = sequence - 1;
-                    while (sequenceMinusOne != Cursor)
+                    while (sequenceMinusOne != _ringBuffer.Cursor)
                     {
                         //busy spin
                     }
                 }
 
-                _ringBuffer.Cursor = sequence;
+                _ringBuffer.Cursor = sequence; // volatile write
                 _ringBuffer._waitStrategy.SignalAll();
             }
 
@@ -266,16 +260,13 @@ namespace Disruptor
             public void Commit(long sequence)
             {
                 _ringBuffer._claimStrategy.SetSequence(sequence + 1L);
-                _ringBuffer.Cursor = sequence;
+                _ringBuffer.Cursor = sequence; // volatile write
                 _ringBuffer._waitStrategy.SignalAll();
             }
 
             public long Cursor
             {
-                get
-                {
-                    return _ringBuffer.Cursor;    
-                }
+                get { return _ringBuffer.Cursor; }
             }
 
             private void EnsureConsumersAreInRange(long sequence)

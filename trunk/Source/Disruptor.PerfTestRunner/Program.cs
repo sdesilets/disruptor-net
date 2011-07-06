@@ -7,6 +7,8 @@ namespace Disruptor.PerfTestRunner
     {
         static void Main()
         {
+            PrintProcessMode();
+
             RunTest(new UniCast1P1CPerfTest());
             RunTest(new Pipeline3StepPerfTest());
             RunTest(new DiamondPath1P3CPerfTest());
@@ -38,9 +40,15 @@ namespace Disruptor.PerfTestRunner
             }
             catch (Exception e)
             {
-                Console.WriteLine("Exception thrown in {0}:{1}",test.GetType().Name, e);
+                Console.WriteLine("Exception thrown in {0}:{1}", test.GetType().Name, e);
                 throw;
             }
         }
+
+        private static void PrintProcessMode()
+        {
+            Console.WriteLine("Process running in {0} bits mode.", Environment.Is64BitProcess ? "64" : "32");
+        }
     }
 }
+

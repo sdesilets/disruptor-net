@@ -93,7 +93,7 @@ namespace Disruptor
             OnStart();
 
             var data = default(T);
-            var nextSequence = Sequence + 1;
+            var nextSequence = Sequence + 1; 
 
             while (_running.Data)
             {
@@ -110,7 +110,7 @@ namespace Disruptor
 
                     _handler.OnEndOfBatch();
 
-                    Sequence = nextSequence - 1;
+                    Sequence = nextSequence - 1; // volatile write
                 }
                 catch (AlertException)
                 {
@@ -120,7 +120,7 @@ namespace Disruptor
                 {
                     //TODO review this handler, logic is crap
                     _exceptionHandler.Handle(ex, new Entry<T>(nextSequence, data));
-                    Sequence = nextSequence;
+                    Sequence = nextSequence; 
                 }
             }
 
