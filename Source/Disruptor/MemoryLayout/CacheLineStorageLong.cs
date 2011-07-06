@@ -43,16 +43,13 @@ namespace Disruptor.MemoryLayout
         {
             get
             {
-                return Thread.VolatileRead(ref _data); // safe on 32bits, but slower than next lines
-                //var data = _data;
-                //Thread.MemoryBarrier();
-                //return data;
+                Thread.MemoryBarrier();
+                return _data;
             }
             set
             {
-                Thread.VolatileWrite(ref _data, value); // safe on 32bits, but slower than next lines
-                //Thread.MemoryBarrier();
-                //_data = value;
+                Thread.MemoryBarrier();
+                _data = value;
             }
         }
     }

@@ -134,7 +134,7 @@ namespace Disruptor.PerfTests
 
             cts.Cancel(true);
 
-            Assert.AreEqual(ExpectedResult, _queueConsumer.Value);
+            Assert.AreEqual(ExpectedResult, _queueConsumer.Value, "RunQueuePass");
 
             return opsPerSecond;
         }
@@ -161,7 +161,7 @@ namespace Disruptor.PerfTests
             var opsPerSecond = (Iterations * 1000L) / (sw.ElapsedMilliseconds);
             _batchConsumer.Halt();
 
-            Assert.AreEqual(ExpectedResult, _handler.Value);
+            Assert.AreEqual(ExpectedResult, _handler.Value, "RunDisruptorPass");
 
             return opsPerSecond;
         }
@@ -191,7 +191,7 @@ namespace Disruptor.PerfTests
 
             var opsPerSecond = (Iterations * 1000L) / (sw.ElapsedMilliseconds);
 
-            Assert.AreEqual(ExpectedResult, _tplValue);
+            Assert.AreEqual(ExpectedResult, _tplValue, "RunTplDataflowPass");
 
             return opsPerSecond;
         }
