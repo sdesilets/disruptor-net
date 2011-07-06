@@ -47,7 +47,6 @@
       <Link>Version.cs</Link>
     </Compile>
     <Compile Include="ActionBatchHandler.cs" />
-    <Compile Include="AlertException.cs" />
     <Compile Include="BatchConsumer.cs" />
     <Compile Include="Collections\Histogram.cs" />
     <Compile Include="ConsumerExtensions.cs" />

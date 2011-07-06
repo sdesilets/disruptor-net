@@ -133,12 +133,12 @@ namespace Disruptor
                 return _ringBuffer._entries[(int)sequence & _ringBuffer._ringModMask].Data;
             }
 
-            public long WaitFor(long sequence)
+            public long? WaitFor(long sequence)
             {
                 return _ringBuffer._waitStrategy.WaitFor(_consumers, _ringBuffer, this, sequence);
             }
 
-            public long WaitFor(long sequence, TimeSpan timeout)
+            public long? WaitFor(long sequence, TimeSpan timeout)
             {
                 return _ringBuffer._waitStrategy.WaitFor(_consumers, _ringBuffer, this, sequence, timeout);
             }

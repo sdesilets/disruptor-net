@@ -101,14 +101,8 @@ namespace Disruptor.Tests
             var alerted = new[] { false };
             var t = new Thread(() =>
             {
-                    try
-                    {
-                        _consumerBarrier.WaitFor(expectedNumberMessages - 1);
-                    }
-                    catch (AlertException)
-                    {
-                        alerted[0] = true;
-                    }
+            	if(!_consumerBarrier.WaitFor(expectedNumberMessages - 1).HasValue)
+            		alerted[0] = true;
             });
 
             t.Start();

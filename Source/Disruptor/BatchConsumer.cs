@@ -101,20 +101,23 @@ namespace Disruptor
                 {
                     var availableSequence = _consumerBarrier.WaitFor(nextSequence);
 
-                    while (nextSequence <= availableSequence)
+                    if(availableSequence.HasValue)
                     {
-                        data = _consumerBarrier.GetEntry(nextSequence);
-                        _handler.OnAvailable(nextSequence, data);
-                        nextSequence++;
+	                    while (nextSequence <= availableSequence)
+	                    {
+	                        data = _consumerBarrier.GetEntry(nextSequence);
+	                        _handler.OnAvailable(nextSequence, data);
+	                        nextSequence++;
+	                    }
+	
+	                    _handler.OnEndOfBatch();
+	
+	                    Sequence = nextSequence - 1;
                     }
 
                     _handler.OnEndOfBatch();
 
                     Sequence = nextSequence - 1; // volatile write
-                }
-                catch (AlertException)
-                {
-                    // Wake up from blocking wait and check if we should continue to run
                 }
                 catch (Exception ex)
                 {
