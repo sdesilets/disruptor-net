@@ -20,10 +20,10 @@ namespace Disruptor.MemoryLayout
     /// Because: System.TypeLoadException : Could not load type 'Disruptor.CacheLineStorage{T} from 
     /// assembly 'Disruptor' because generic types cannot have explicit layout. 
     /// </remarks>
-    [StructLayout(LayoutKind.Explicit, Size = 2 * 64)]
+    [StructLayout(LayoutKind.Explicit, Size = 2 * CacheLine.Size)]
     public struct CacheLineStorageBool
     {
-        [FieldOffset(64)]
+        [FieldOffset(CacheLine.Size)]
         private volatile bool _data;
 
         ///<summary>

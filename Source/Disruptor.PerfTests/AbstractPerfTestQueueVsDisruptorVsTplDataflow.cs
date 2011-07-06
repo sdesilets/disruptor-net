@@ -19,13 +19,8 @@ namespace Disruptor.PerfTests
                 SetUp(i);
 
                 disruptorOps = RunDisruptorPass(i);
-                Console.WriteLine("Run disruptor finished");
-
                 queueOps = RunQueuePass(i);
-                Console.WriteLine("Run queue finished");
-
                 tplDataflowOps = RunTplDataflowPass(i);
-                Console.WriteLine("Run TPL Dataflow finished");
 
                 PrintResults(GetType().Name, disruptorOps, queueOps, tplDataflowOps, i);
             }

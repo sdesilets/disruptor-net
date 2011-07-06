@@ -21,10 +21,10 @@ namespace Disruptor.MemoryLayout
     /// System.TypeLoadException : Could not load type 'Disruptor.CacheLineStorage{T} from 
     /// assembly 'Disruptor' because generic types cannot have explicit layout. 
     /// </remarks>
-    [StructLayout(LayoutKind.Explicit, Size = 2 * 64)]
+    [StructLayout(LayoutKind.Explicit, Size = 2 * CacheLine.Size)]
     public struct CacheLineStorageLong
     {
-        [FieldOffset(64)]
+        [FieldOffset(CacheLine.Size)]
         private long _data;
 
         ///<summary>
@@ -43,11 +43,16 @@ namespace Disruptor.MemoryLayout
         {
             get
             {
-                return Thread.VolatileRead(ref _data);
+                return Thread.VolatileRead(ref _data); // safe on 32bits, but slower than next lines
+                //var data = _data;
+                //Thread.MemoryBarrier();
+                //return data;
             }
             set
             {
-                Thread.VolatileWrite(ref _data, value);
+                Thread.VolatileWrite(ref _data, value); // safe on 32bits, but slower than next lines
+                //Thread.MemoryBarrier();
+                //_data = value;
             }
         }
     }

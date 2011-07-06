@@ -17,7 +17,7 @@
             var min = long.MaxValue;
             for (var i = 0; i < consumers.Length; i++)
             {
-                var sequence = consumers[i].Sequence;
+                var sequence = consumers[i].Sequence; // volatile read
                 min = min < sequence ? min : sequence;
             }
             return min;

@@ -58,12 +58,12 @@ namespace Disruptor
 
             public long WaitFor<T>(IConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence)
             {
-                var availableSequence = ringBuffer.Cursor;
+                var availableSequence = ringBuffer.Cursor; // volatile read
                 if (availableSequence < sequence)
                 {
                     lock(_gate)
                     {
-                        while ((availableSequence = ringBuffer.Cursor) < sequence)
+                        while ((availableSequence = ringBuffer.Cursor) < sequence) // volatile read
                         {
                             if (barrier.IsAlerted)
                             {
@@ -92,11 +92,11 @@ namespace Disruptor
             public long WaitFor<T>(IConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence, TimeSpan timeout)
             {
                 long availableSequence;
-                if ((availableSequence = ringBuffer.Cursor) < sequence)
+                if ((availableSequence = ringBuffer.Cursor) < sequence) // volatile read
                 {
                     lock(_gate)
                     {
-                        while ((availableSequence = ringBuffer.Cursor) < sequence)
+                        while ((availableSequence = ringBuffer.Cursor) < sequence) // volatile read
                         {
                             if (barrier.IsAlerted)
                             {
@@ -146,7 +146,7 @@ namespace Disruptor
 
                 if (0 == consumers.Length)
                 {
-                    while ((availableSequence = ringBuffer.Cursor) < sequence)
+                    while ((availableSequence = ringBuffer.Cursor) < sequence) // volatile read
                     {
                         if (barrier.IsAlerted)
                         {
@@ -179,7 +179,7 @@ namespace Disruptor
 
                 if (0 == consumers.Length)
                 {
-                    while ((availableSequence = ringBuffer.Cursor) < sequence)
+                    while ((availableSequence = ringBuffer.Cursor) < sequence) // volatile read
                     {
                         if (barrier.IsAlerted)
                         {
@@ -232,7 +232,7 @@ namespace Disruptor
 
                 if (0 == consumers.Length)
                 {
-                    while ((availableSequence = ringBuffer.Cursor) < sequence)
+                    while ((availableSequence = ringBuffer.Cursor) < sequence) // volatile read
                     {
                         if (barrier.IsAlerted)
                         {
@@ -261,7 +261,7 @@ namespace Disruptor
 
                 if (0 == consumers.Length)
                 {
-                    while ((availableSequence = ringBuffer.Cursor) < sequence)
+                    while ((availableSequence = ringBuffer.Cursor) < sequence) // volatile read
                     {
                         if (barrier.IsAlerted)
                         {

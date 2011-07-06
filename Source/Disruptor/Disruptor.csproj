@@ -56,7 +56,7 @@
     <Compile Include="IReferenceTypeForceFillProducerBarrier.cs" />
     <Compile Include="IReferenceTypeProducerBarrier.cs" />
     <Compile Include="ISequencable.cs" />
-    <Compile Include="MemoryLayout\CacheLinePadding.cs" />
+    <Compile Include="MemoryLayout\CacheLine.cs" />
     <Compile Include="MemoryLayout\CacheLineStorageLong.cs" />
     <Compile Include="MemoryLayout\CacheLineStorageBool.cs" />
     <Compile Include="ClaimStrategyFactory.cs" />
