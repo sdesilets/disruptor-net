@@ -1,3 +1,3 @@
 #summary Sequence diagram representing disruptor internals
 
-<img src="Images/SequenceDiagram.png"/>
+[http://disruptor-net.googlecode.com/svn/wiki/Images/SequenceDiagram.png]
