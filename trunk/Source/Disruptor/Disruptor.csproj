@@ -32,6 +32,7 @@
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>..\Target\Bin\Disruptor.XML</DocumentationFile>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -50,7 +51,7 @@
     <Compile Include="BatchConsumer.cs" />
     <Compile Include="Collections\Histogram.cs" />
     <Compile Include="ConsumerExtensions.cs" />
-    <Compile Include="Disruptor.cs" />
+    <Compile Include="RingBufferConvention.cs" />
     <Compile Include="Entry.cs" />
     <Compile Include="ILifecycleAware.cs" />
     <Compile Include="IReferenceTypeForceFillProducerBarrier.cs" />
