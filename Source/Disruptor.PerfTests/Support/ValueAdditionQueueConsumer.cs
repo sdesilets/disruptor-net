@@ -8,7 +8,7 @@ namespace Disruptor.PerfTests.Support
         private long _value;
         private readonly BlockingCollection<long> _queue;
         private readonly long _iterations;
-        private bool _done;
+        private volatile bool _done;
 
         public ValueAdditionQueueConsumer(BlockingCollection<long> queue, long iterations)
         {
@@ -25,7 +25,6 @@ namespace Disruptor.PerfTests.Support
         {
             _value = 0L;
 
-            Thread.MemoryBarrier();
             _done = false;
         }
 
@@ -33,7 +32,6 @@ namespace Disruptor.PerfTests.Support
         {
             get
             {
-                Thread.MemoryBarrier(); 
                 return _done;
             }
         }
@@ -45,7 +43,6 @@ namespace Disruptor.PerfTests.Support
                 var value = _queue.Take();
                 _value += value;
             }
-            Thread.MemoryBarrier();
             _done = true;
         }
     }
