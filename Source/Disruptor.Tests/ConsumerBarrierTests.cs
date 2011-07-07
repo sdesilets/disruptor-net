@@ -184,13 +184,11 @@ namespace Disruptor.Tests
             {
                 get
                 {
-                    Thread.MemoryBarrier();
-                    return _sequence;
+                    return Thread.VolatileRead(ref _sequence);
                 }
                 set
                 {
-                    Thread.MemoryBarrier();
-                    _sequence =  value;
+                    Thread.VolatileWrite(ref _sequence, value);
                 }
             }
 
