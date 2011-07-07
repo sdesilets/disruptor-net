@@ -1,8 +1,3 @@
-- port the remaining performance tests - done
-	- DiamondPath1P3CPerfTest (Olivier) - done
-	- MultiCast1P3CPerfTest (Olivier) - done
-	- Sequencer3P1CPerfTest (Olivier) - done
-- try to get rid of IBatchHandler using lambdas instead of an interface (Olivier) - done
 - add a fluent API to configure the consumer barriers (this is quite verbose to build that manually) (Olivier)
 - add test coverage (NCover? DotCover?)
 - improve test coverage and test properly ValueTypeRingBuffer and its nested classes
@@ -12,6 +7,5 @@
 - review exception hanlding
 - add TPL dataflow performance tests (Matt)
 - refeactor strategy factories to extension methodes (Matt)
-- port r212: http://code.google.com/p/disruptor/source/detail?r=212 (Olivier)
 - print CPU details in the test report (architecture, hyperthreading, logic/physical cores, frequency, etc)
 - improve test runner: add options to run only some tests
