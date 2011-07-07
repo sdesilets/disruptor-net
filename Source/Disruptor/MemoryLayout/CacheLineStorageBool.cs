@@ -25,7 +25,7 @@ namespace Disruptor.MemoryLayout
     public struct CacheLineStorageBool
     {
         [FieldOffset(CacheLine.Size)]
-        private bool _data;
+        private volatile bool _data;
 
         ///<summary>
         /// Initialise a new instance of CacheLineStorage
@@ -43,12 +43,10 @@ namespace Disruptor.MemoryLayout
         {
             get
             {
-                Thread.MemoryBarrier();
                 return _data;
             }
             set 
             {
-                Thread.MemoryBarrier(); 
                 _data = value; 
             }
         }
