@@ -47,7 +47,8 @@ namespace Disruptor.Tests
             var stubData = _ringBuffer[0].Data;
             int[] sequenceCounter = {0};
             var handlerOk = false;
-
+            var signalExceptionThrown = false;
+            
             //TODO refactor with Moq.Sequence
             _batchHandlerMock.Setup(bh => bh.OnAvailable(0, stubData))
                 .Callback(()=>
@@ -58,9 +59,17 @@ namespace Disruptor.Tests
             _batchHandlerMock.Setup(bh => bh.OnEndOfBatch())
                 .Callback(() =>
                               {
-                                  _countDownEvent.Signal();
-                                  handlerOk = handlerOk &&(sequenceCounter[0] == 1);
-                                  sequenceCounter[0]++;
+            	          		  try
+            	          		  {
+	            	          	      _countDownEvent.Signal();
+	                                  handlerOk = handlerOk &&(sequenceCounter[0] == 1);
+	                                  sequenceCounter[0]++;
+            	          		  }
+            	          		  catch(InvalidOperationException)
+            	          		  {
+            	          		  	  signalExceptionThrown = true;
+            	          		  	  Assert.Fail("_countDownEvent.Signal should only be called once");
+            	          		  }
                               });
 
             var thread = new Thread(_batchConsumer.Run);
@@ -78,6 +87,7 @@ namespace Disruptor.Tests
 
             _batchHandlerMock.VerifyAll();
             Assert.IsTrue(handlerOk);
+            Assert.IsFalse(signalExceptionThrown);
         }
 
         [Test]
