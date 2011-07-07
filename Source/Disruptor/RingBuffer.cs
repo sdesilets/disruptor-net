@@ -11,13 +11,7 @@ namespace Disruptor
     public sealed class RingBuffer<T> : ISequencable where T : class 
     {
         private readonly ClaimStrategyFactory.ClaimStrategyOption _claimStrategyOption;
-
-        /// <summary>
-        /// Initial cursor value, set to -1 as sequence starting point 
-        /// </summary>
-        public const long InitialCursorValue = -1L;
-
-        private CacheLineStorageLong _cursor = new CacheLineStorageLong(InitialCursorValue);
+        private CacheLineStorageLong _cursor = new CacheLineStorageLong(RingBufferConvention.InitialCursorValue);
         private readonly Entry<T>[] _entries;
         private readonly int _ringModMask;
         private readonly IClaimStrategy _claimStrategy;
@@ -173,7 +167,7 @@ namespace Disruptor
         {
             private readonly RingBuffer<T> _ringBuffer;
             private readonly IConsumer[] _consumers;
-            private long _lastConsumerMinimum;
+            private long _lastConsumerMinimum = RingBufferConvention.InitialCursorValue;
 
             public ReferenceTypeConsumerTrackingProducerBarrier(RingBuffer<T> ringBuffer, params IConsumer[] consumers)
             {
@@ -188,7 +182,7 @@ namespace Disruptor
 
             public long NextEntry(out T data)
             {
-                var sequence = _ringBuffer._claimStrategy.GetAndIncrement();
+                var sequence = _ringBuffer._claimStrategy.IncrementAndGet();
                 EnsureConsumersAreInRange(sequence);
 
                 data = _ringBuffer._entries[(int) sequence & _ringBuffer._ringModMask].Data;
@@ -235,7 +229,7 @@ namespace Disruptor
         {
             private readonly RingBuffer<T> _ringBuffer;
             private readonly IConsumer[] _consumers;
-            private long _lastConsumerMinimum;
+            private long _lastConsumerMinimum = RingBufferConvention.InitialCursorValue;
 
             public ReferenceTypeForceFillConsumerTrackingProducerBarrier(RingBuffer<T> ringBuffer, params IConsumer[] consumers)
             {

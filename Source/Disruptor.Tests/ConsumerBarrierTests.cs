@@ -94,7 +94,7 @@ namespace Disruptor.Tests
             _consumerMock3.SetupGet(c => c.Sequence).Returns(8L).Callback(() =>
                                                                               {
                                                                                   countdownEvent.Signal();
-                                                                                  Thread.Sleep(1); // wait a bit to prevent race (otherwise the WaitStrategy 
+                                                                                  Thread.Sleep(100); // wait a bit to prevent race (otherwise the WaitStrategy 
                                                                                   // does another iterations which decrease the countdown event below 0
                                                                               });
 

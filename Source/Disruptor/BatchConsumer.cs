@@ -18,7 +18,7 @@ namespace Disruptor
         private IExceptionHandler<T> _exceptionHandler = new FatalExceptionHandler<T>();
 
         private CacheLineStorageBool _running = new CacheLineStorageBool(true);
-        private CacheLineStorageLong _sequence = new CacheLineStorageLong(-1L);
+        private CacheLineStorageLong _sequence = new CacheLineStorageLong(RingBufferConvention.InitialCursorValue);
 
         /// <summary>
         /// Construct a batch consumer that will automatically track the progress by updating its sequence when

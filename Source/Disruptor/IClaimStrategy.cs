@@ -6,10 +6,10 @@
     public interface IClaimStrategy
     {
         /// <summary>
-        /// Claim the next sequence index in the <see cref="RingBuffer{T}"/> and increment.
+        /// Increment the sequence index in the <see cref="RingBuffer{T}"/> and return the new value
         /// </summary>
         /// <returns>The <see cref="Entry{T}"/> index to be used for the producer.</returns>
-        long GetAndIncrement();
+        long IncrementAndGet();
 
         /// <summary>
         /// Set the current sequence value for claiming <see cref="Entry{T}"/> in the <see cref="RingBuffer{T}"/>

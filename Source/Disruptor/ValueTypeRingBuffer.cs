@@ -11,13 +11,7 @@ namespace Disruptor
     public sealed class ValueTypeRingBuffer<T> : ISequencable where T:struct
     {
         private readonly ClaimStrategyFactory.ClaimStrategyOption _claimStrategyOption;
-
-        /// <summary>
-        /// Initial cursor value, set to -1 as sequence starting point 
-        /// </summary>
-        public const long InitialCursorValue = -1L;
-
-        private CacheLineStorageLong _cursor = new CacheLineStorageLong(InitialCursorValue);
+        private CacheLineStorageLong _cursor = new CacheLineStorageLong(RingBufferConvention.InitialCursorValue);
         private readonly Entry<T>[] _entries;
         private readonly int _ringModMask;
         private readonly IClaimStrategy _claimStrategy;
@@ -163,7 +157,7 @@ namespace Disruptor
         {
             private readonly ValueTypeRingBuffer<T> _ringBuffer;
             private readonly IConsumer[] _consumers;
-            private long _lastConsumerMinimum;
+            private long _lastConsumerMinimum = RingBufferConvention.InitialCursorValue;
 
             public ValueTypeConsumerTrackingProducerBarrier(ValueTypeRingBuffer<T> ringBuffer, params IConsumer[] consumers)
             {
@@ -178,7 +172,7 @@ namespace Disruptor
 
             public void Commit(T data)
             {
-                var sequence = _ringBuffer._claimStrategy.GetAndIncrement();
+                var sequence = _ringBuffer._claimStrategy.IncrementAndGet();
                 EnsureConsumersAreInRange(sequence);
 
                 _ringBuffer._entries[(int)sequence & _ringBuffer._ringModMask] = new Entry<T>(sequence, data);
@@ -219,7 +213,7 @@ namespace Disruptor
         {
             private readonly ValueTypeRingBuffer<T> _ringBuffer;
             private readonly IConsumer[] _consumers;
-            private long _lastConsumerMinimum;
+            private long _lastConsumerMinimum = RingBufferConvention.InitialCursorValue;
 
             public ValueTypeForceFillConsumerTrackingProducerBarrier(ValueTypeRingBuffer<T> ringBuffer, params IConsumer[] consumers)
             {

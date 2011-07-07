@@ -50,6 +50,7 @@
     <Compile Include="BatchConsumer.cs" />
     <Compile Include="Collections\Histogram.cs" />
     <Compile Include="ConsumerExtensions.cs" />
+    <Compile Include="Disruptor.cs" />
     <Compile Include="Entry.cs" />
     <Compile Include="ILifecycleAware.cs" />
     <Compile Include="IReferenceTypeForceFillProducerBarrier.cs" />
