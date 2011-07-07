@@ -46,12 +46,11 @@ namespace Disruptor
         /// </summary>
         private sealed class MultiThreadedStrategy : IClaimStrategy
         {
-            private long _sequence;
+            private long _sequence = RingBufferConvention.InitialCursorValue;
 
-            public long GetAndIncrement()
+            public long IncrementAndGet()
             {
-                var value = Interlocked.Increment(ref _sequence);
-                return value - 1;
+                return Interlocked.Increment(ref _sequence);
             }
 
             public void SetSequence(long sequence)
@@ -65,11 +64,11 @@ namespace Disruptor
         /// </summary>
         private sealed class SingleThreadedStrategy : IClaimStrategy
         {
-            private long _sequence;
+            private long _sequence = RingBufferConvention.InitialCursorValue;
 
-            public long GetAndIncrement()
+            public long IncrementAndGet()
             {
-                return _sequence++;
+                return ++_sequence;
             }
 
             public void SetSequence(long sequence)

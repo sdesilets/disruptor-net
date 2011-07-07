@@ -1,5 +1,7 @@
 using System;
+using System.Globalization;
 using System.Text;
+using System.Threading;
 
 namespace Disruptor.Collections
 {
@@ -290,7 +292,13 @@ namespace Disruptor.Collections
         /// <returns></returns>
         public override string  ToString()
         {
- 	         var sb = new StringBuilder();
+            var culture = Thread.CurrentThread.CurrentCulture;
+
+            try
+            {
+                Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+
+                var sb = new StringBuilder();
 
                 sb.Append("Histogram{");
 
@@ -315,6 +323,11 @@ namespace Disruptor.Collections
                 sb.Append('}');
 
                 return sb.ToString();
+            }
+            finally
+            {
+                Thread.CurrentThread.CurrentCulture = culture;
+            }
         }
     }
 }
