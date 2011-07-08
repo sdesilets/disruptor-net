@@ -3,7 +3,7 @@
  * command line options to select test scenarios, implementation,
 number of runs and number of iterations (num of iterations does not
 work yet)
-* generate a html report at the end of the test run
+ * generate a html report at the end of the test run
 
 ===5th July 2011===
  * Added Microsoft TPL Dataflow comparison to Uni and Pipe perf tests
