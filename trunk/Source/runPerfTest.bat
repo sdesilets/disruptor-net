@@ -1,1 +1,2 @@
-Target\Bin\Disruptor.PerfTestRunner.exe
+Target\Bin\Disruptor.PerfTests.exe 0 0 3 20000000
+pause

@@ -6,7 +6,7 @@
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{BD103699-F540-40C3-99D7-462F53A9DABC}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Disruptor.PerfTests</RootNamespace>
     <AssemblyName>Disruptor.PerfTests</AssemblyName>
@@ -31,6 +31,9 @@
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>Disruptor.PerfTests.Program</StartupObject>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="nunit.framework">
       <HintPath>..\Lib\nunit.framework.dll</HintPath>
@@ -51,13 +54,39 @@
     <Compile Include="..\Version.cs">
       <Link>Version.cs</Link>
     </Compile>
-    <Compile Include="AbstractPerfTestQueueVsDisruptorVsTplDataflow.cs" />
-    <Compile Include="DiamondPath1P3CPerfTest.cs" />
-    <Compile Include="MultiCast1P3CPerfTest.cs" />
-    <Compile Include="Pipeline3StepLatencyPerfTest.cs" />
-    <Compile Include="Pipeline3StepPerfTest.cs" />
+    <Compile Include="DiamondPath1P3C\AbstractDiamondPath1P3CPerfTest.cs" />
+    <Compile Include="DiamondPath1P3C\DiamondPath1P3CBlockingCollectionPerfTest.cs" />
+    <Compile Include="DiamondPath1P3C\DiamondPath1P3CDataflowPerfTest.cs" />
+    <Compile Include="DiamondPath1P3C\DiamondPath1P3CDisruptorPerfTest.cs" />
+    <Compile Include="LatencyPerfTest.cs" />
+    <Compile Include="PerformanceTest.cs" />
+    <Compile Include="Pipeline3StepLatency\AbstractPipeline3StepLatencyPerfTest.cs" />
+    <Compile Include="Pipeline3StepLatency\Pipeline3StepLatencyBlockingCollectionPerfTest.cs" />
+    <Compile Include="Pipeline3StepLatency\Pipeline3StepLatencyDataflowPerfTest.cs" />
+    <Compile Include="Pipeline3StepLatency\Pipeline3StepLatencyDisruptorPerfTest.cs" />
+    <Compile Include="Runner\HostConfiguration.cs" />
+    <Compile Include="Runner\Implementation.cs" />
+    <Compile Include="Runner\ImplementationType.cs" />
+    <Compile Include="MultiCast1P3C\AbstractMultiCast1P3CPerfTest.cs" />
+    <Compile Include="MultiCast1P3C\MultiCast1P3CBlockingCollectionPerfTest.cs" />
+    <Compile Include="MultiCast1P3C\MultiCast1P3CDataflowPerfTest.cs" />
+    <Compile Include="MultiCast1P3C\MultiCast1P3CDisruptorPerfTest.cs" />
+    <Compile Include="Pipeline3Step\AbstractPipeline3StepPerfTest.cs" />
+    <Compile Include="Pipeline3Step\Pipeline3StepBlockingCollectionPerfTest.cs" />
+    <Compile Include="Pipeline3Step\Pipeline3StepDataflowPerfTest.cs" />
+    <Compile Include="Pipeline3Step\Pipeline3StepDisruptorPerfTest.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Sequencer3P1CPerfTest.cs" />
+    <Compile Include="Runner\LatencyTestRun.cs" />
+    <Compile Include="Runner\Scenario.cs" />
+    <Compile Include="Runner\ScenarioType.cs" />
+    <Compile Include="Runner\PerformanceTestSession.cs" />
+    <Compile Include="Runner\TestRun.cs" />
+    <Compile Include="Runner\ThroughputTestRun.cs" />
+    <Compile Include="Sequencer3P1C\AbstractSequencer3P1CPerfTest.cs" />
+    <Compile Include="Sequencer3P1C\Sequencer3P1CBlockingCollectionPerfTest.cs" />
+    <Compile Include="Sequencer3P1C\Sequencer3P1CDataflowPerfTest.cs" />
+    <Compile Include="Sequencer3P1C\Sequencer3P1CDisruptorPerfTest.cs" />
     <Compile Include="Support\FizzBuzzEntry.cs" />
     <Compile Include="Support\FizzBuzzHandler.cs" />
     <Compile Include="Support\FizzBuzzQueueConsumer.cs" />
@@ -77,7 +106,11 @@
     <Compile Include="Support\ValueMutationQueueConsumer.cs" />
     <Compile Include="Support\ValueProducer.cs" />
     <Compile Include="Support\ValueQueueProducer.cs" />
-    <Compile Include="UniCast1P1CPerfTest.cs" />
+    <Compile Include="ThroughputPerfTest.cs" />
+    <Compile Include="UniCast1P1C\AbstractUniCast1P1CPerfTest.cs" />
+    <Compile Include="UniCast1P1C\UniCast1P1CBlockingCollectionPerfTest.cs" />
+    <Compile Include="UniCast1P1C\UniCast1P1CDataflowPerfTest.cs" />
+    <Compile Include="UniCast1P1C\UniCast1P1CDisruptorPerfTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Disruptor\Disruptor.csproj">
@@ -85,11 +118,7 @@
       <Name>Disruptor</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="Java\Sequencer3P1CPerfTest.java" />
-    <Content Include="Java\support\ValueProducer.java" />
-    <Content Include="Java\support\ValueQueueProducer.java" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

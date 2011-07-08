@@ -1,0 +1,24 @@
+﻿using System;
+using Disruptor.Collections;
+using Disruptor.PerfTests.Runner;
+
+namespace Disruptor.PerfTests
+{
+    public abstract class LatencyPerfTest : PerformanceTest
+    {
+        public abstract void RunPass();
+        public abstract Histogram Histogram { get; }
+
+        protected override void RunAsUnitTest()
+        {
+            RunPass();
+
+            Console.WriteLine("{0} : {1}", GetType().Name, Histogram);
+        }
+
+        public override TestRun CreateTestRun(int pass)
+        {
+            return new LatencyTestRun(this, pass);
+        }
+    }
+}

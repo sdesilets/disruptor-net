@@ -7,8 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Disruptor.Tests", "Disrupto
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Disruptor.PerfTests", "Disruptor.PerfTests\Disruptor.PerfTests.csproj", "{BD103699-F540-40C3-99D7-462F53A9DABC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Disruptor.PerfTestRunner", "Disruptor.PerfTestRunner\Disruptor.PerfTestRunner.csproj", "{EDF0D4E8-D8D8-418D-9E62-87F15B200A8B}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{53C590E7-4F2C-4493-B0AE-6ACF2402CDD2}"
 	ProjectSection(SolutionItems) = preProject
 		Backlog.txt = Backlog.txt
@@ -56,16 +54,6 @@ Global
 		{BD103699-F540-40C3-99D7-462F53A9DABC}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{BD103699-F540-40C3-99D7-462F53A9DABC}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{BD103699-F540-40C3-99D7-462F53A9DABC}.Release|x86.ActiveCfg = Release|Any CPU
-		{EDF0D4E8-D8D8-418D-9E62-87F15B200A8B}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{EDF0D4E8-D8D8-418D-9E62-87F15B200A8B}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
-		{EDF0D4E8-D8D8-418D-9E62-87F15B200A8B}.Debug|Mixed Platforms.Build.0 = Debug|x86
-		{EDF0D4E8-D8D8-418D-9E62-87F15B200A8B}.Debug|x86.ActiveCfg = Debug|x86
-		{EDF0D4E8-D8D8-418D-9E62-87F15B200A8B}.Debug|x86.Build.0 = Debug|x86
-		{EDF0D4E8-D8D8-418D-9E62-87F15B200A8B}.Release|Any CPU.ActiveCfg = Release|x86
-		{EDF0D4E8-D8D8-418D-9E62-87F15B200A8B}.Release|Mixed Platforms.ActiveCfg = Release|x86
-		{EDF0D4E8-D8D8-418D-9E62-87F15B200A8B}.Release|Mixed Platforms.Build.0 = Release|x86
-		{EDF0D4E8-D8D8-418D-9E62-87F15B200A8B}.Release|x86.ActiveCfg = Release|x86
-		{EDF0D4E8-D8D8-418D-9E62-87F15B200A8B}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
