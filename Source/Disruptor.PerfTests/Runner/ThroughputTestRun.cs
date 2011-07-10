@@ -36,7 +36,7 @@ namespace Disruptor.PerfTests.Runner
 
         public override void AppendResultHtml(StringBuilder sb)
         {
-            sb.AppendLine(string.Format("                <td>{0:###,###,###,###}ops</td>", _operationsPerSecond));
+            sb.AppendLine(string.Format("                <td>{0:### ### ### ###}ops</td>", _operationsPerSecond));
         }
     }
 }
