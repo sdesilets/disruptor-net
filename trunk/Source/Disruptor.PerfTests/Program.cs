@@ -36,7 +36,7 @@ namespace Disruptor.PerfTests
 
         private static void PrintUsage()
         {
-            Console.WriteLine("Usage: PerfRunner Scenario Implementation Runs Iterations");
+            Console.WriteLine("Usage: Disruptor.PerfTests Scenario Implementation Runs Iterations");
             Console.WriteLine();
             PrintEnum(typeof (ScenarioType));
             Console.WriteLine();
@@ -45,7 +45,7 @@ namespace Disruptor.PerfTests
             Console.WriteLine("Runs: number of test run to do for each scenario and implementation");
             Console.WriteLine("Iterations: number of iterations per run in millions");
             Console.WriteLine();
-            Console.WriteLine("Example: PerfRunner 1 1 10");
+            Console.WriteLine("Example: Disruptor.PerfTests 1 1 10");
             Console.WriteLine("will run UniCast1P1C performance test with the disruptor only and will do 10 million iterations.");
         }
 
