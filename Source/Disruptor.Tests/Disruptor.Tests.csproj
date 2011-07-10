@@ -53,6 +53,7 @@
     </Compile>
     <Compile Include="BatchConsumerSequenceTrackingCallbackTests.cs" />
     <Compile Include="BatchConsumerTests.cs" />
+    <Compile Include="BatchProducerTest.cs" />
     <Compile Include="Collections\HistogramTests.cs" />
     <Compile Include="ConsumerBarrierTests.cs" />
     <Compile Include="FatalExceptionHandlerTests.cs" />

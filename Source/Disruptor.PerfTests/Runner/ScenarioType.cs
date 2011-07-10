@@ -8,6 +8,7 @@ namespace Disruptor.PerfTests.Runner
         Pipeline3Step = 3,
         Sequencer3P1C = 4,
         DiamondPath1P3C = 5,
-        Pipeline3StepLatency = 6
+        Pipeline3StepLatency = 6,
+        UniCast1P1CBatch = 7
     }
 }

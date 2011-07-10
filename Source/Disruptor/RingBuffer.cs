@@ -168,6 +168,9 @@ namespace Disruptor
             private readonly RingBuffer<T> _ringBuffer;
             private readonly IConsumer[] _consumers;
             private long _lastConsumerMinimum = RingBufferConvention.InitialCursorValue;
+            private readonly Entry<T>[] _entries;
+            private readonly IClaimStrategy _claimStrategy;
+            private readonly int _ringModMask;
 
             public ReferenceTypeConsumerTrackingProducerBarrier(RingBuffer<T> ringBuffer, params IConsumer[] consumers)
             {
@@ -178,31 +181,38 @@ namespace Disruptor
 
                 _ringBuffer = ringBuffer;
                 _consumers = consumers;
+                _entries = _ringBuffer._entries;
+                _claimStrategy = _ringBuffer._claimStrategy;
+                _ringModMask = _ringBuffer._ringModMask;
             }
 
             public long NextEntry(out T data)
             {
-                var sequence = _ringBuffer._claimStrategy.IncrementAndGet();
+                var sequence = _claimStrategy.IncrementAndGet();
                 EnsureConsumersAreInRange(sequence);
 
-                data = _ringBuffer._entries[(int) sequence & _ringBuffer._ringModMask].Data;
+                data = _entries[(int) sequence & _ringModMask].Data;
 
                 return sequence;
             }
 
+            public SequenceBatch NextEntries(int size)
+            {
+                long sequence = _claimStrategy.IncrementAndGet(size);
+                var sequenceBatch = new SequenceBatch(size, sequence);
+                EnsureConsumersAreInRange(sequence);
+
+                return sequenceBatch;
+            }
+
             public void Commit(long sequence)
             {
-                if (_ringBuffer._claimStrategyOption == ClaimStrategyFactory.ClaimStrategyOption.Multithreaded)
-                {
-                    var sequenceMinusOne = sequence - 1;
-                    while (sequenceMinusOne != _ringBuffer.Cursor)
-                    {
-                        //busy spin
-                    }
-                }
+                Commit(sequence, 1L);
+            }
 
-                _ringBuffer.Cursor = sequence; // volatile write
-                _ringBuffer._waitStrategy.SignalAll();
+            public void Commit(SequenceBatch sequenceBatch)
+            {
+                Commit(sequenceBatch.End, sequenceBatch.Size);
             }
 
             public long Cursor
@@ -210,14 +220,34 @@ namespace Disruptor
                 get { return _ringBuffer.Cursor; }
             }
 
+            public T GetEntry(long sequence)
+            {
+                return _entries[(int)sequence & _ringModMask].Data;
+            }
+
             private void EnsureConsumersAreInRange(long sequence)
             {
-                var wrapPoint = sequence - _ringBuffer._entries.Length;
+                var wrapPoint = sequence - _entries.Length;
                 
                 while (wrapPoint > _lastConsumerMinimum && wrapPoint > (_lastConsumerMinimum = _consumers.GetMinimumSequence()))
                 {
                     Thread.Yield();
                 }
+            }
+
+            private void Commit(long sequence, long batchSize)
+            {
+                if (_ringBuffer._claimStrategyOption == ClaimStrategyFactory.ClaimStrategyOption.Multithreaded)
+                {
+                    long expectedSequence = sequence - batchSize;
+                    while (expectedSequence != _ringBuffer.Cursor)
+                    {
+                        // busy spin
+                    }
+                }
+
+                _ringBuffer.Cursor = sequence; // volatile write
+                _ringBuffer._waitStrategy.SignalAll();
             }
         }
 

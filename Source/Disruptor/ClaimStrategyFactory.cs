@@ -53,6 +53,11 @@ namespace Disruptor
                 return Interlocked.Increment(ref _sequence);
             }
 
+            public long IncrementAndGet(int delta)
+            {
+                return Interlocked.Add(ref _sequence, delta);
+            }
+
             public void SetSequence(long sequence)
             {
                 Interlocked.Exchange(ref _sequence, sequence);
@@ -69,6 +74,12 @@ namespace Disruptor
             public long IncrementAndGet()
             {
                 return ++_sequence;
+            }
+
+            public long IncrementAndGet(int delta)
+            {
+                _sequence += delta;
+                return _sequence;
             }
 
             public void SetSequence(long sequence)
