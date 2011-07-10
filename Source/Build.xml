@@ -81,7 +81,7 @@
       <DisruptorZip Include="$(BinDir)Disruptor.pdb" />
       <DisruptorZip Include="$(BinDir)Disruptor.XML" />
     </ItemGroup>
-    <Zip Files="@(DisruptorZip)" ZipFileName="Target\Dist\Disruptor-binaries-$(DisruptorVersion).zip" ZipLevel="9" />
+    <Zip Files="@(DisruptorZip)" WorkingDirectory="$(BinDir)" ZipFileName="Target\Dist\Disruptor-binaries-$(DisruptorVersion).zip" ZipLevel="9" />
 
     <ItemGroup>
       <DisruptorPerfZip Include="$(BinDir)Disruptor.dll" />
@@ -92,7 +92,7 @@
       <DisruptorPerfZip Include="$(BinDir)nunit.framework.dll" />
       <DisruptorPerfZip Include="$(BinDir)System.Threading.Tasks.Dataflow.dll" />
     </ItemGroup>
-    <Zip Files="@(DisruptorPerfZip)" ZipFileName="Target\Dist\Disruptor-perfRunner-$(DisruptorVersion).zip" ZipLevel="9" />
+    <Zip Files="@(DisruptorPerfZip)" WorkingDirectory="$(BinDir)" ZipFileName="Target\Dist\Disruptor-perfRunner-$(DisruptorVersion).zip" ZipLevel="9" />
 
     <ItemGroup>
       <DisruptorSourceZipExclude Include="$(SourceDir)\**\.svn\**" />
@@ -109,7 +109,7 @@
 
       <DisruptorSourceZipInclude Include="$(SourceDir)\**\*.*" Exclude="@(DisruptorSourceZipExclude)" />
     </ItemGroup>
-    <Zip Files="@(DisruptorSourceZipInclude)" ZipFileName="Target\Dist\Disruptor-source-$(DisruptorVersion).zip" ZipLevel="9" />
+    <Zip Files="@(DisruptorSourceZipInclude)" WorkingDirectory="$(SourceDir)" ZipFileName="Target\Dist\Disruptor-source-$(DisruptorVersion).zip" ZipLevel="9" />
 
     <ItemGroup>
       <Zips Include="Target\Dist\Disruptor-binaries-$(DisruptorVersion).zip" />
