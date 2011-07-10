@@ -1,4 +1,4 @@
-===10th July===
+===10th July - v0.7===
  * Add batching support on producer barrier
  * Setup continuous build and new build targets to generate packages
 
