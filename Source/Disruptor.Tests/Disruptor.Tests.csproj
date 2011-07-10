@@ -51,7 +51,6 @@
     <Compile Include="..\Version.cs">
       <Link>Version.cs</Link>
     </Compile>
-    <Compile Include="BatchConsumerSequenceTrackingCallbackTests.cs" />
     <Compile Include="BatchConsumerTests.cs" />
     <Compile Include="BatchProducerTest.cs" />
     <Compile Include="Collections\HistogramTests.cs" />

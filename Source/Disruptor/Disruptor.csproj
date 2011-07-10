@@ -54,7 +54,6 @@
     <Compile Include="RingBufferConvention.cs" />
     <Compile Include="Entry.cs" />
     <Compile Include="ILifecycleAware.cs" />
-    <Compile Include="IReferenceTypeForceFillProducerBarrier.cs" />
     <Compile Include="IReferenceTypeProducerBarrier.cs" />
     <Compile Include="ISequencable.cs" />
     <Compile Include="MemoryLayout\CacheLine.cs" />
@@ -67,10 +66,8 @@
     <Compile Include="IConsumer.cs" />
     <Compile Include="IConsumerBarrier.cs" />
     <Compile Include="IExceptionHandler.cs" />
-    <Compile Include="IValueTypeForceFillProducerBarrier.cs" />
     <Compile Include="IgnoreExceptionHandler.cs" />
     <Compile Include="IValueTypeProducerBarrier.cs" />
-    <Compile Include="ISequenceTrackingHandler.cs" />
     <Compile Include="IWaitStrategy.cs" />
     <Compile Include="Logging\ILogger.cs" />
     <Compile Include="Logging\Level.cs" />

@@ -134,26 +134,6 @@ namespace Disruptor.Tests
             }
         }
 
-        [Test]
-        public void ShouldSetAtSpecificSequence()
-        {
-            const long expectedSequence = 5;
-            var forceFillProducerBarrier = _ringBuffer.CreateForceFillProducerBarrier(new NoOpConsumer<StubData>(_ringBuffer));
-
-            var expectedData = forceFillProducerBarrier.ClaimEntry(expectedSequence);
-            expectedData.Value = (int)expectedSequence;
-            forceFillProducerBarrier.Commit(expectedSequence);
-
-            var sequence = _consumerBarrier.WaitFor(expectedSequence);
-            Assert.AreEqual(expectedSequence, sequence);
-            Assert.IsNotNull(sequence);
-
-            var entry = _ringBuffer[sequence.Value].Data;
-            Assert.AreEqual(expectedData, entry);
-
-            Assert.AreEqual(expectedSequence, _ringBuffer.Cursor);
-        }
-
         private Task<Gen.List<StubData>> GetMessages(long initial, long toWaitFor)
         {
             var barrier = new Barrier(2);
