@@ -56,17 +56,6 @@ namespace Disruptor
         }
 
         /// <summary>
-        /// Create a <see cref="IValueTypeForceFillProducerBarrier{T}"/> on this RingBuffer that tracks dependent <see cref="IConsumer"/>s.
-        /// This barrier is to be used for filling a RingBuffer when no other producers exist. 
-        /// </summary>
-        /// <param name="consumersToTrack">consumersToTrack to be tracked to prevent wrapping.</param>
-        /// <returns>a <see cref="IValueTypeForceFillProducerBarrier{T}"/> with the above configuration.</returns>
-        public IValueTypeForceFillProducerBarrier<T> CreateForceFillProducerBarrier(params IConsumer[] consumersToTrack)
-        {
-            return new ValueTypeForceFillConsumerTrackingProducerBarrier(this, consumersToTrack);
-        }
-
-        /// <summary>
         /// The capacity of the RingBuffer to hold entries.
         /// </summary>
         public int Capacity
@@ -193,56 +182,6 @@ namespace Disruptor
             public long Cursor
             {
                 get { return _ringBuffer.Cursor; }
-            }
-
-            private void EnsureConsumersAreInRange(long sequence)
-            {
-                var wrapPoint = sequence - _ringBuffer._entries.Length;
-                while (wrapPoint > _lastConsumerMinimum && wrapPoint > (_lastConsumerMinimum = _consumers.GetMinimumSequence()))
-                {
-                    Thread.Yield();
-                }
-            }
-        }
-
-        /// <summary>
-        /// <see cref="IValueTypeForceFillProducerBarrier{T}"/> that tracks multiple <see cref="IConsumer"/>s when trying to claim
-        ///  a <see cref="Entry{T}"/> in the <see cref="RingBuffer{T}"/>.
-        /// </summary>
-        private sealed class ValueTypeForceFillConsumerTrackingProducerBarrier : IValueTypeForceFillProducerBarrier<T>
-        {
-            private readonly ValueTypeRingBuffer<T> _ringBuffer;
-            private readonly IConsumer[] _consumers;
-            private long _lastConsumerMinimum = RingBufferConvention.InitialCursorValue;
-
-            public ValueTypeForceFillConsumerTrackingProducerBarrier(ValueTypeRingBuffer<T> ringBuffer, params IConsumer[] consumers)
-            {
-                if (consumers.Length == 0)
-                {
-                    throw new ArgumentException("There must be at least one Consumer to track for preventing ring wrap");
-                }
-
-                _ringBuffer = ringBuffer;
-                _consumers = consumers;
-            }
-
-            public void ClaimEntry(long sequence)
-            {
-                EnsureConsumersAreInRange(sequence);
-            }
-
-            public void Commit(long sequence, T data)
-            {
-                _ringBuffer._entries[(int)sequence & _ringBuffer._ringModMask] = new Entry<T>(sequence, data);
-
-                _ringBuffer._claimStrategy.SetSequence(sequence + 1L);
-                _ringBuffer.Cursor = sequence; // volatile write
-                _ringBuffer._waitStrategy.SignalAll();
-            }
-
-            public long Cursor
-            {
-                get { return _ringBuffer.Cursor; } // volatile read
             }
 
             private void EnsureConsumersAreInRange(long sequence)

@@ -46,22 +46,6 @@ namespace Disruptor
         }
 
         /// <summary>
-        /// Construct a batch consumer that will rely on the <see cref="ISequenceTrackingHandler{T}"/>
-        /// to callback via the <see cref="BatchConsumer{T}.SequenceTrackerCallback"/> when it has
-        /// completed with a sequence within a batch.  Sequence will be updated at the end of
-        /// a batch regardless.
-        /// </summary>
-        /// <param name="consumerBarrier"></param>
-        /// <param name="entryHandler"></param>
-        public BatchConsumer(IConsumerBarrier<T> consumerBarrier, ISequenceTrackingHandler<T> entryHandler)
-        {
-            _consumerBarrier = consumerBarrier;
-            _handler = entryHandler;
-
-            entryHandler.SetSequenceTrackerCallback(new SequenceTrackerCallback(this));
-        }
-
-        /// <summary>
         /// Set a new <see cref="IExceptionHandler{T}"/> for handling exceptions propagated out of the <see cref="BatchConsumer{T}"/>
         /// </summary>
         /// <param name="exceptionHandler">exceptionHandler to replace the existing exceptionHandler.</param>
