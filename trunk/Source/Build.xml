@@ -66,7 +66,7 @@
 
   <Target Name="UpdateVersion">
     <AssemblyInfo CodeLanguage="CS"
-      OutputFile="Source\Version.cs"
+      OutputFile="$(MsBuildProjectDirectory)\Version.cs"
       AssemblyCompany="http://code.google.com/p/disruptor-net/"
       AssemblyProduct="Disruptor"
       AssemblyCopyright="Copyright © disruptor-net"
