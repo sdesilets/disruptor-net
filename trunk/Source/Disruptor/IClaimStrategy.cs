@@ -11,6 +11,13 @@
         /// <returns>The <see cref="Entry{T}"/> index to be used for the producer.</returns>
         long IncrementAndGet();
 
+        ///<summary>
+        /// Increment by a delta and get the result.
+        ///</summary>
+        ///<param name="delta">delta to increment by.</param>
+        ///<returns>the result after incrementing.</returns>
+        long IncrementAndGet(int delta);
+
         /// <summary>
         /// Set the current sequence value for claiming <see cref="Entry{T}"/> in the <see cref="RingBuffer{T}"/>
         /// </summary>

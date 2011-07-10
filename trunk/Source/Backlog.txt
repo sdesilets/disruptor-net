@@ -9,3 +9,4 @@
 - refeactor strategy factories to extension methodes (Matt)
 - print CPU details in the test report (architecture, hyperthreading, logic/physical cores, frequency, etc)
 - improve test runner: add options to run only some tests
+- implement batching with ValueTypeRingBuffer

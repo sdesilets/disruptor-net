@@ -107,6 +107,10 @@
     <Compile Include="Support\ValueProducer.cs" />
     <Compile Include="Support\ValueQueueProducer.cs" />
     <Compile Include="ThroughputPerfTest.cs" />
+    <Compile Include="UniCast1P1CBatch\AbstractUniCast1P1CBatchPerfTest.cs" />
+    <Compile Include="UniCast1P1CBatch\UniCast1P1CBatchBlockingCollectionPerfTest.cs" />
+    <Compile Include="UniCast1P1CBatch\UniCast1P1CBatchDataflowPerfTest.cs" />
+    <Compile Include="UniCast1P1CBatch\UniCast1P1CBatchDisruptorPerfTest.cs" />
     <Compile Include="UniCast1P1C\AbstractUniCast1P1CPerfTest.cs" />
     <Compile Include="UniCast1P1C\UniCast1P1CBlockingCollectionPerfTest.cs" />
     <Compile Include="UniCast1P1C\UniCast1P1CDataflowPerfTest.cs" />

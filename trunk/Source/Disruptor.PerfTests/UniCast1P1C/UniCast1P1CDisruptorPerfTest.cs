@@ -13,7 +13,6 @@ namespace Disruptor.PerfTests.UniCast1P1C
         private readonly ValueAdditionHandler _handler;
         private readonly BatchConsumer<long> _batchConsumer;
         private readonly IValueTypeProducerBarrier<long> _producerBarrier;
-        private const int Size = 1024 * 32;
 
         public UniCast1P1CDisruptorPerfTest()
         {
