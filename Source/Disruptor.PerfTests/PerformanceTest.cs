@@ -6,7 +6,7 @@ namespace Disruptor.PerfTests
     {
         public PerformanceTest()
         {
-            Iterations = 20*1000*1000;
+            Iterations = 50*1000*1000;
         }
 
         public int PassNumber { get; set; }
