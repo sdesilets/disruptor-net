@@ -102,7 +102,7 @@ namespace Disruptor
         private sealed class ConsumerTrackingConsumerBarrier<TU> : IConsumerBarrier<TU> where TU : class
         {
             private readonly IConsumer[] _consumers;
-            private CacheLineStorageBool _alerted;
+            private volatile bool _alerted;
             private readonly RingBuffer<TU> _ringBuffer;
 
             public ConsumerTrackingConsumerBarrier(RingBuffer<TU> ringBuffer, params IConsumer[] consumers)
@@ -133,18 +133,18 @@ namespace Disruptor
 
             public bool IsAlerted
             {
-                get { return _alerted.Data; }
+                get { return _alerted; }
             }
 
             public void Alert()
             {
-                _alerted.Data = true;
+                _alerted = true;
                 _ringBuffer._waitStrategy.SignalAll();
             }
 
             public void ClearAlert()
             {
-                _alerted.Data = false;
+                _alerted = false;
             }
         }
 
