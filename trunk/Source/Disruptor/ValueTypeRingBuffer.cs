@@ -94,7 +94,7 @@ namespace Disruptor
             private readonly IConsumer[] _consumers;
             private volatile bool _alerted;
             private readonly ValueTypeRingBuffer<TU> _ringBuffer;
-            private IWaitStrategy _waitStrategy;
+            private readonly IWaitStrategy _waitStrategy;
 
             public ValueTypeConsumerTrackingConsumerBarrier(ValueTypeRingBuffer<TU> ringBuffer, params IConsumer[] consumers)
             {
@@ -149,8 +149,8 @@ namespace Disruptor
             private readonly ValueTypeRingBuffer<T> _ringBuffer;
             private readonly IConsumer[] _consumers;
             private long _lastConsumerMinimum = RingBufferConvention.InitialCursorValue;
-            private IWaitStrategy _waitStrategy;
-            private int _ringModMask;
+            private readonly IWaitStrategy _waitStrategy;
+            private readonly int _ringModMask;
 
             public ValueTypeConsumerTrackingProducerBarrier(ValueTypeRingBuffer<T> ringBuffer, params IConsumer[] consumers)
             {
@@ -186,9 +186,9 @@ namespace Disruptor
                 EnsureConsumersAreInRange(endOfBatchSequence);
 
                 int i = 0;
-                for (long sequence = sequenceBatch.Start; sequence < sequenceBatch.End; sequence++)
+                for (long sequence = sequenceBatch.Start; sequence <= sequenceBatch.End; sequence++)
                 {
-                    _ringBuffer._entries[(int)sequence & _ringModMask] = new Entry<T>(sequence, batch[i]);
+                    _ringBuffer._entries[(int)sequence & _ringModMask] = new Entry<T>(sequence, batch[i++]);
                 }
 
                 WaitForExpectedSequence(batchSize, endOfBatchSequence);

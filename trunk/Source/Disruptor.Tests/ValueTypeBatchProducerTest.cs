@@ -29,6 +29,11 @@ namespace Disruptor.Tests
 
             Assert.AreEqual(batchSize - 1, _ringBuffer.Cursor);
             Assert.AreEqual(batchSize - 1, _consumerBarrier.WaitFor(0L));
+
+            for (int i = 0; i < batchSize; i++)
+            {
+                Assert.AreEqual(i + 1L, _ringBuffer[i].Data);
+            }
         }
     }
 }
