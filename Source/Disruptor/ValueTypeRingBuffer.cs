@@ -149,6 +149,8 @@ namespace Disruptor
             private readonly ValueTypeRingBuffer<T> _ringBuffer;
             private readonly IConsumer[] _consumers;
             private long _lastConsumerMinimum = RingBufferConvention.InitialCursorValue;
+            private IWaitStrategy _waitStrategy;
+            private int _ringModMask;
 
             public ValueTypeConsumerTrackingProducerBarrier(ValueTypeRingBuffer<T> ringBuffer, params IConsumer[] consumers)
             {
@@ -159,6 +161,8 @@ namespace Disruptor
 
                 _ringBuffer = ringBuffer;
                 _consumers = consumers;
+                _waitStrategy = _ringBuffer._waitStrategy;
+                _ringModMask = _ringBuffer._ringModMask;
             }
 
             public void Commit(T data)
@@ -166,19 +170,12 @@ namespace Disruptor
                 var sequence = _ringBuffer._claimStrategy.IncrementAndGet();
                 EnsureConsumersAreInRange(sequence);
 
-                _ringBuffer._entries[(int)sequence & _ringBuffer._ringModMask] = new Entry<T>(sequence, data);
+                _ringBuffer._entries[(int)sequence & _ringModMask] = new Entry<T>(sequence, data);
 
-                if (_ringBuffer._claimStrategyOption == ClaimStrategyFactory.ClaimStrategyOption.Multithreaded)
-                {
-                    var sequenceMinusOne = sequence - 1;
-                    while (sequenceMinusOne != _ringBuffer.Cursor) // volatile read
-                    {
-                        //busy spin
-                    }
-                }
+                WaitForExpectedSequence(1, sequence);
 
                 _ringBuffer.Cursor = sequence; // volatile write
-                _ringBuffer._waitStrategy.SignalAll();
+                _waitStrategy.SignalAll();
             }
 
             public void Commit(T[] batch)
@@ -191,9 +188,17 @@ namespace Disruptor
                 int i = 0;
                 for (long sequence = sequenceBatch.Start; sequence < sequenceBatch.End; sequence++)
                 {
-                    _ringBuffer._entries[(int)sequence & _ringBuffer._ringModMask] = new Entry<T>(sequence, batch[i]);
+                    _ringBuffer._entries[(int)sequence & _ringModMask] = new Entry<T>(sequence, batch[i]);
                 }
 
+                WaitForExpectedSequence(batchSize, endOfBatchSequence);
+
+                _ringBuffer.Cursor = endOfBatchSequence; // volatile write
+                _waitStrategy.SignalAll();
+            }
+
+            private void WaitForExpectedSequence(int batchSize, long endOfBatchSequence)
+            {
                 if (_ringBuffer._claimStrategyOption == ClaimStrategyFactory.ClaimStrategyOption.Multithreaded)
                 {
                     var expectedSequence = endOfBatchSequence - batchSize;
@@ -202,9 +207,6 @@ namespace Disruptor
                         //busy spin
                     }
                 }
-
-                _ringBuffer.Cursor = endOfBatchSequence; // volatile write
-                _ringBuffer._waitStrategy.SignalAll();
             }
 
             public long Cursor
