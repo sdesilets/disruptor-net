@@ -6,13 +6,13 @@
     /// </summary>
     public sealed class NoOpConsumer<T>:IConsumer where T : class
     {
-        private readonly RingBuffer<T> _ringBuffer;
+        private readonly ISequencable _ringBuffer;
 
         /// <summary>
         /// Construct a <see cref="IConsumer"/> that simply tracks a <see cref="RingBuffer{T}"/>.
         /// </summary>
         /// <param name="ringBuffer"></param>
-        public NoOpConsumer(RingBuffer<T> ringBuffer)
+        public NoOpConsumer(ISequencable ringBuffer)
         {
             _ringBuffer = ringBuffer;
         }

@@ -94,11 +94,13 @@ namespace Disruptor
             private readonly IConsumer[] _consumers;
             private volatile bool _alerted;
             private readonly ValueTypeRingBuffer<TU> _ringBuffer;
+            private IWaitStrategy _waitStrategy;
 
             public ValueTypeConsumerTrackingConsumerBarrier(ValueTypeRingBuffer<TU> ringBuffer, params IConsumer[] consumers)
             {
                 _ringBuffer = ringBuffer;
                 _consumers = consumers;
+                _waitStrategy = _ringBuffer._waitStrategy;
             }
 
             public TU GetEntry(long sequence)
@@ -108,12 +110,12 @@ namespace Disruptor
 
             public long? WaitFor(long sequence)
             {
-                return _ringBuffer._waitStrategy.WaitFor(_consumers, _ringBuffer, this, sequence);
+                return _waitStrategy.WaitFor(_consumers, _ringBuffer, this, sequence);
             }
 
             public long? WaitFor(long sequence, TimeSpan timeout)
             {
-                return _ringBuffer._waitStrategy.WaitFor(_consumers, _ringBuffer, this, sequence, timeout);
+                return _waitStrategy.WaitFor(_consumers, _ringBuffer, this, sequence, timeout);
             }
 
             public long Cursor
@@ -129,7 +131,7 @@ namespace Disruptor
             public void Alert()
             {
                 _alerted = true;
-                _ringBuffer._waitStrategy.SignalAll();
+                _waitStrategy.SignalAll();
             }
 
             public void ClearAlert()
@@ -176,6 +178,32 @@ namespace Disruptor
                 }
 
                 _ringBuffer.Cursor = sequence; // volatile write
+                _ringBuffer._waitStrategy.SignalAll();
+            }
+
+            public void Commit(T[] batch)
+            {
+                var batchSize = batch.Length;
+                var endOfBatchSequence = _ringBuffer._claimStrategy.IncrementAndGet(batchSize);
+                var sequenceBatch = new SequenceBatch(batchSize, endOfBatchSequence);
+                EnsureConsumersAreInRange(endOfBatchSequence);
+
+                int i = 0;
+                for (long sequence = sequenceBatch.Start; sequence < sequenceBatch.End; sequence++)
+                {
+                    _ringBuffer._entries[(int)sequence & _ringBuffer._ringModMask] = new Entry<T>(sequence, batch[i]);
+                }
+
+                if (_ringBuffer._claimStrategyOption == ClaimStrategyFactory.ClaimStrategyOption.Multithreaded)
+                {
+                    var expectedSequence = endOfBatchSequence - batchSize;
+                    while (expectedSequence != _ringBuffer.Cursor) // volatile read
+                    {
+                        //busy spin
+                    }
+                }
+
+                _ringBuffer.Cursor = endOfBatchSequence; // volatile write
                 _ringBuffer._waitStrategy.SignalAll();
             }
 
