@@ -92,7 +92,7 @@ namespace Disruptor
             : IConsumerBarrier<TU> where TU : struct
         {
             private readonly IConsumer[] _consumers;
-            private CacheLineStorageBool _alerted;
+            private volatile bool _alerted;
             private readonly ValueTypeRingBuffer<TU> _ringBuffer;
 
             public ValueTypeConsumerTrackingConsumerBarrier(ValueTypeRingBuffer<TU> ringBuffer, params IConsumer[] consumers)
@@ -123,18 +123,18 @@ namespace Disruptor
 
             public bool IsAlerted
             {
-                get { return _alerted.Data; }
+                get { return _alerted; }
             }
 
             public void Alert()
             {
-                _alerted.Data = true;
+                _alerted = true;
                 _ringBuffer._waitStrategy.SignalAll();
             }
 
             public void ClearAlert()
             {
-                _alerted.Data = false;
+                _alerted = false;
             }
         }
 
