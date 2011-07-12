@@ -12,6 +12,12 @@
         void Commit(T data);
 
         /// <summary>
+        /// Commit several entries as a single batch
+        /// </summary>
+        /// <param name="batch"></param>
+        void Commit(T[] batch);
+
+        /// <summary>
         /// Delegate a call to the <see cref="ValueTypeRingBuffer{T}.Cursor"/>
         /// </summary>
         long Cursor { get; }
