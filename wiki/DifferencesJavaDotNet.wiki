@@ -5,7 +5,7 @@ The main differences comes from the fact that .NET supports structs (value types
 In Java, every entry (or message) exchanged by the disruptor needs to inherit from a base class called `AbstractEntry`. This class exposes the Sequence number required by the disruptor to process the messages, it is basically a header for the message.
 
 In .NET we have replaced `AbstractEntry` by a generic struct: `Entry<T>`. An entry contains 2 fields: the sequence number and a field called data, used to store the message (of type T). Using this struct has several advantages:
- * the array in the RingBuffer is of type `Entry<T>`, when we need to access the Sequence number we don't have to dereference (`Entry<T>` is a struct so instances are directly nested in the array) and this improves [http://en.wikipedia.org/wiki/Locality_of_reference cache spatial locality].
+ * the array in the `RingBuffer` is of type `Entry<T>`, when we need to access the Sequence number we don't have to dereference (`Entry<T>` is a struct so instances are directly nested in the array) and this improves [http://en.wikipedia.org/wiki/Locality_of_reference cache spatial locality].
  * your message types do not need to implement or inherit from a base class, you can use [http://en.wikipedia.org/wiki/Plain_Old_CLR_Object POCOs].
 
 In .NET message type (T) can be a reference type or a value type (a primitive type or a custom defined struct). When T is a reference type, the behavior of the .NET and Java versions is the same but with value type there are noticeable differences:
