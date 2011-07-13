@@ -5,7 +5,7 @@
 The code below is an example of a single producer and single consumer using the convenience interface `IBatchHandler<T>` for implementing a consumer. The consumer runs on a separate thread receiving entries as they become available. 
 
 Consumers implement this interface for convenience. 
-<code language="cs">
+{{{
 public class ValueAdditionHandler:IBatchHandler<long>
 {
     public long Sum { get; private set; }
@@ -21,10 +21,10 @@ public class ValueAdditionHandler:IBatchHandler<long>
         // useful for flushing results to an IO device if necessary.
     }
 }
-</code>
+}}}
 
 Setup the `ValueTypeRingBuffer` and associated barriers. 
-<code language="cs">
+{{{
 var ringBuffer = new ValueTypeRingBuffer<long>(Size,
             ClaimStrategyFactory.ClaimStrategyOption.SingleThreaded,
             WaitStrategyFactory.WaitStrategyOption.Yielding);
@@ -40,39 +40,39 @@ var producerBarrier = _ringBuffer.CreateProducerBarrier(batchConsumer);
 //run the consumer in a new Thread
 var thread = new Thread(batchConsumer.Run) { Name = "Consumer" };
 thread.Start();
-</code>
+}}}
 
 Publish messages to the disruptor
-<code language="cs">
+{{{
 var message = 1L;
 	
 // make the entry available to consumers
 producerBarrier.Commit(message);
-</code>
+}}}
 
 ===Reference type messages===
 Consumers implement the `IBatchHandler<T>` the same way, the only difference is the initialisation of the ring buffer and the way you pubblish to it.
 
 Define the type of message exchanged (reference type this time)
-<code language="cs">
+{{{
 public sealed class ValueEntry
 {
     public long Value { get; set; }
 }
-</code>
+}}}
 
 Setup the `RingBuffer` and associated barriers. 
-<code language="cs">
+{{{
 // notice the factory method used to initialise all messages in the ring buffer
 var ringBuffer = new RingBuffer<long>(()=>new ValueEntry(), Size,
                 ClaimStrategyFactory.ClaimStrategyOption.SingleThreaded,
                 WaitStrategyFactory.WaitStrategyOption.Yielding);
 
 // same code as before for barriers, batch handlers, and thread creation
-</code>
+}}}
 
 Publish messages to the disruptor
-<code language="cs">
+{{{
 // Producers claim entries in sequence
 ValueEntry message;
 long sequence = producerBarrier.NextEntry(out message);
@@ -81,4 +81,4 @@ message.Value = 123L;
 	
 // make the entry available to consumers
 producerBarrier.Commit(sequence);
-</code>
+}}}
