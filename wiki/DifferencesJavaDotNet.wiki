@@ -1,0 +1,13 @@
+==Differences between the Java and .NET version of the Disruptor==
+
+The main differences comes from the fact that .NET supports structs (value types), Java doesn't. 
+
+In Java, every entry (or message) exchanged by the disruptor needs to inherit from a base class called `AbstractEntry`. This class exposes the Sequence number required by the disruptor to process the messages, it is basically a header for the message.
+
+In .NET we have replaced `AbstractEntry` by a generic struct: `Entry<T>`. An entry contains 2 fields: the sequence number and a field called data, used to store the message (of type T). Using this struct has several advantages:
+ * the array in the RingBuffer is of type `Entry<T>`, when we need to access the Sequence number we don't have to dereference (`Entry<T>` is a struct so instances are directly nested in the array) and this improves [http://en.wikipedia.org/wiki/Locality_of_reference cache spatial locality].
+ * your message types do not need to implement or inherit from a base class, you can use [http://en.wikipedia.org/wiki/Plain_Old_CLR_Object POCOs].
+
+In .NET message type (T) can be a reference type or a value type (a primitive type or a custom defined struct). When T is a reference type, the behavior of the .NET and Java versions is the same but with value type there are noticeable differences:
+ * with reference types the disruptor acts as a pool of objects: messages are pre-allocated during initialisation and then messages are recycled. This is one of the main reason why the producer barrier uses a 2 phase commit: phase 1 you get a new sequence number and a reference to a recycled object, you mutate it and phase 2 you commit back this sequence number which pulishes the message to consumers. To pre-allocate all the messages initially you need to provide a factory method to the ring buffer (via a lambda in .NET)
+ * with value types it is quite different: we don't have to pre-allocate anything, we don't need any factory method. The publisher barrier semantic is different as well, no need for a 2 phase commit. Those majo differences led to 2 different implementations of the ring buffer: `RingBuffer<T>` for reference types and `ValueTypeRingBuffer<T>` for value types.
