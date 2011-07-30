@@ -27,7 +27,7 @@ namespace Disruptor.PerfTests.UniCast1P1C
         private readonly BlockingCollection<long> _queue = new BlockingCollection<long>(Size);
         private readonly ValueAdditionQueueConsumer _queueConsumer;
 
-        public UniCast1P1CBlockingCollectionPerfTest()
+        public UniCast1P1CBlockingCollectionPerfTest() : base(1 * Million)
         {
             _queueConsumer = new ValueAdditionQueueConsumer(_queue, Iterations);
         }

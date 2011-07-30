@@ -9,7 +9,7 @@ namespace Disruptor.PerfTests.Runner
         private readonly ThroughputPerfTest _throughputPerfTest;
         private long _operationsPerSecond;
 
-        public ThroughputTestRun(ThroughputPerfTest throughputPerfTest, int run) : base(run)
+        public ThroughputTestRun(ThroughputPerfTest throughputPerfTest, int run, int availableCores) : base(run, throughputPerfTest, availableCores)
         {
             _throughputPerfTest = throughputPerfTest;
         }
@@ -34,7 +34,7 @@ namespace Disruptor.PerfTests.Runner
             Console.WriteLine("{0}:{1:###,###,###,###}", _throughputPerfTest.GetType().Name, _operationsPerSecond);
         }
 
-        public override void AppendResultHtml(StringBuilder sb)
+        protected override void AppendPerfResultHtml(StringBuilder sb)
         {
             sb.AppendLine(string.Format("                <td>{0:### ### ### ###}ops</td>", _operationsPerSecond));
         }

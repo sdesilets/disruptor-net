@@ -12,7 +12,7 @@ namespace Disruptor.Tests
     {
         private RingBuffer<StubData> _ringBuffer;
         private IConsumerBarrier<StubData> _consumerBarrier;
-        private IReferenceTypeProducerBarrier<StubData> _producerBarrier;
+        private IProducerBarrier<StubData> _producerBarrier;
 
         [SetUp]
         public void SetUp()
@@ -34,43 +34,14 @@ namespace Disruptor.Tests
             oldData.Value = expectedEntry.Data.Value;
             _producerBarrier.Commit(seq);
 
-            var sequence = _consumerBarrier.WaitFor(0);
-            Assert.AreEqual(0L, sequence);
-            Assert.IsNotNull(sequence);
+            var waitForResult = _consumerBarrier.WaitFor(0);
+            Assert.AreEqual(0L, waitForResult.AvailableSequence);
+            Assert.IsFalse(waitForResult.IsAlerted);
 
-            var entry = _ringBuffer[sequence.Value];
+            var entry = _ringBuffer[waitForResult.AvailableSequence];
             Assert.AreEqual(expectedEntry, entry);
 
             Assert.AreEqual(0L, _ringBuffer.Cursor);
-        }
-
-        [Test]
-        public void ShouldClaimAndGetWithTimeout()
-        {
-            Assert.AreEqual(RingBufferConvention.InitialCursorValue, _ringBuffer.Cursor);
-
-            var expectedEntry = new Entry<StubData>(-1, new StubData(2701));
-
-            StubData oldData;
-            var oldEntry = _producerBarrier.NextEntry(out oldData);
-            oldData.Value = expectedEntry.Data.Value;
-            _producerBarrier.Commit(oldEntry);
-
-            var sequence = _consumerBarrier.WaitFor(0, TimeSpan.FromMilliseconds(5));
-            Assert.AreEqual(0, sequence);
-            Assert.IsNotNull(sequence);
-
-            var entry = _ringBuffer[sequence.Value];
-            Assert.AreEqual(expectedEntry, entry);
-
-            Assert.AreEqual(0L, _ringBuffer.Cursor);
-        }
-
-        [Test]
-        public void ShouldGetWithTimeout()
-        {
-            var sequence = _consumerBarrier.WaitFor(0, TimeSpan.FromMilliseconds(5));
-            Assert.AreEqual(RingBufferConvention.InitialCursorValue, sequence);
         }
 
         [Test]
@@ -102,8 +73,8 @@ namespace Disruptor.Tests
             }
 
             var expectedSequence = numMessages - 1;
-            var available = _consumerBarrier.WaitFor(expectedSequence);
-            Assert.AreEqual(expectedSequence, available);
+            var waitForResult = _consumerBarrier.WaitFor(expectedSequence);
+            Assert.AreEqual(expectedSequence, waitForResult.AvailableSequence);
 
             for (var i = 0; i < numMessages; i++)
             {
@@ -125,8 +96,8 @@ namespace Disruptor.Tests
             }
 
             var expectedSequence = numMessages + offset - 1;
-            var available = _consumerBarrier.WaitFor(expectedSequence);
-            Assert.AreEqual(expectedSequence, available);
+            var waitForResult = _consumerBarrier.WaitFor(expectedSequence);
+            Assert.AreEqual(expectedSequence, waitForResult.AvailableSequence);
 
             for (var i = offset; i < numMessages + offset; i++)
             {
@@ -187,7 +158,7 @@ namespace Disruptor.Tests
             Assert.IsTrue(producerComplete);
         }
 
-        private class TestConsumer : IConsumer
+        private class TestConsumer : IBatchConsumer
         {
             private readonly IConsumerBarrier<StubData> _consumerBarrier;
             private long _sequence = RingBufferConvention.InitialCursorValue;
@@ -202,6 +173,11 @@ namespace Disruptor.Tests
                 get { return Interlocked.Read(ref _sequence); }
             }
 
+            public bool Running
+            {
+                get { return true; }
+            }
+
             public void Halt()
             {
             }
@@ -210,6 +186,11 @@ namespace Disruptor.Tests
             {
                 _consumerBarrier.WaitFor(0L);
                 Interlocked.Increment(ref _sequence);
+            }
+
+            public void DelaySequenceWrite(int period)
+            {
+                
             }
         }
     }

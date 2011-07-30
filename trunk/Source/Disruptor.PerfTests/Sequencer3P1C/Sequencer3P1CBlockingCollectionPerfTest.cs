@@ -15,15 +15,16 @@ namespace Disruptor.PerfTests.Sequencer3P1C
         private readonly Barrier _testStartBarrier = new Barrier(NumProducers + 1);
 
         public Sequencer3P1CBlockingCollectionPerfTest()
+            : base(1 * Million)
         {
             _queueConsumer = new ValueAdditionQueueConsumer(_blockingQueue, Iterations);
             _testStartBarrier = new Barrier(NumProducers + 1);
-            _valueQueueProducers = new[]
-                                      {
-                                          new ValueQueueProducer(_testStartBarrier, _blockingQueue, Iterations),
-                                          new ValueQueueProducer(_testStartBarrier, _blockingQueue, Iterations),
-                                          new ValueQueueProducer(_testStartBarrier, _blockingQueue, Iterations)
-                                      };
+            _valueQueueProducers = new ValueQueueProducer[NumProducers];
+
+            for (int i = 0; i < NumProducers; i++)
+            {
+                _valueQueueProducers[i] = new ValueQueueProducer(_testStartBarrier, _blockingQueue, Iterations);
+            }
         }
 
         public override long RunPass()

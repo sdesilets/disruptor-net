@@ -68,6 +68,10 @@ namespace Disruptor.PerfTests.Pipeline3StepLatency
         private Histogram _histogram;
         private static long _stopwatchTimestampCostInNano;
 
+        protected AbstractPipeline3StepLatencyPerfTest(int iterations) : base(iterations)
+        {
+        }
+
         public override Histogram Histogram
         {
             get
@@ -116,6 +120,9 @@ namespace Disruptor.PerfTests.Pipeline3StepLatency
             }
         }
 
-        
+        public override int MinimumCoresRequired
+        {
+            get { return 4; }
+        }
     }
 }

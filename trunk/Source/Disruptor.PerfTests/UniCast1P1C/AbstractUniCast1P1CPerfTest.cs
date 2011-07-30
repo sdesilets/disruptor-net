@@ -37,6 +37,10 @@ namespace Disruptor.PerfTests.UniCast1P1C
     {
         protected const int Size = 1024 * 32;
 
+        protected AbstractUniCast1P1CPerfTest(int iterations) : base(iterations)
+        {
+        }
+
         protected long ExpectedResult
         {
             get
@@ -49,6 +53,11 @@ namespace Disruptor.PerfTests.UniCast1P1C
 
                 return temp;
             }
+        }
+
+        public override int MinimumCoresRequired
+        {
+            get { return 2; }
         }
     }
 }

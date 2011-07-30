@@ -4,7 +4,7 @@ namespace Disruptor
     /// Entries are the items exchanged via a RingBuffer.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public struct Entry<T>
+    internal struct Entry<T>
     {
         /// <summary>
         /// get: Get the sequence number assigned to this item in the series.

@@ -10,6 +10,11 @@ namespace Disruptor.PerfTests.UniCast1P1C
     {
         private readonly BufferBlock<long> _bufferBlock = new BufferBlock<long>();
 
+        public UniCast1P1CDataflowPerfTest()
+            : base(1 * Million)
+        {
+        }
+
         public override long RunPass()
         {
             long tplValue = 0L;

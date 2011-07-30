@@ -49,14 +49,14 @@ namespace Disruptor
         }
 
         /// <summary>
-        /// Blocking strategy that uses a lock and condition variable for <see cref="IConsumer"/>s waiting on a barrier.
+        /// Blocking strategy that uses a lock and condition variable for <see cref="IBatchConsumer"/>s waiting on a barrier.
         /// This strategy should be used when performance and low-latency are not as important as CPU resource.
         /// </summary>
         private sealed class BlockingStrategy : IWaitStrategy
         {
             private readonly object _gate = new object();
 
-            public long? WaitFor<T>(IConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence)
+            public WaitForResult WaitFor<T>(IBatchConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence)
             {
                 var availableSequence = ringBuffer.Cursor; // volatile read
                 if (availableSequence < sequence)
@@ -67,7 +67,7 @@ namespace Disruptor
                         {
                             if (barrier.IsAlerted)
                             {
-                                return null;
+                                return WaitForResult.AlertedResult;
                             }
 
                             Monitor.Wait(_gate);
@@ -81,48 +81,12 @@ namespace Disruptor
                     {
                         if (barrier.IsAlerted)
                         {
-                            return null;
+                            return WaitForResult.AlertedResult;
                         }
                     }
                 }
 
-                return availableSequence;
-            }
-
-            public long? WaitFor<T>(IConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence, TimeSpan timeout)
-            {
-                long availableSequence;
-                if ((availableSequence = ringBuffer.Cursor) < sequence) // volatile read
-                {
-                    lock(_gate)
-                    {
-                        while ((availableSequence = ringBuffer.Cursor) < sequence) // volatile read
-                        {
-                            if (barrier.IsAlerted)
-                            {
-                                return null;
-                            }
-
-                            if(!Monitor.Wait(_gate, timeout))
-                            {
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                if (0 != consumers.Length)
-                {
-                    while ((availableSequence = consumers.GetMinimumSequence()) < sequence)
-                    {
-                        if (barrier.IsAlerted)
-                        {
-                            return null;
-                        }
-                    }
-                }
-
-                return availableSequence;
+                return new WaitForResult(availableSequence, false);
             }
 
             public void SignalAll()
@@ -135,12 +99,12 @@ namespace Disruptor
         }
 
         /// <summary>
-        /// Yielding strategy that uses a Thread.yield() for <see cref="IConsumer"/>s waiting on a barrier.
+        /// Yielding strategy that uses a Thread.yield() for <see cref="IBatchConsumer"/>s waiting on a barrier.
         /// This strategy is a good compromise between performance and CPU resource.
         /// </summary>
         private sealed class YieldingStrategy:IWaitStrategy
         {
-        	public long? WaitFor<T>(IConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence)
+        	public WaitForResult WaitFor<T>(IBatchConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence)
             {
                 long availableSequence;
 
@@ -150,7 +114,7 @@ namespace Disruptor
                     {
                         if (barrier.IsAlerted)
                         {
-                            return null;
+                            return WaitForResult.AlertedResult;
                         }
 
                         Thread.Yield();
@@ -162,56 +126,14 @@ namespace Disruptor
                     {
                         if (barrier.IsAlerted)
                         {
-                            return null;
+                            return WaitForResult.AlertedResult;
                         }
 
                         Thread.Yield();
                     }
                 }
 
-                return availableSequence;
-            }
-
-            public long? WaitFor<T>(IConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence, TimeSpan timeout)
-            {
-                var expirationTime = DateTime.UtcNow + timeout;
-                long availableSequence;
-
-                if (0 == consumers.Length)
-                {
-                    while ((availableSequence = ringBuffer.Cursor) < sequence) // volatile read
-                    {
-                        if (barrier.IsAlerted)
-                        {
-                            return null;
-                        }
-
-                        Thread.Yield();
-                        
-                        if (DateTime.UtcNow> expirationTime)
-                        {
-                            break;
-                        }
-                    }
-                }
-                else
-                {
-                    while ((availableSequence = consumers.GetMinimumSequence()) < sequence)
-                    {
-                        if (barrier.IsAlerted)
-                        {
-                            return null;
-                        }
-
-                        Thread.Yield();
-                        if (DateTime.UtcNow> expirationTime)
-                        {
-                            break;
-                        }
-                    }
-                }
-
-                return availableSequence;
+                return new WaitForResult(availableSequence, false);
             }
 
             public void SignalAll()
@@ -220,13 +142,13 @@ namespace Disruptor
         }
 
         /// <summary>
-        /// Busy Spin strategy that uses a busy spin loop for <see cref="IConsumer"/>s waiting on a barrier.
+        /// Busy Spin strategy that uses a busy spin loop for <see cref="IBatchConsumer"/>s waiting on a barrier.
         /// This strategy will use CPU resource to avoid syscalls which can introduce latency jitter.  It is best
         /// used when threads can be bound to specific CPU cores.
         /// </summary>
         private sealed class BusySpinStrategy:IWaitStrategy
         {
-            public long? WaitFor<T>(IConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence)
+            public WaitForResult WaitFor<T>(IBatchConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence)
             {
                 long availableSequence;
 
@@ -236,7 +158,7 @@ namespace Disruptor
                     {
                         if (barrier.IsAlerted)
                         {
-                            return null;
+                            return WaitForResult.AlertedResult;
                         }
                     }
                 }
@@ -246,51 +168,12 @@ namespace Disruptor
                     {
                         if (barrier.IsAlerted)
                         {
-                            return null;
+                            return WaitForResult.AlertedResult;
                         }
                     }
                 }
 
-                return availableSequence;
-            }
-
-            public long? WaitFor<T>(IConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence, TimeSpan timeout)
-            {
-                var expirationTime = DateTime.UtcNow + timeout;
-                long availableSequence;
-
-                if (0 == consumers.Length)
-                {
-                    while ((availableSequence = ringBuffer.Cursor) < sequence) // volatile read
-                    {
-                        if (barrier.IsAlerted)
-                        {
-                            return null;
-                        }
-
-                        if (DateTime.UtcNow> expirationTime)
-                        {
-                            break;
-                        }
-                    }
-                }
-                else
-                {
-                    while ((availableSequence = consumers.GetMinimumSequence()) < sequence)
-                    {
-                        if (barrier.IsAlerted)
-                        {
-                            return null;
-                        }
-
-                        if (DateTime.UtcNow> expirationTime)
-                        {
-                            break;
-                        }
-                    }
-                }
-
-                return availableSequence;
+                return new WaitForResult(availableSequence, false);
             }
 
             public void SignalAll()

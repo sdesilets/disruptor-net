@@ -7,7 +7,7 @@ namespace Disruptor
     public static class RingBufferConvention
     {
         /// <summary>
-        /// Initial sequence number used by <see cref="RingBuffer{T}"/>, <see cref="ValueTypeRingBuffer{T}"/> and associated classes
+        /// Initial sequence number used by <see cref="RingBuffer{T}"/> and associated classes
         /// </summary>
         public const long InitialCursorValue = -1L;
     }

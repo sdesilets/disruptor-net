@@ -10,20 +10,20 @@ namespace Disruptor.Tests
     public class ConsumerBarrierTests
     {
         private RingBuffer<StubData> _ringBuffer;
-        private Mock<IConsumer> _consumerMock1;
-        private Mock<IConsumer> _consumerMock2;
-        private Mock<IConsumer> _consumerMock3;
+        private Mock<IBatchConsumer> _consumerMock1;
+        private Mock<IBatchConsumer> _consumerMock2;
+        private Mock<IBatchConsumer> _consumerMock3;
         private IConsumerBarrier<StubData> _consumerBarrier;
-        private IReferenceTypeProducerBarrier<StubData> _producerBarrier;
+        private IProducerBarrier<StubData> _producerBarrier;
 
         [SetUp]
         public void SetUp()
         {
             _ringBuffer = new RingBuffer<StubData>(()=>new StubData(-1), 64);
 
-            _consumerMock1 = new Mock<IConsumer>();
-            _consumerMock2 = new Mock<IConsumer>();
-            _consumerMock3 = new Mock<IConsumer>();
+            _consumerMock1 = new Mock<IBatchConsumer>();
+            _consumerMock2 = new Mock<IBatchConsumer>();
+            _consumerMock3 = new Mock<IBatchConsumer>();
 
             _consumerBarrier = _ringBuffer.CreateConsumerBarrier(_consumerMock1.Object, _consumerMock2.Object, _consumerMock3.Object);
             _producerBarrier = _ringBuffer.CreateProducerBarrier(new NoOpConsumer<StubData>(_ringBuffer));
@@ -40,8 +40,8 @@ namespace Disruptor.Tests
             _consumerMock2.SetupGet(c => c.Sequence).Returns(expectedNumberMessages);
             _consumerMock3.SetupGet(c => c.Sequence).Returns(expectedNumberMessages);
 
-            var completedWorkSequence = _consumerBarrier.WaitFor(expectedWorkSequence);
-            Assert.IsTrue(completedWorkSequence >= expectedWorkSequence);
+            var waitForResult = _consumerBarrier.WaitFor(expectedWorkSequence);
+            Assert.IsTrue(waitForResult.AvailableSequence >= expectedWorkSequence);
 
             _consumerMock1.Verify();
             _consumerMock2.Verify();
@@ -77,8 +77,8 @@ namespace Disruptor.Tests
                     .Start();
 
             const long expectedWorkSequence = expectedNumberMessages;
-            var completedWorkSequence = consumerBarrier.WaitFor(expectedNumberMessages);
-            Assert.IsTrue(completedWorkSequence >= expectedWorkSequence);
+            var waitForResult = consumerBarrier.WaitFor(expectedNumberMessages);
+            Assert.IsTrue(waitForResult.AvailableSequence >= expectedWorkSequence);
         }
 
         [Test]
@@ -101,7 +101,7 @@ namespace Disruptor.Tests
             var alerted = new[] { false };
             var t = new Thread(() =>
             {
-            	if(!_consumerBarrier.WaitFor(expectedNumberMessages - 1).HasValue)
+            	if(_consumerBarrier.WaitFor(expectedNumberMessages - 1).IsAlerted)
             		alerted[0] = true;
             });
 
@@ -140,8 +140,8 @@ namespace Disruptor.Tests
                            }).Start();
 
             const long expectedWorkSequence = expectedNumberMessages - 1;
-            var completedWorkSequence = consumerBarrier.WaitFor(expectedWorkSequence);
-            Assert.IsTrue(completedWorkSequence >= expectedWorkSequence);
+            var waitForResult = consumerBarrier.WaitFor(expectedWorkSequence);
+            Assert.IsTrue(waitForResult.AvailableSequence >= expectedWorkSequence);
         }
 
         [Test]
@@ -167,7 +167,7 @@ namespace Disruptor.Tests
             }
         }
 
-        private class StubConsumer : IConsumer
+        private class StubConsumer : IBatchConsumer
         {
             public StubConsumer(long sequence)
             {
@@ -180,6 +180,11 @@ namespace Disruptor.Tests
             {
             }
 
+            public void DelaySequenceWrite(int period)
+            {
+                
+            }
+
             public long Sequence
             {
                 get
@@ -190,6 +195,11 @@ namespace Disruptor.Tests
                 {
                     Thread.VolatileWrite(ref _sequence, value);
                 }
+            }
+
+            public bool Running
+            {
+                get { return true; }
             }
 
             public void Halt()

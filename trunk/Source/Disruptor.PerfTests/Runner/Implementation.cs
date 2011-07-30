@@ -8,9 +8,9 @@ namespace Disruptor.PerfTests.Runner
     {
         private readonly string _scenarioName;
         private readonly string _implementationName;
-        private readonly IList<TestRun> _runTestReport = new List<TestRun>();
+        private readonly IList<TestRun> _testRuns = new List<TestRun>();
         
-        public Implementation(string scenarioName, string implementationName, int runs, int iterations)
+        public Implementation(string scenarioName, string implementationName, int runs, int numberOfCores)
         {
             _scenarioName = scenarioName;
             _implementationName = implementationName;
@@ -22,15 +22,14 @@ namespace Disruptor.PerfTests.Runner
             
             for (int i = 0; i < runs; i++)
             {
-                var perfTest = (PerformanceTest)Activator.CreateInstance(perfTestType);
-                // perfTest.Iterations = iterations; //TODO change the logic to be able to define iterations
-                _runTestReport.Add(perfTest.CreateTestRun(i));
+                var perfTest = (PerfTest)Activator.CreateInstance(perfTestType);
+                _testRuns.Add(perfTest.CreateTestRun(i, numberOfCores));
             }
         }
 
         public void Run()
         {
-            foreach (var testRun in _runTestReport)
+            foreach (var testRun in _testRuns)
             {
                 testRun.Run();
             }
@@ -38,15 +37,12 @@ namespace Disruptor.PerfTests.Runner
 
         public void AppendDetailedHtmlReport(StringBuilder sb)
         {
-            foreach (var testRun in _runTestReport)
+            foreach (var testRun in _testRuns)
             {
                 sb.AppendLine("            <tr>");
                 sb.AppendLine("                <td>" + _scenarioName + "</td>");
                 sb.AppendLine("                <td>" + _implementationName + "</td>");
-                sb.AppendLine("                <td>" + testRun.RunIndex + "</td>");
                 testRun.AppendResultHtml(sb);
-                sb.AppendLine("                <td>" + testRun.DurationInMs + "(ms)</td>");
-                sb.AppendLine(string.Format("                <td>{0}-{1}-{2}</td>", testRun.Gen0Count, testRun.Gen1Count, testRun.Gen2Count));
                 sb.AppendLine("            </tr>");
             }
         }

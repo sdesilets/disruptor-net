@@ -24,8 +24,11 @@ namespace Disruptor.MemoryLayout
     [StructLayout(LayoutKind.Explicit, Size = 2 * CacheLine.Size)]
     public struct CacheLineStorageBool
     {
+        ///<summary>
+        /// 
+        ///</summary>
         [FieldOffset(CacheLine.Size)]
-        private volatile bool _data;
+        public volatile bool Data;
 
         ///<summary>
         /// Initialise a new instance of CacheLineStorage
@@ -33,22 +36,7 @@ namespace Disruptor.MemoryLayout
         ///<param name="data">default value of data</param>
         public CacheLineStorageBool(bool data)
         {
-            _data = data;
-        }
-
-        /// <summary>
-        /// Expose data with full fence on read and write
-        /// </summary>
-        public bool Data
-        {
-            get
-            {
-                return _data;
-            }
-            set 
-            {
-                _data = value; 
-            }
+            Data = data;
         }
     }
 }

@@ -75,6 +75,10 @@ namespace Disruptor.PerfTests.MultiCast1P3C
         protected const int Size = 1024 * 32;
         private long[] _results;
 
+        protected AbstractMultiCast1P3CPerfTest(int iterations) : base(iterations)
+        {
+        }
+
         protected long[] ExpectedResults
         {
             get
@@ -93,6 +97,9 @@ namespace Disruptor.PerfTests.MultiCast1P3C
             }
         }
 
-        
+        public override int MinimumCoresRequired
+        {
+            get { return 4; }
+        }
     }
 }

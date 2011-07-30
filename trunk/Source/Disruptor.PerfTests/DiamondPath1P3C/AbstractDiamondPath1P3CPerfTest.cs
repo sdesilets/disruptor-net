@@ -1,5 +1,3 @@
-using Disruptor.PerfTests.Runner;
-
 namespace Disruptor.PerfTests.DiamondPath1P3C
 {
     /**
@@ -75,6 +73,10 @@ namespace Disruptor.PerfTests.DiamondPath1P3C
         protected const int Size = 1024 * 32;
         private long _expectedResult;
 
+        protected AbstractDiamondPath1P3CPerfTest(int iterations) : base(iterations)
+        {
+        }
+
         protected long ExpectedResult
         {
             get
@@ -94,6 +96,11 @@ namespace Disruptor.PerfTests.DiamondPath1P3C
                 }
                 return _expectedResult;
             }
+        }
+
+        public override int MinimumCoresRequired
+        {
+            get { return 4; }
         }
     }
 }

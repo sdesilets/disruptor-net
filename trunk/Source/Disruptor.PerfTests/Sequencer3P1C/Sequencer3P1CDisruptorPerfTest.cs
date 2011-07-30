@@ -8,50 +8,50 @@ namespace Disruptor.PerfTests.Sequencer3P1C
     [TestFixture]
     public class Sequencer3P1CDisruptorPerfTest : AbstractSequencer3P1CPerfTest
     {
-        private readonly ValueTypeRingBuffer<long> _ringBuffer;
-        private readonly IConsumerBarrier<long> _consumerBarrier;
-        private readonly ValueAdditionHandler _handler = new ValueAdditionHandler();
-        private readonly BatchConsumer<long> _batchConsumer;
-        private readonly IValueTypeProducerBarrier<long> _producerBarrier;
+        private readonly RingBuffer<ValueEntry> _ringBuffer;
+        private readonly ValueAdditionHandler _handler;
+        private readonly IProducerBarrier<ValueEntry> _producerBarrier;
         private readonly ValueProducer[] _valueProducers;
-        private readonly Barrier _testStartBarrier = new Barrier(NumProducers + 1);
+        private readonly Barrier _testStartBarrier = new Barrier(NumProducers);
 
         public Sequencer3P1CDisruptorPerfTest()
+            : base(1 * Million)
         {
-            _ringBuffer = new ValueTypeRingBuffer<long>(Size,
+            _ringBuffer = new RingBuffer<ValueEntry>(()=>new ValueEntry(), Size,
                                    ClaimStrategyFactory.ClaimStrategyOption.Multithreaded,
                                    WaitStrategyFactory.WaitStrategyOption.Yielding);
-            _consumerBarrier = _ringBuffer.CreateConsumerBarrier();
-            _batchConsumer = new BatchConsumer<long>(_consumerBarrier, _handler);
-            _producerBarrier = _ringBuffer.CreateProducerBarrier(_batchConsumer);
+
+            _handler = new ValueAdditionHandler(Iterations * NumProducers);
+            _ringBuffer.ConsumeWith(_handler);
+            _producerBarrier = _ringBuffer.CreateProducerBarrier();
             
-            _valueProducers = new[]
-                                 {
-                                     new ValueProducer(_testStartBarrier, _producerBarrier, Iterations),
-                                     new ValueProducer(_testStartBarrier, _producerBarrier, Iterations),
-                                     new ValueProducer(_testStartBarrier, _producerBarrier, Iterations)
-                                 };
+            _valueProducers = new ValueProducer[NumProducers];
+
+            for (int i = 0; i < NumProducers; i++)
+            {
+                _valueProducers[i] = new ValueProducer(_testStartBarrier, _producerBarrier, Iterations);
+            }
         }
 
         public override long RunPass()
         {
-            for (var i = 0; i < NumProducers; i++)
+            _ringBuffer.StartConsumers();
+
+            for (var i = 0; i < NumProducers - 1; i++)
             {
                 (new Thread(_valueProducers[i].Run) { Name = "Value producer " + i }).Start();
             }
-            (new Thread(_batchConsumer.Run) { Name = "Batch consumer" }).Start();
-
+            
             var sw = Stopwatch.StartNew();
-            _testStartBarrier.SignalAndWait(); // test starts when every thread has signaled the barrier
+            _valueProducers[NumProducers - 1].Run();
 
-            var expectedSequence = (Iterations * NumProducers) - 1L;
-            while (expectedSequence > _batchConsumer.Sequence)
+            while (!_handler.Done)
             {
                 // busy spin
             }
 
             var opsPerSecond = (NumProducers * Iterations * 1000L) / sw.ElapsedMilliseconds;
-            _batchConsumer.Halt();
+            _ringBuffer.Halt();
 
             return opsPerSecond;
         }

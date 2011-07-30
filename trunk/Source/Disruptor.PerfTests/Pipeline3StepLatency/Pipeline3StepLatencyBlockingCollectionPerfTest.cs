@@ -18,6 +18,7 @@ namespace Disruptor.PerfTests.Pipeline3StepLatency
         private readonly LatencyStepQueueConsumer _stepThreeQueueConsumer;
 
         public Pipeline3StepLatencyBlockingCollectionPerfTest()
+            : base(1 * Million)
         {
             _stepOneQueueConsumer = new LatencyStepQueueConsumer(FunctionStep.One, _stepOneQueue, _stepTwoQueue, Histogram, StopwatchTimestampCostInNano, TicksToNanos, Iterations);
             _stepTwoQueueConsumer = new LatencyStepQueueConsumer(FunctionStep.Two, _stepTwoQueue, _stepThreeQueue, Histogram, StopwatchTimestampCostInNano, TicksToNanos, Iterations);

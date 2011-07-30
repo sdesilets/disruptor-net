@@ -14,7 +14,7 @@ namespace Disruptor.Tests
         private Mock<IBatchHandler<StubData>> _batchHandlerMock;
         private BatchConsumer<StubData> _batchConsumer;
         private CountdownEvent _countDownEvent;
-        private IReferenceTypeProducerBarrier<StubData> _producerBarrier;
+        private IProducerBarrier<StubData> _producerBarrier;
 
         [SetUp]
         public void Setup()
@@ -26,13 +26,6 @@ namespace Disruptor.Tests
             _batchConsumer = new BatchConsumer<StubData>(_consumerBarrier, _batchHandlerMock.Object);
             
             _producerBarrier = _ringBuffer.CreateProducerBarrier(_batchConsumer);
-        }
-
-        [Test]
-        [ExpectedException(ExpectedException = typeof(ArgumentNullException))]
-        public void ShouldThrowExceptionOnSettingNullExceptionHandler()
-        {
-            _batchConsumer.SetExceptionHandler(null);
         }
 
         [Test]
@@ -114,97 +107,68 @@ namespace Disruptor.Tests
             _batchHandlerMock.VerifyAll();
         }
 
-        [Test]
-        public void ShouldCallExceptionHandlerOnUncaughtException()
-        {
-            var ex = new Exception();
-            var exceptionHandlerMock = new Mock<IExceptionHandler<StubData>>();
+        //[Test]
+        //public void ShouldCallOnAvailableAction()
+        //{
+        //    const string expectedString = "Foo";
+        //    const int expectedValue = 32;
 
-            _batchConsumer.SetExceptionHandler(exceptionHandlerMock.Object);
+        //    long sequenceRecieved = -1;
+        //    StubData receivedData = null;
+        //    var mru = new ManualResetEvent(false);
+        //    var batchConsumer = new BatchConsumer<StubData>(_consumerBarrier, (sequence, data) =>
+        //                                                                          {
+        //                                                                              sequenceRecieved = sequence;
+        //                                                                              receivedData = data;
+        //                                                                              mru.Set();
+        //                                                                          });
+        //    _producerBarrier = _ringBuffer.CreateProducerBarrier(batchConsumer);
 
-            _batchHandlerMock.Setup(bh => bh.OnAvailable(0, _ringBuffer[0].Data))
-                             .Callback(() => { throw ex; });
-            exceptionHandlerMock.Setup(handler => handler.Handle(ex, It.IsAny<Entry<StubData>>()))
-                             .Callback(() => _countDownEvent.Signal());
+        //    var thread = new Thread(batchConsumer.Run);
+        //    thread.Start();
 
-            var thread = new Thread(_batchConsumer.Run);
-            thread.Start();
+        //    StubData expectedData;
+        //    var s = _producerBarrier.NextEntry(out expectedData);
+        //    expectedData.TestString = expectedString;
+        //    expectedData.Value = expectedValue;
+        //    _producerBarrier.Commit(s);
 
-            StubData data;
-            var sequence = _producerBarrier.NextEntry(out data);
-            _producerBarrier.Commit(sequence);
+        //    mru.WaitOne();
 
-            _countDownEvent.Wait();
+        //    Assert.AreEqual(0, sequenceRecieved);
+        //    Assert.AreEqual(expectedString, receivedData.TestString);
+        //    Assert.AreEqual(expectedValue, receivedData.Value);
 
-            _batchConsumer.Halt();
-            thread.Join();
+        //    batchConsumer.Halt();
+        //    thread.Join();
+        //}
 
-            _batchHandlerMock.VerifyAll();
-            exceptionHandlerMock.VerifyAll();
-        }
+        //[Test]
+        //public void ShouldCallOnBatchCompleteAction()
+        //{
+        //    var onEndOfBatchWasCalled = false;
+        //    var mru = new ManualResetEvent(false);
+        //    var batchConsumer = new BatchConsumer<StubData>(_consumerBarrier, (sequence, data) => { },
+        //                                                    () =>
+        //                                                        {
+        //                                                            onEndOfBatchWasCalled = true;
+        //                                                            mru.Set();
+        //                                                        });
+        //    _producerBarrier = _ringBuffer.CreateProducerBarrier(batchConsumer);
 
-        [Test]
-        public void ShouldCallOnAvailableAction()
-        {
-            const string expectedString = "Foo";
-            const int expectedValue = 32;
+        //    var thread = new Thread(batchConsumer.Run);
+        //    thread.Start();
 
-            long sequenceRecieved = -1;
-            StubData receivedData = null;
-            var mru = new ManualResetEvent(false);
-            var batchConsumer = new BatchConsumer<StubData>(_consumerBarrier, (sequence, data) =>
-                                                                                  {
-                                                                                      sequenceRecieved = sequence;
-                                                                                      receivedData = data;
-                                                                                      mru.Set();
-                                                                                  });
-            _producerBarrier = _ringBuffer.CreateProducerBarrier(batchConsumer);
+        //    StubData expectedData;
+        //    var s = _producerBarrier.NextEntry(out expectedData);
+        //    _producerBarrier.Commit(s);
 
-            var thread = new Thread(batchConsumer.Run);
-            thread.Start();
+        //    mru.WaitOne();
 
-            StubData expectedData;
-            var s = _producerBarrier.NextEntry(out expectedData);
-            expectedData.TestString = expectedString;
-            expectedData.Value = expectedValue;
-            _producerBarrier.Commit(s);
+        //    Assert.IsTrue(onEndOfBatchWasCalled);
 
-            mru.WaitOne();
-
-            Assert.AreEqual(0, sequenceRecieved);
-            Assert.AreEqual(expectedString, receivedData.TestString);
-            Assert.AreEqual(expectedValue, receivedData.Value);
-
-            batchConsumer.Halt();
-            thread.Join();
-        }
-
-        [Test]
-        public void ShouldCallOnBatchCompleteAction()
-        {
-            var onEndOfBatchWasCalled = false;
-            var mru = new ManualResetEvent(false);
-            var batchConsumer = new BatchConsumer<StubData>(_consumerBarrier, (sequence, data) => { },
-                                                            () =>
-                                                                {
-                                                                    onEndOfBatchWasCalled = true;
-                                                                    mru.Set();
-                                                                });
-            _producerBarrier = _ringBuffer.CreateProducerBarrier(batchConsumer);
-
-            var thread = new Thread(batchConsumer.Run);
-            thread.Start();
-
-            StubData expectedData;
-            var s = _producerBarrier.NextEntry(out expectedData);
-            _producerBarrier.Commit(s);
-
-            mru.WaitOne();
-
-            Assert.IsTrue(onEndOfBatchWasCalled);
-
-            batchConsumer.Halt();
-            thread.Join();
-        }
+        //    batchConsumer.Halt();
+        //    thread.Join();
+        //}
     }
 }

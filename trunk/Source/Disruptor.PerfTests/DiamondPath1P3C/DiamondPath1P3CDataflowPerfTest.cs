@@ -8,11 +8,16 @@ namespace Disruptor.PerfTests.DiamondPath1P3C
     [TestFixture]
     public class DiamondPath1P3CDataflowPerfTest:AbstractDiamondPath1P3CPerfTest
     {
+        public DiamondPath1P3CDataflowPerfTest()
+            : base(1 * Million)
+        {
+        }
+
         public override long RunPass()
         {
             long tplValue = 0L;
             var bb = new BroadcastBlock<long>(_ => _);
-            var jb = new JoinBlock<bool, bool>(new GroupingDataflowBlockOptions() { Greedy = true });
+            var jb = new JoinBlock<bool, bool>(new GroupingDataflowBlockOptions { Greedy = true });
             var ab = new ActionBlock<long>(i => jb.Target1.Post((i % 3L) == 0));
             var ab2 = new ActionBlock<long>(i => jb.Target2.Post((i % 5L) == 0));
             bb.LinkTo(ab);

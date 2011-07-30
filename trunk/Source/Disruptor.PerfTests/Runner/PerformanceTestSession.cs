@@ -12,28 +12,28 @@ namespace Disruptor.PerfTests.Runner
         private readonly ScenarioType _scenarioType;
         private readonly ImplementationType _implementationType;
         private readonly int _runs;
-        private readonly int _iterations;
         private readonly IList<Scenario> _scenarios = new List<Scenario>();
+        private readonly ComputerSpecifications _computerSpecifications;
 
-        public PerformanceTestSession(ScenarioType scenarioType, ImplementationType implementationType, int runs, int iterations)
+        public PerformanceTestSession(ScenarioType scenarioType, ImplementationType implementationType, int runs)
         {
             _scenarioType = scenarioType;
             _implementationType = implementationType;
             _runs = runs;
-            _iterations = iterations;
-            Console.WriteLine("Scenario={0}, Implementation={1}, Runs={2}, Iterations={3:###,###,###,###}", scenarioType, implementationType, runs, iterations);
+            _computerSpecifications = new ComputerSpecifications();
+            Console.WriteLine("Scenario={0}, Implementation={1}, Runs={2}", scenarioType, implementationType, runs);
 
             if (scenarioType == ScenarioType.All)
             {
                 foreach (var scenarioName in Enum.GetNames(typeof(ScenarioType)).Where(s => s != "All"))
                 {
-                    _scenarios.Add(new Scenario(scenarioName, implementationType, runs, iterations));
+                    _scenarios.Add(new Scenario(scenarioName, implementationType, runs, _computerSpecifications.NumberOfCores));
                 }
             }
             else
             {
                 string scenarioName = scenarioType.ToString();
-                _scenarios.Add(new Scenario(scenarioName, implementationType, runs, iterations));
+                _scenarios.Add(new Scenario(scenarioName, implementationType, runs, _computerSpecifications.NumberOfCores));
             }
         }
 
@@ -58,13 +58,21 @@ namespace Disruptor.PerfTests.Runner
                 .AppendLine("        UTC time: " + DateTime.UtcNow);
 
             sb.AppendLine("        <h2>Host configuration</h2>");
-            HostConfiguration.AppendConfigurationInHtml(sb);
+            _computerSpecifications.AppendHtml(sb);
+
+            if(_computerSpecifications.NumberOfCores < 4)
+            {
+                sb.AppendFormat("        <b><font color='red'>Your computer has {0} physical core(s) but most of the tests require at least 4 cores</font></b><br>", _computerSpecifications.NumberOfCores);
+            }
+            if (_computerSpecifications.IsHyperThreaded)
+            {
+                sb.AppendLine("        <b><font color='red'>Hyperthreading can degrade performance, you should turn it off.</font></b><br>");
+            }
 
             sb.AppendLine("        <h2>Test configuration</h2>")
                 .AppendLine("        Scenarios: " + _scenarioType + "<br>")
                 .AppendLine("        Implementations: " + _implementationType + "<br>")
-                .AppendLine("        Runs: " + _runs + "<br>")
-                .AppendLine("        Iterations: " + _iterations + "<br>");
+                .AppendLine("        Runs: " + _runs + "<br>");
 
             sb.AppendLine("        <h2>Test results</h2>")
                 .AppendLine("        Best results of " + _runs + " run(s).<br>")
@@ -80,6 +88,7 @@ namespace Disruptor.PerfTests.Runner
             sb.AppendLine("                <td>Operations per second</td>");
             sb.AppendLine("                <td>Duration (ms)</td>");
             sb.AppendLine("                <td># GC (0-1-2)</td>");
+            sb.AppendLine("                <td>Comments");
             sb.AppendLine("            </tr>");
 
             foreach (var scenario in _scenarios)

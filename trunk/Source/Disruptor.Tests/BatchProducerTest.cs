@@ -8,7 +8,7 @@ namespace Disruptor.Tests
     {
         private RingBuffer<StubData> _ringBuffer;
         private IConsumerBarrier<StubData> _consumerBarrier;
-        private IReferenceTypeProducerBarrier<StubData> _producerBarrier;
+        private IProducerBarrier<StubData> _producerBarrier;
 
         [SetUp]
         public void SetUp()
@@ -32,7 +32,7 @@ namespace Disruptor.Tests
             _producerBarrier.Commit(sequenceBatch);
 
             Assert.AreEqual(batchSize - 1, _ringBuffer.Cursor);
-            Assert.AreEqual(batchSize - 1, _consumerBarrier.WaitFor(0L));
+            Assert.AreEqual(batchSize - 1, _consumerBarrier.WaitFor(0L).AvailableSequence);
         }
     }
 }

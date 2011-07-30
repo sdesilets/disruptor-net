@@ -1,5 +1,4 @@
-﻿using System;
-using Disruptor.MemoryLayout;
+﻿using Disruptor.MemoryLayout;
 
 namespace Disruptor
 {
@@ -11,27 +10,16 @@ namespace Disruptor
     /// is started and just before the thread is shutdown.
     /// </summary>
     /// <typeparam name="T">Entry implementation storing the data for sharing during exchange or parallel coordination of an event.</typeparam>
-    public sealed class BatchConsumer<T> : IConsumer
+    internal sealed class BatchConsumer<T> : IBatchConsumer
     {
         private readonly IConsumerBarrier<T> _consumerBarrier;
         private readonly IBatchHandler<T> _handler;
-        private IExceptionHandler<T> _exceptionHandler = new FatalExceptionHandler<T>();
 
         private CacheLineStorageBool _running = new CacheLineStorageBool(true);
         private CacheLineStorageLong _sequence = new CacheLineStorageLong(RingBufferConvention.InitialCursorValue);
-
-        /// <summary>
-        /// Construct a batch consumer that will automatically track the progress by updating its sequence when
-        /// the <see cref="IBatchHandler{T}.OnAvailable"/> method returns.
-        /// </summary>
-        /// <param name="consumerBarrier">consumerBarrier on which it is waiting.</param>
-        /// <param name="onAvailable">an <see cref="Action{T,U}"/> to execute when a new entry is dispatched</param>
-        /// <param name="onEndOfBatch">an optional <see cref="Action"/> to execute when a batch completes</param>
-        public BatchConsumer(IConsumerBarrier<T> consumerBarrier, Action<long, T> onAvailable, Action onEndOfBatch = null)
-        {
-            _consumerBarrier = consumerBarrier;
-            _handler = new ActionBatchHandler<T>(onAvailable, onEndOfBatch);
-        }
+        private bool _delaySequenceWrite;
+        private int _sequenceUpdatePeriod;
+        private int _nextSequencePublish = 1;
 
         /// <summary>
         /// Construct a batch consumer that will automatically track the progress by updating its sequence when
@@ -46,25 +34,31 @@ namespace Disruptor
         }
 
         /// <summary>
-        /// Set a new <see cref="IExceptionHandler{T}"/> for handling exceptions propagated out of the <see cref="BatchConsumer{T}"/>
+        /// Throttle the sequence publication to other threads
+        /// Can only be applied to the last consumers of a chain (the one tracked by the producer barrier)
         /// </summary>
-        /// <param name="exceptionHandler">exceptionHandler to replace the existing exceptionHandler.</param>
-        public void SetExceptionHandler(IExceptionHandler<T> exceptionHandler)
+        /// <param name="period">Sequence will be published every 'period' messages</param>
+        public void DelaySequenceWrite(int period)
         {
-            if (exceptionHandler == null)
-            {
-                throw new ArgumentNullException("exceptionHandler");
-            }
-
-            _exceptionHandler = exceptionHandler;
+            _delaySequenceWrite = true;
+            _sequenceUpdatePeriod = period;
+            _nextSequencePublish = period;
         }
 
         /// <summary>
-        /// Get the <see cref="IConsumerBarrier{T}"/> the <see cref="IConsumer"/> is waiting on.
+        /// Get the <see cref="IConsumerBarrier{T}"/> the <see cref="IBatchConsumer"/> is waiting on.
         /// </summary>
         public IConsumerBarrier<T> ConsumerBarrier
         {
             get { return _consumerBarrier; }
+        }
+
+        /// <summary>
+        /// Return true if the instance is started, false otherwise
+        /// </summary>
+        public bool Running
+        {
+            get { return _running.Data; }
         }
 
         /// <summary>
@@ -76,34 +70,35 @@ namespace Disruptor
             
             OnStart();
 
-            var data = default(T);
             var nextSequence = Sequence + 1; 
 
             while (_running.Data)
             {
-                try
+                var waitForResult = _consumerBarrier.WaitFor(nextSequence);
+                if (!waitForResult.IsAlerted)
                 {
-                    var availableSequence = _consumerBarrier.WaitFor(nextSequence);
-
-                    if (availableSequence.HasValue)
+                    var availableSequence = waitForResult.AvailableSequence;
+                    while (nextSequence <= availableSequence)
                     {
-                        while (nextSequence <= availableSequence)
+                        T data = _consumerBarrier.GetEntry(nextSequence);
+                        _handler.OnAvailable(nextSequence, data);
+                        
+                        nextSequence++;
+                    }
+                    _handler.OnEndOfBatch();
+
+                    if(_delaySequenceWrite)
+                    {
+                        if(nextSequence > _nextSequencePublish)
                         {
-                            data = _consumerBarrier.GetEntry(nextSequence);
-                            _handler.OnAvailable(nextSequence, data);
-                            nextSequence++;
+                            Sequence = nextSequence - 1; // volatile write
+                            _nextSequencePublish += _sequenceUpdatePeriod;
                         }
-
-                        _handler.OnEndOfBatch();
-
+                    }
+                    else
+                    {
                         Sequence = nextSequence - 1; // volatile write
                     }
-                }
-                catch (Exception ex)
-                {
-                    //TODO review this handler, logic is crap
-                    _exceptionHandler.Handle(ex, new Entry<T>(nextSequence, data));
-                    Sequence = nextSequence; 
                 }
             }
 
@@ -146,32 +141,6 @@ namespace Disruptor
         {
             _running.Data = false;
             _consumerBarrier.Alert();
-        }
-
-        /// <summary>
-        /// Used by the <see cref="IBatchHandler{T}"/> to signal when it has completed consuming a given sequence.
-        /// </summary>
-        public class SequenceTrackerCallback
-        {
-            private readonly BatchConsumer<T> _batchConsumer;
-
-            ///<summary>
-            /// 
-            ///</summary>
-            ///<param name="batchConsumer"></param>
-            public SequenceTrackerCallback(BatchConsumer<T> batchConsumer)
-            {
-                _batchConsumer = batchConsumer;
-            }
-
-            /// <summary>
-            /// Notify that the handler has consumed up to a given sequence.
-            /// </summary>
-            /// <param name="sequence">sequence that has been consumed.</param>
-            public void OnComplete(long sequence)
-            {
-                _batchConsumer.Sequence = sequence;
-            }
         }
     }
 }
