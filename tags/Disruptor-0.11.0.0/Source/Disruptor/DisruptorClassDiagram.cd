@@ -1,0 +1,145 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Disruptor.RingBuffer&lt;T&gt;">
+    <Position X="2.75" Y="1.5" Width="2.25" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <NestedTypes>
+      <Class Name="Disruptor.RingBuffer&lt;T&gt;.ConsumerTrackingConsumerBarrier&lt;TU&gt;" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>RingBuffer.cs</NewMemberFileName>
+        </TypeIdentifier>
+        <Lollipop Position="0.2" />
+      </Class>
+      <Class Name="Disruptor.RingBuffer&lt;T&gt;.ReferenceTypeConsumerTrackingProducerBarrier" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>RingBuffer.cs</NewMemberFileName>
+        </TypeIdentifier>
+        <Lollipop Position="0.2" />
+      </Class>
+      <Class Name="Disruptor.RingBuffer&lt;T&gt;.ReferenceTypeForceFillConsumerTrackingProducerBarrier" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>RingBuffer.cs</NewMemberFileName>
+        </TypeIdentifier>
+        <Lollipop Position="0.2" />
+      </Class>
+    </NestedTypes>
+    <AssociationLine Name="_waitStrategy" Type="Disruptor.IWaitStrategy" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="5" Y="3.812" />
+        <Point X="6.219" Y="3.812" />
+        <Point X="6.219" Y="5" />
+      </Path>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>AAAAJAAAAQAAAAEACAAAIAACCCAAKAAAAAAAABIIAAA=</HashCode>
+      <FileName>RingBuffer.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="_claimStrategy" />
+      <Field Name="_waitStrategy" />
+    </ShowAsAssociation>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Disruptor.ClaimStrategyFactory">
+    <Position X="2.25" Y="5" Width="2" />
+    <Compartments>
+      <Compartment Name="Nested Types" Collapsed="false" />
+    </Compartments>
+    <NestedTypes>
+      <Enum Name="Disruptor.ClaimStrategyFactory.ClaimStrategyOption">
+        <TypeIdentifier>
+          <NewMemberFileName>ClaimStrategyFactory.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+      <Class Name="Disruptor.ClaimStrategyFactory.MultiThreadedStrategy" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>ClaimStrategyFactory.cs</NewMemberFileName>
+        </TypeIdentifier>
+        <Lollipop Position="0.2" />
+      </Class>
+      <Class Name="Disruptor.ClaimStrategyFactory.SingleThreadedStrategy" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>ClaimStrategyFactory.cs</NewMemberFileName>
+        </TypeIdentifier>
+        <Lollipop Position="0.2" />
+      </Class>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ClaimStrategyFactory.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Disruptor.WaitStrategyFactory">
+    <Position X="7.5" Y="5" Width="2.25" />
+    <Compartments>
+      <Compartment Name="Nested Types" Collapsed="false" />
+    </Compartments>
+    <NestedTypes>
+      <Enum Name="Disruptor.WaitStrategyFactory.WaitStrategyOption">
+        <TypeIdentifier>
+          <NewMemberFileName>WaitStrategyFactory.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+      <Class Name="Disruptor.WaitStrategyFactory.BlockingStrategy" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>WaitStrategyFactory.cs</NewMemberFileName>
+        </TypeIdentifier>
+        <Lollipop Position="0.2" />
+      </Class>
+      <Class Name="Disruptor.WaitStrategyFactory.YieldingStrategy" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>WaitStrategyFactory.cs</NewMemberFileName>
+        </TypeIdentifier>
+        <Lollipop Position="0.2" />
+      </Class>
+      <Class Name="Disruptor.WaitStrategyFactory.BusySpinStrategy" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>WaitStrategyFactory.cs</NewMemberFileName>
+        </TypeIdentifier>
+        <Lollipop Position="0.2" />
+      </Class>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>WaitStrategyFactory.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Interface Name="Disruptor.IClaimStrategy">
+    <Position X="0.5" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAQAAA=</HashCode>
+      <FileName>IClaimStrategy.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Disruptor.IWaitStrategy">
+    <Position X="5.75" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAA=</HashCode>
+      <FileName>IWaitStrategy.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Disruptor.IConsumerBarrier&lt;T&gt;">
+    <Position X="6.75" Y="2.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAUAAAQAAAAAAAAAAAAAAACAABAAAAAAAAAI=</HashCode>
+      <FileName>IConsumerBarrier.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Disruptor.IConsumer">
+    <Position X="9.25" Y="2.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAEAAAI=</HashCode>
+      <FileName>IConsumer.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="Disruptor.IValueTypeProducerBarrier&lt;T&gt;">
+    <Position X="6.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>IValueTypeProducerBarrier.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Font Name="Tahoma" Size="8.25" />
+</ClassDiagram>
