@@ -10,23 +10,21 @@ namespace Disruptor.PerfTests
             ScenarioType scenarioType;
             ImplementationType implementationType;
             int runs;
-            int iterationsInMillions;
 
             if (args == null
-                || args.Length != 4
+                || args.Length != 3
                 || !Enum.TryParse(args[0], out scenarioType)
                 || !Enum.TryParse(args[1], out implementationType)
                 || !int.TryParse(args[2], out runs)
-                || !int.TryParse(args[3], out iterationsInMillions))
+                )
             {
                 PrintUsage();
                 return;
             }
             
-            HostConfiguration.WriteToConsole();
+            Console.WriteLine(new ComputerSpecifications().ToString());
 
-            var session = new PerformanceTestSession(scenarioType, implementationType, runs,
-                                                     iterationsInMillions*1000*1000);
+            var session = new PerformanceTestSession(scenarioType, implementationType, runs);
 
             session.Run();
 
@@ -36,17 +34,16 @@ namespace Disruptor.PerfTests
 
         private static void PrintUsage()
         {
-            Console.WriteLine("Usage: Disruptor.PerfTests Scenario Implementation Runs Iterations");
+            Console.WriteLine("Usage: Disruptor.PerfTests Scenario Implementation Runs");
             Console.WriteLine();
             PrintEnum(typeof (ScenarioType));
             Console.WriteLine();
             PrintEnum(typeof(ImplementationType));
             Console.WriteLine();
             Console.WriteLine("Runs: number of test run to do for each scenario and implementation");
-            Console.WriteLine("Iterations: number of iterations per run in millions");
             Console.WriteLine();
-            Console.WriteLine("Example: Disruptor.PerfTests 1 1 10");
-            Console.WriteLine("will run UniCast1P1C performance test with the disruptor only and will do 10 million iterations.");
+            Console.WriteLine("Example: Disruptor.PerfTests 1 1");
+            Console.WriteLine("will run UniCast1P1C performance test with the disruptor only.");
         }
 
         private static void PrintEnum(Type enumType)

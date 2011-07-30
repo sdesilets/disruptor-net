@@ -15,6 +15,7 @@ namespace Disruptor.PerfTests.Pipeline3Step
         private readonly ActionBlock<long> _stepTwoAb;
 
         public Pipeline3StepDataflowPerfTest()
+            : base(1 * Million)
         {
             _stepOneAb = new ActionBlock<long[]>(values => _stepTwoTpl.Post(values[0] + values[1]));
             _stepTwoAb = new ActionBlock<long>(value => _stepThreeTpl.Post(value + 3));

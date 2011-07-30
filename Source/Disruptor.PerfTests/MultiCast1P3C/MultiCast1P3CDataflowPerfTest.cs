@@ -6,6 +6,11 @@ namespace Disruptor.PerfTests.MultiCast1P3C
     [Ignore("To implement")]
     public class MultiCast1P3CDataflowPerfTest:AbstractMultiCast1P3CPerfTest
     {
+        public MultiCast1P3CDataflowPerfTest()
+            : base(1 * Million)
+        {
+        }
+
         public override long RunPass()
         {
             return 0L;

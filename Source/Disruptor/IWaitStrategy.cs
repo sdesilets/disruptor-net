@@ -1,9 +1,7 @@
-﻿using System;
-
-namespace Disruptor
+﻿namespace Disruptor
 {
     /// <summary>
-    /// Strategy employed for making <see cref="IConsumer"/>s wait on a <see cref="RingBuffer{T}"/>.
+    /// Strategy employed for making <see cref="IBatchConsumer"/>s wait on a <see cref="RingBuffer{T}"/>.
     /// </summary>
     public interface IWaitStrategy
     {
@@ -15,19 +13,7 @@ namespace Disruptor
         /// <param name="barrier">barrier the consumer is waiting on.</param>
         /// <param name="sequence">sequence to be waited on.</param>
         /// <returns>the sequence that is available which may be greater than the requested sequence.</returns>
-        long? WaitFor<T>(IConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence);
-
-        /// <summary>
-        /// Wait for the given sequence to be available for consumption in a <see cref="RingBuffer{T}"/> with a timeout specified.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="consumers">consumers further back the chain that must advance first</param>
-        /// <param name="ringBuffer">ringBuffer on which to wait.</param>
-        /// <param name="barrier">barrier the consumer is waiting on.</param>
-        /// <param name="sequence">sequence to be waited on.</param>
-        /// <param name="timeout">timeout value to abort after.</param>
-        /// <returns>the sequence that is available which may be greater than the requested sequence.</returns>
-        long? WaitFor<T>(IConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence, TimeSpan timeout);
+        WaitForResult WaitFor<T>(IBatchConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence);
 
         /// <summary>
         /// Signal those waiting that the <see cref="RingBuffer{T}"/> cursor has advanced.

@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Threading;
 using Disruptor.PerfTests.Support;
 using NUnit.Framework;
 
@@ -9,20 +8,20 @@ namespace Disruptor.PerfTests.UniCast1P1CBatch
     public class UniCast1P1CBatchDisruptorPerfTest:AbstractUniCast1P1CBatchPerfTest
     {
         private readonly RingBuffer<ValueEntry> _ringBuffer;
-        private readonly IConsumerBarrier<ValueEntry> _consumerBarrier;
-        private readonly ValueAdditionHandler2 _handler;
-        private readonly BatchConsumer<ValueEntry> _batchConsumer;
-        private readonly IReferenceTypeProducerBarrier<ValueEntry> _producerBarrier;
+        private readonly ValueAdditionHandler _handler;
+        private readonly IProducerBarrier<ValueEntry> _producerBarrier;
 
         public UniCast1P1CBatchDisruptorPerfTest()
+            : base(1 * Million)
         {
             _ringBuffer = new RingBuffer<ValueEntry>(()=>new ValueEntry(), Size,
                                    ClaimStrategyFactory.ClaimStrategyOption.SingleThreaded,
                                    WaitStrategyFactory.WaitStrategyOption.Yielding);
-            _consumerBarrier = _ringBuffer.CreateConsumerBarrier();
-            _handler = new ValueAdditionHandler2();
-            _batchConsumer = new BatchConsumer<ValueEntry>(_consumerBarrier, _handler);
-            _producerBarrier = _ringBuffer.CreateProducerBarrier(_batchConsumer);
+
+
+            _handler = new ValueAdditionHandler(Iterations);
+            _ringBuffer.ConsumeWith(_handler);
+            _producerBarrier = _ringBuffer.CreateProducerBarrier();
         }
 
         [Test]
@@ -33,7 +32,7 @@ namespace Disruptor.PerfTests.UniCast1P1CBatch
 
         public override long RunPass()
         {
-            (new Thread(_batchConsumer.Run){Name = "Batch consumer"}).Start();
+            _ringBuffer.StartConsumers();
 
             const int batchSize = 10;
 
@@ -51,14 +50,13 @@ namespace Disruptor.PerfTests.UniCast1P1CBatch
                 _producerBarrier.Commit(sequenceBatch);
             }
 
-            long expectedSequence = _ringBuffer.Cursor;
-            while (_batchConsumer.Sequence < expectedSequence)
+            while (!_handler.Done)
             {
                 // busy spin
             }
 
             long opsPerSecond = (Iterations * 1000L) / sw.ElapsedMilliseconds;
-            _batchConsumer.Halt();
+            _ringBuffer.Halt();
 
             Assert.AreEqual(ExpectedResult, _handler.Value.Value);
 

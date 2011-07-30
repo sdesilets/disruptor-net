@@ -25,9 +25,9 @@ namespace Disruptor.Tests
         [Test]
         public void ShouldReturnMinimumSequence()
         {
-            var consumerMock1 = new Mock<IConsumer>();
-            var consumerMock2 = new Mock<IConsumer>();
-            var consumerMock3 = new Mock<IConsumer>();
+            var consumerMock1 = new Mock<IBatchConsumer>();
+            var consumerMock2 = new Mock<IBatchConsumer>();
+            var consumerMock3 = new Mock<IBatchConsumer>();
 
             var consumers = new[] {consumerMock1.Object, consumerMock2.Object, consumerMock3.Object};
 
@@ -45,7 +45,7 @@ namespace Disruptor.Tests
         [Test]
         public void ShouldReturnLongMaxWhenNoConsumers()
         {
-            var consumers = new IConsumer[0];
+            var consumers = new IBatchConsumer[0];
 
             Assert.AreEqual(long.MaxValue, consumers.GetMinimumSequence());
         }

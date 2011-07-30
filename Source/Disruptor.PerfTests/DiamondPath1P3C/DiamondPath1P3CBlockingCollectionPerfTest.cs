@@ -17,8 +17,9 @@ namespace Disruptor.PerfTests.DiamondPath1P3C
         private readonly FizzBuzzQueueConsumer _fizzQueueConsumer;
         private readonly FizzBuzzQueueConsumer _buzzQueueConsumer;
         private readonly FizzBuzzQueueConsumer _fizzBuzzQueueConsumer;
-        
+
         public DiamondPath1P3CBlockingCollectionPerfTest()
+            : base(1 * Million)
         {
             _fizzQueueConsumer = new FizzBuzzQueueConsumer(FizzBuzzStep.Fizz, _fizzInputQueue, _buzzInputQueue, _fizzOutputQueue, _buzzOutputQueue, Iterations);
             _buzzQueueConsumer = new FizzBuzzQueueConsumer(FizzBuzzStep.Buzz, _fizzInputQueue, _buzzInputQueue, _fizzOutputQueue, _buzzOutputQueue, Iterations);

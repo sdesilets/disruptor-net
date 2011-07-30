@@ -3,21 +3,24 @@ namespace Disruptor.PerfTests.Support
     public class FizzBuzzHandler : IBatchHandler<FizzBuzzEntry>
     {
         private readonly FizzBuzzStep _fizzBuzzStep;
+        private readonly long _iterations;
         private long _fizzBuzzCounter;
+        private volatile bool _done;
+
+        public bool Done
+        {
+            get { return _done; }
+        }
 
         public long FizzBuzzCounter
         {
             get { return _fizzBuzzCounter; }
         }
 
-        public FizzBuzzHandler(FizzBuzzStep fizzBuzzStep)
+        public FizzBuzzHandler(FizzBuzzStep fizzBuzzStep, long iterations)
         {
             _fizzBuzzStep = fizzBuzzStep;
-        }
-
-        public void Reset()
-        {
-            _fizzBuzzCounter = 0L;
+            _iterations = iterations;
         }
 
         public void OnAvailable(long sequence, FizzBuzzEntry data)
@@ -37,6 +40,10 @@ namespace Disruptor.PerfTests.Support
                         ++_fizzBuzzCounter;
                     }
                     break;
+            }
+            if(sequence == _iterations - 1)
+            {
+                _done = true;
             }
         }
 

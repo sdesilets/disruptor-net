@@ -5,11 +5,11 @@ using NUnit.Framework;
 
 namespace Disruptor.PerfTests.Runner
 {
-    public class LatencyTestRun : TestRun
+    public sealed class LatencyTestRun : TestRun
     {
         private readonly LatencyPerfTest _latencyPerfTest;
 
-        public LatencyTestRun(LatencyPerfTest latencyPerfTest, int run) : base(run)
+        public LatencyTestRun(LatencyPerfTest latencyPerfTest, int run, int availableCores) : base(run, latencyPerfTest, availableCores)
         {
             _latencyPerfTest = latencyPerfTest;
         }
@@ -28,7 +28,10 @@ namespace Disruptor.PerfTests.Runner
 
             _latencyPerfTest.RunPass();
 
-            Assert.AreEqual(_latencyPerfTest.Iterations, _latencyPerfTest.Histogram.Count);
+            if (_latencyPerfTest.Histogram.Count!= 0)
+            {
+                Assert.AreEqual(_latencyPerfTest.Iterations, _latencyPerfTest.Histogram.Count);                
+            }
 
             DurationInMs = sw.ElapsedMilliseconds;
 
@@ -39,13 +42,13 @@ namespace Disruptor.PerfTests.Runner
             DumpHistogram();
         }
 
-        public override void AppendResultHtml(StringBuilder sb)
+        protected override void AppendPerfResultHtml(StringBuilder sb)
         {
             var histo = _latencyPerfTest.Histogram;
             sb.AppendLine(string.Format("                <td>mean={0}ns, 99%={1}ns, 99.99%={2}</td>", histo.Mean, histo.TwoNinesUpperBound, histo.FourNinesUpperBound));
         }
 
-        protected void DumpHistogram()
+        private void DumpHistogram()
         {
             var histo = _latencyPerfTest.Histogram;
             for (var i = 0; i < histo.Size; i++)

@@ -56,21 +56,14 @@
     <Compile Include="BatchProducerTest.cs" />
     <Compile Include="Collections\HistogramTests.cs" />
     <Compile Include="ConsumerBarrierTests.cs" />
-    <Compile Include="FatalExceptionHandlerTests.cs" />
-    <Compile Include="IgnoreExceptionHandlerTests.cs" />
     <Compile Include="LifecycleAwareTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RingBufferTests.cs" />
     <Compile Include="Support\StubData.cs" />
     <Compile Include="Support\TestWaiter.cs" />
     <Compile Include="UtilTests.cs" />
-    <Compile Include="ValueTypeBatchProducerTest.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Disruptor.PerformanceMeasurement\Disruptor.PerformanceMeasurement.csproj">
-      <Project>{806A1085-2D26-46D9-8F23-854CAC06DCD2}</Project>
-      <Name>Disruptor.PerformanceMeasurement</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Disruptor\Disruptor.csproj">
       <Project>{37FBDBE1-8524-4489-B082-CC109B0F5EA3}</Project>
       <Name>Disruptor</Name>

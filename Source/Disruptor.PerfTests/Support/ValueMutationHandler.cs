@@ -1,29 +1,65 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using System.Threading;
+
 namespace Disruptor.PerfTests.Support
 {
-    public class ValueMutationHandler : IBatchHandler<long>
+    public class ValueMutationHandler : IBatchHandler<ValueEntry>
     {
         private readonly Operation _operation;
         private long _value;
+        private volatile bool _done;
+        private readonly long _iterations;
+#if DEBUG 
+        private readonly string _path;
+        private readonly IList<long> _lines = new List<long>(10*1000*1000);
+#endif
 
-        public ValueMutationHandler(Operation operation)
+        public ValueMutationHandler(Operation operation, long iterations)
         {
             _operation = operation;
-        }
-
-        public void Reset()
-        {
-            _value = 0L;
+            _iterations = iterations;
+#if DEBUG 
+            _path = Path.Combine(Environment.CurrentDirectory, operation + ".txt");
+            File.Delete(_path);
+#endif
         }
 
         public long Value
         {
-            get { return _value; }
+            get { return Thread.VolatileRead(ref _value); }
         }
 
-        public void OnAvailable(long sequence, long data)
+        public bool Done
         {
-            _value = _operation.Op(_value, data);
+            get { return _done; }
         }
+
+        public void OnAvailable(long sequence, ValueEntry data)
+        {
+            _value = _operation.Op(_value, data.Value);
+
+            if(sequence == _iterations - 1)
+            {
+                Thread.VolatileWrite(ref _value, _value);
+                _done = true;
+#if DEBUG 
+
+                var sb = new StringBuilder();
+                foreach (var line in _lines)
+                {
+                    sb.AppendLine(line.ToString());
+                }
+
+                File.WriteAllText(_path, sb.ToString());
+#endif
+            }
+#if DEBUG
+            _lines.Add(data.Value);
+#endif
+            }
 
         public void OnEndOfBatch()
         {

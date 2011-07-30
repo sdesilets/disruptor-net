@@ -1,10 +1,8 @@
-﻿using System;
-
-namespace Disruptor
+﻿namespace Disruptor
 {
     /// <summary>
     /// Coordination barrier for tracking the cursor for producers and sequence of
-    /// dependent <see cref="IConsumer"/>s for a <see cref="RingBuffer{T}"/>
+    /// dependent <see cref="IBatchConsumer"/>s for a <see cref="RingBuffer{T}"/>
     /// </summary>
     public interface IConsumerBarrier<out T>
     {
@@ -20,15 +18,7 @@ namespace Disruptor
         /// </summary>
         /// <param name="sequence">sequence to wait for</param>
         /// <returns>the sequence up to which is available</returns>
-        long? WaitFor(long sequence);
-
-        /// <summary>
-        ///  Wait for the given sequence to be available for consumption with a time out.
-        /// </summary>
-        /// <param name="sequence">sequence to wait for</param>
-        /// <param name="timeout">timeout value</param>
-        /// <returns>the sequence up to which is available</returns>
-        long? WaitFor(long sequence, TimeSpan timeout);
+        WaitForResult WaitFor(long sequence);
 
         /// <summary>
         /// Delegate a call to the <see cref="RingBuffer{T}.Cursor"/>
@@ -53,3 +43,4 @@ namespace Disruptor
         void ClearAlert();
     }
 }
+

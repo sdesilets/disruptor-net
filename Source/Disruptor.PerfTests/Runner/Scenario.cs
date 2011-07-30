@@ -9,19 +9,19 @@ namespace Disruptor.PerfTests.Runner
     {
         private readonly IList<Implementation> _implementations = new List<Implementation>();
 
-        public Scenario(string scenarioName, ImplementationType implementationType, int runs, int iterations)
+        public Scenario(string scenarioName, ImplementationType implementationType, int runs, int numberOfCores)
         {
             if (implementationType == ImplementationType.All)
             {
                 foreach (var implementationName in Enumerable.Where(Enum.GetNames(typeof(ImplementationType)), s => s != "All"))
                 {
-                    _implementations.Add(new Implementation(scenarioName, implementationName, runs, iterations));
+                    _implementations.Add(new Implementation(scenarioName, implementationName, runs, numberOfCores));
                 }
             }
             else
             {
                 string implementationName = implementationType.ToString();
-                _implementations.Add(new Implementation(scenarioName, implementationName, runs, iterations));
+                _implementations.Add(new Implementation(scenarioName, implementationName, runs, numberOfCores));
             }
         }
 

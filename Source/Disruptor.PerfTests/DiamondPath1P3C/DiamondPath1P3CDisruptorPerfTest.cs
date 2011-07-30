@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Threading;
 using Disruptor.PerfTests.Support;
 using NUnit.Framework;
 
@@ -9,47 +8,33 @@ namespace Disruptor.PerfTests.DiamondPath1P3C
     public class DiamondPath1P3CDisruptorPerfTest:AbstractDiamondPath1P3CPerfTest
     {
         private readonly RingBuffer<FizzBuzzEntry> _ringBuffer;
-        private readonly IConsumerBarrier<FizzBuzzEntry> _consumerBarrier;
-
         private readonly FizzBuzzHandler _fizzHandler;
-        private readonly BatchConsumer<FizzBuzzEntry> _batchConsumerFizz;
-
         private readonly FizzBuzzHandler _buzzHandler;
-        private readonly BatchConsumer<FizzBuzzEntry> _batchConsumerBuzz;
-
-        private readonly IConsumerBarrier<FizzBuzzEntry> _consumerBarrierFizzBuzz;
-
         private readonly FizzBuzzHandler _fizzBuzzHandler;
-        private readonly BatchConsumer<FizzBuzzEntry> _batchConsumerFizzBuzz;
 
-        private readonly IReferenceTypeProducerBarrier<FizzBuzzEntry> _producerBarrier;
+        private readonly IProducerBarrier<FizzBuzzEntry> _producerBarrier;
 
         public DiamondPath1P3CDisruptorPerfTest()
+            : base(20 * Million)
         {
             _ringBuffer = new RingBuffer<FizzBuzzEntry>(() => new FizzBuzzEntry(), Size,
                                           ClaimStrategyFactory.ClaimStrategyOption.SingleThreaded,
                                           WaitStrategyFactory.WaitStrategyOption.Yielding);
-            _consumerBarrier = _ringBuffer.CreateConsumerBarrier();
-            _fizzHandler = new FizzBuzzHandler(FizzBuzzStep.Fizz);
-            _batchConsumerFizz = new BatchConsumer<FizzBuzzEntry>(_consumerBarrier, _fizzHandler);
 
-            _buzzHandler = new FizzBuzzHandler(FizzBuzzStep.Buzz);
-            _batchConsumerBuzz = new BatchConsumer<FizzBuzzEntry>(_consumerBarrier, _buzzHandler);
-            _consumerBarrierFizzBuzz = _ringBuffer.CreateConsumerBarrier(_batchConsumerFizz, _batchConsumerBuzz);
 
-            _fizzBuzzHandler = new FizzBuzzHandler(FizzBuzzStep.FizzBuzz);
-            _batchConsumerFizzBuzz = new BatchConsumer<FizzBuzzEntry>(_consumerBarrierFizzBuzz, _fizzBuzzHandler);
+            _fizzHandler = new FizzBuzzHandler(FizzBuzzStep.Fizz, Iterations);
+            _buzzHandler = new FizzBuzzHandler(FizzBuzzStep.Buzz, Iterations);
+            _fizzBuzzHandler = new FizzBuzzHandler(FizzBuzzStep.FizzBuzz, Iterations);
 
-            _producerBarrier = _ringBuffer.CreateProducerBarrier(_batchConsumerFizzBuzz);
+            _ringBuffer.ConsumeWith(_fizzHandler, _buzzHandler)
+                       .Then(_fizzBuzzHandler);
+
+            _producerBarrier = _ringBuffer.CreateProducerBarrier();
         }
 
         public override long RunPass()
         {
-            _fizzBuzzHandler.Reset();
-
-            (new Thread(_batchConsumerFizz.Run) { Name = "Fizz" }).Start();
-            (new Thread(_batchConsumerBuzz.Run) { Name = "Buzz" }).Start();
-            (new Thread(_batchConsumerFizzBuzz.Run) { Name = "FizzBuzz" }).Start();
+            _ringBuffer.StartConsumers();
 
             var sw = Stopwatch.StartNew();
 
@@ -61,17 +46,14 @@ namespace Disruptor.PerfTests.DiamondPath1P3C
                 _producerBarrier.Commit(sequence);
             }
 
-            var expectedSequence = _ringBuffer.Cursor;
-            while (_batchConsumerFizzBuzz.Sequence < expectedSequence)
+            while (!_fizzBuzzHandler.Done)
             {
                 // busy spin
             }
 
             var opsPerSecond = (Iterations * 1000L) / sw.ElapsedMilliseconds;
 
-            _batchConsumerFizz.Halt();
-            _batchConsumerBuzz.Halt();
-            _batchConsumerFizzBuzz.Halt();
+            _ringBuffer.Halt();
 
             Assert.AreEqual(ExpectedResult, _fizzBuzzHandler.FizzBuzzCounter);
 

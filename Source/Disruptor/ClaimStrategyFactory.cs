@@ -57,11 +57,6 @@ namespace Disruptor
             {
                 return Interlocked.Add(ref _sequence, delta);
             }
-
-            public void SetSequence(long sequence)
-            {
-                Interlocked.Exchange(ref _sequence, sequence);
-            }
         }
 
         /// <summary>
@@ -80,11 +75,6 @@ namespace Disruptor
             {
                 _sequence += delta;
                 return _sequence;
-            }
-
-            public void SetSequence(long sequence)
-            {
-                _sequence = sequence;
             }
         }
     }

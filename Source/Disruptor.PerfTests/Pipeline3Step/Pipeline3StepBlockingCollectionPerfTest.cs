@@ -17,7 +17,7 @@ namespace Disruptor.PerfTests.Pipeline3Step
         private readonly FunctionQueueConsumer _stepTwoQueueConsumer;
         private readonly FunctionQueueConsumer _stepThreeQueueConsumer;
 
-        public Pipeline3StepBlockingCollectionPerfTest()
+        public Pipeline3StepBlockingCollectionPerfTest() : base(1*Million)
         {
             _stepOneQueueConsumer = new FunctionQueueConsumer(FunctionStep.One, _stepOneQueue, _stepTwoQueue, _stepThreeQueue, Iterations);
             _stepTwoQueueConsumer = new FunctionQueueConsumer(FunctionStep.Two, _stepOneQueue, _stepTwoQueue, _stepThreeQueue, Iterations);

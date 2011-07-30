@@ -1,6 +1,6 @@
-namespace Disruptor.PerfTests.Support
+﻿namespace Disruptor.PerfTests.Support
 {
-    public class ValueAdditionHandler : IBatchHandler<ValueEntry>
+    public class ValueAdditionHandlerValueType : IBatchHandler<long>
     {
         private readonly long _iterations;
         private readonly ValueEntry _value = new ValueEntry();
@@ -11,7 +11,7 @@ namespace Disruptor.PerfTests.Support
             get { return _done; }
         }
 
-        public ValueAdditionHandler(long iterations)
+        public ValueAdditionHandlerValueType(long iterations)
         {
             _iterations = iterations;
         }
@@ -26,10 +26,10 @@ namespace Disruptor.PerfTests.Support
             _value.Value = 0;
         }
 
-        public void OnAvailable(long sequence, ValueEntry value)
+        public void OnAvailable(long sequence, long value)
         {
-            _value.Value += value.Value;
-            if(sequence == _iterations - 1)
+            _value.Value += value;
+            if (sequence == _iterations - 1)
             {
                 _done = true;
             }
@@ -40,5 +40,3 @@ namespace Disruptor.PerfTests.Support
         }
     }
 }
-
-

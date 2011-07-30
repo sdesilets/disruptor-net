@@ -60,6 +60,10 @@ namespace Disruptor.PerfTests.Pipeline3Step
         private static long _expectedResult;
         protected const long OperandTwoInitialValue = 777L;
 
+        protected AbstractPipeline3StepPerfTest(int iterations) : base(iterations)
+        {
+        }
+
         protected long ExpectedResult
         {
             get
@@ -81,6 +85,11 @@ namespace Disruptor.PerfTests.Pipeline3Step
                 }
                 return _expectedResult;
             }
+        }
+
+        public override int MinimumCoresRequired
+        {
+            get { return 4; }
         }
     }
 }

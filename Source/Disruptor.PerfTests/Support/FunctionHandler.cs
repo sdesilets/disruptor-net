@@ -1,23 +1,28 @@
+using System;
+
 namespace Disruptor.PerfTests.Support
 {
     public class FunctionHandler:IBatchHandler<FunctionEntry>
     {
         private readonly FunctionStep _functionStep;
         private long _stepThreeCounter;
+        private readonly long _iterations;
+        private volatile bool _done;
 
         public long StepThreeCounter
         {
             get { return _stepThreeCounter; }
         }
 
-        public FunctionHandler(FunctionStep functionStep)
+        public bool Done
         {
-            _functionStep = functionStep;
+            get { return _done; }
         }
 
-        public void Reset()
+        public FunctionHandler(FunctionStep functionStep, long iterations)
         {
-            _stepThreeCounter = 0L;
+            _functionStep = functionStep;
+            _iterations = iterations;
         }
 
         public void OnAvailable(long sequence, FunctionEntry data)
@@ -37,6 +42,11 @@ namespace Disruptor.PerfTests.Support
                         _stepThreeCounter++;
                     }
                     break;
+            }
+
+            if(sequence == _iterations-1)
+            {
+                _done = true;
             }
         }
 

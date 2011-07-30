@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
@@ -19,6 +20,7 @@ namespace Disruptor.PerfTests.MultiCast1P3C
         private readonly ValueMutationQueueConsumer[] _queueConsumers = new ValueMutationQueueConsumer[NumConsumers];
 
         public MultiCast1P3CBlockingCollectionPerfTest()
+            : base(1 * Million)
         {
             _queueConsumers[0] = new ValueMutationQueueConsumer(_blockingQueues[0], Operation.Addition, Iterations);
             _queueConsumers[1] = new ValueMutationQueueConsumer(_blockingQueues[1], Operation.Substraction, Iterations);
@@ -61,6 +63,7 @@ namespace Disruptor.PerfTests.MultiCast1P3C
         {
             RunAsUnitTest();
         }
+
 
         private bool AllConsumersAreDone()
         {
