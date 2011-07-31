@@ -1,4 +1,5 @@
 To run the performance test on your hardware:
+ * you will need the [http://www.microsoft.com/net/download.aspx .NET Framework 4.0]
  * download the latest version from the download section (Disruptor-perfRunner-X.Y.Z.A.zip)
  * extract the zip
  * open a cmd prompt and navigate to the folder where you extracted the package: `cd ExtractedFolder\Disruptor-perfRunner-1.0.0.0`
