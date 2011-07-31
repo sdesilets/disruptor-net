@@ -57,7 +57,7 @@ namespace Disruptor.PerfTests.Pipeline3Step
     public abstract class AbstractPipeline3StepPerfTest:ThroughputPerfTest
     {
         protected const int Size = 1024 * 32;
-        private static long _expectedResult;
+        private long _expectedResult;
         protected const long OperandTwoInitialValue = 777L;
 
         protected AbstractPipeline3StepPerfTest(int iterations) : base(iterations)

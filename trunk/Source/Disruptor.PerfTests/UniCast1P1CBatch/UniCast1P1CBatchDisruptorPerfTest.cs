@@ -12,7 +12,7 @@ namespace Disruptor.PerfTests.UniCast1P1CBatch
         private readonly IProducerBarrier<ValueEntry> _producerBarrier;
 
         public UniCast1P1CBatchDisruptorPerfTest()
-            : base(1 * Million)
+            : base(100 * Million)
         {
             _ringBuffer = new RingBuffer<ValueEntry>(()=>new ValueEntry(), Size,
                                    ClaimStrategyFactory.ClaimStrategyOption.SingleThreaded,

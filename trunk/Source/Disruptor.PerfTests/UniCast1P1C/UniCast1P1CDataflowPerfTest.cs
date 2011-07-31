@@ -11,7 +11,7 @@ namespace Disruptor.PerfTests.UniCast1P1C
         private readonly BufferBlock<long> _bufferBlock = new BufferBlock<long>();
 
         public UniCast1P1CDataflowPerfTest()
-            : base(1 * Million)
+            : base(4 * Million)
         {
         }
 

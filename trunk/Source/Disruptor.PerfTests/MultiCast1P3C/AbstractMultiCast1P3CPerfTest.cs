@@ -1,4 +1,3 @@
-using Disruptor.PerfTests.Runner;
 using Disruptor.PerfTests.Support;
 
 namespace Disruptor.PerfTests.MultiCast1P3C

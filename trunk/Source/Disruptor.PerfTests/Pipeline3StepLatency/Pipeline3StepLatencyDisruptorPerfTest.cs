@@ -15,7 +15,7 @@ namespace Disruptor.PerfTests.Pipeline3StepLatency
         private readonly IProducerBarrier<ValueEntry> _producerBarrier;
 
         public Pipeline3StepLatencyDisruptorPerfTest()
-            : base(1 * Million)
+            : base(20 * Million)
         {
             _ringBuffer = new RingBuffer<ValueEntry>(()=>new ValueEntry(), Size,
                                    ClaimStrategyFactory.ClaimStrategyOption.SingleThreaded,

@@ -15,7 +15,7 @@ namespace Disruptor.PerfTests.Sequencer3P1C
         private readonly Barrier _testStartBarrier = new Barrier(NumProducers);
 
         public Sequencer3P1CDisruptorPerfTest()
-            : base(1 * Million)
+            : base(20 * Million)
         {
             _ringBuffer = new RingBuffer<ValueEntry>(()=>new ValueEntry(), Size,
                                    ClaimStrategyFactory.ClaimStrategyOption.Multithreaded,
