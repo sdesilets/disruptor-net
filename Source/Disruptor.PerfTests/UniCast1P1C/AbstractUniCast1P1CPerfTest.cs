@@ -35,6 +35,7 @@ namespace Disruptor.PerfTests.UniCast1P1C
     */
     public abstract class AbstractUniCast1P1CPerfTest : ThroughputPerfTest
     {
+        private long _expectedResult;
         protected const int Size = 1024 * 32;
 
         protected AbstractUniCast1P1CPerfTest(int iterations) : base(iterations)
@@ -45,13 +46,14 @@ namespace Disruptor.PerfTests.UniCast1P1C
         {
             get
             {
-                var temp = 0L;
-                for (var i = 0L; i < Iterations; i++)
+                if (_expectedResult == 0)
                 {
-                    temp += i;
+                     for (var i = 0L; i < Iterations; i++)
+                    {
+                        _expectedResult += i;
+                    }
                 }
-
-                return temp;
+                return _expectedResult;
             }
         }
 
