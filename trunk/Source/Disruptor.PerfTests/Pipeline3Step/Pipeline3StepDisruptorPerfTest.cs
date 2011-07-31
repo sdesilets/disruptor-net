@@ -9,7 +9,6 @@ namespace Disruptor.PerfTests.Pipeline3Step
     {
         private readonly RingBuffer<FunctionEntry> _ringBuffer;
         private readonly FunctionHandler _stepThreeFunctionHandler;
-        private readonly IProducerBarrier<FunctionEntry> _producerBarrier;
 
         public Pipeline3StepDisruptorPerfTest()
             : base(20 * Million)
@@ -23,8 +22,6 @@ namespace Disruptor.PerfTests.Pipeline3Step
             _ringBuffer.ConsumeWith(new FunctionHandler(FunctionStep.One, Iterations))
                 .Then(new FunctionHandler(FunctionStep.Two, Iterations))
                 .Then(_stepThreeFunctionHandler);
-
-            _producerBarrier = _ringBuffer.CreateProducerBarrier();
         }
 
         public override long RunPass()
@@ -37,10 +34,10 @@ namespace Disruptor.PerfTests.Pipeline3Step
             for (long i = 0; i < Iterations; i++)
             {
                 FunctionEntry data;
-                var sequence = _producerBarrier.NextEntry(out data);
+                var sequence = _ringBuffer.NextEntry(out data);
                 data.OperandOne = i;
                 data.OperandTwo = operandTwo--;
-                _producerBarrier.Commit(sequence);
+                _ringBuffer.Commit(sequence);
             }
 
             while (!_stepThreeFunctionHandler.Done)

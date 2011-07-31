@@ -11,7 +11,6 @@ namespace Disruptor
     /// <typeparam name="T">Entry implementation storing the data for sharing during exchange or parallel coordination of an event.</typeparam>
     public sealed class RingBuffer<T> : ISequencable, IConsumerBuilder<T> where T : class 
     {
-        private readonly ClaimStrategyOption _claimStrategyOption;
         private CacheLineStorageLong _cursor = new CacheLineStorageLong(RingBufferConvention.InitialCursorValue);
         private readonly Entry<T>[] _entries;
         private readonly int _ringModMask;
@@ -19,7 +18,10 @@ namespace Disruptor
         private readonly IWaitStrategy _waitStrategy;
         private readonly ConsumerRepository<T> _consumerRepository = new ConsumerRepository<T>();
         private readonly IList<Thread> _threads = new List<Thread>();
-        private IProducerBarrier<T> _producerBarrier;
+        private IBatchConsumer[] _trackedConsumers;
+        private readonly int _ringBufferSize;
+        private readonly bool _isMultithreaded;
+        private long _lastConsumerMinimum = RingBufferConvention.InitialCursorValue;
 
         /// <summary>
         /// Construct a RingBuffer with the full option set.
@@ -30,13 +32,12 @@ namespace Disruptor
         /// <param name="waitStrategyOption">waiting strategy employed by consumers waiting on entries becoming available.</param>
         public RingBuffer(Func<T> entryFactory, int size, ClaimStrategyOption claimStrategyOption = ClaimStrategyOption.MultipleProducers, WaitStrategyOption waitStrategyOption = WaitStrategyOption.Blocking)
         {
-            _claimStrategyOption = claimStrategyOption;
-            var sizeAsPowerOfTwo = Util.CeilingNextPowerOfTwo(size);
-            _ringModMask = sizeAsPowerOfTwo - 1;
-            _entries = new Entry<T>[sizeAsPowerOfTwo];
-
+           _ringBufferSize = Util.CeilingNextPowerOfTwo(size);
+            _ringModMask = _ringBufferSize - 1;
+            _entries = new Entry<T>[_ringBufferSize];
             _claimStrategy = claimStrategyOption.GetInstance();
             _waitStrategy = waitStrategyOption.GetInstance();
+            _isMultithreaded = claimStrategyOption == ClaimStrategyOption.MultipleProducers;
 
             Fill(entryFactory);
         }
@@ -47,6 +48,63 @@ namespace Disruptor
         public int Capacity
         {
             get { return _entries.Length; }
+        }
+
+        ///<summary>
+        /// Claim the next sequence number and a pre-allocated instance of T for a producer on the <see cref="RingBuffer{T}"/>
+        ///</summary>
+        ///<param name="data">A pre-allocated instance of T to be reused by the producer, to prevent memory allocation. This instance needs to be flushed properly before commiting back to the <see cref="RingBuffer{T}"/></param>
+        ///<returns>the claimed sequence.</returns>
+        public long NextEntry(out T data)
+        {
+            var sequence = _claimStrategy.IncrementAndGet();
+            EnsureConsumersAreInRange(sequence);
+
+            data = _entries[(int)sequence & _ringModMask].Data;
+
+            return sequence;
+        }
+
+        /// <summary>
+        ///  Claim the next batch of entries in sequence.
+        /// </summary>
+        /// <param name="size">size of the batch</param>
+        /// <returns>an instance of <see cref="SequenceBatch"/> containing the size and start sequence number of the batch</returns>
+        public SequenceBatch NextEntries(int size)
+        {
+            long sequence = _claimStrategy.IncrementAndGet(size);
+            var sequenceBatch = new SequenceBatch(size, sequence);
+            EnsureConsumersAreInRange(sequence);
+
+            return sequenceBatch;
+        }
+
+        /// <summary>
+        /// Commit an entry back to the <see cref="RingBuffer{T}"/> to make it visible to <see cref="IBatchConsumer"/>s
+        /// </summary>
+        /// <param name="sequence">sequence number to be committed back to the <see cref="RingBuffer{T}"/></param>
+        public void Commit(long sequence)
+        {
+            Commit(sequence, 1L);
+        }
+
+        /// <summary>
+        /// Commit a batch of entries to the <see cref="RingBuffer{T}"/> to make it visible to <see cref="IBatchConsumer"/>s.
+        /// </summary>
+        /// <param name="sequenceBatch"></param>
+        public void Commit(SequenceBatch sequenceBatch)
+        {
+            Commit(sequenceBatch.End, sequenceBatch.Size);
+        }
+
+        ///<summary>
+        /// Get the data for a given sequence from the underlying <see cref="RingBuffer{T}"/>.
+        ///</summary>
+        ///<param name="sequence">sequence of the entry to get.</param>
+        ///<returns>the data for the sequence</returns>
+        public T GetEntry(long sequence)
+        {
+            return _entries[(int)sequence & _ringModMask].Data;
         }
 
         /// <summary>
@@ -68,6 +126,11 @@ namespace Disruptor
             {
                 return _entries[(int)sequence & _ringModMask];
             }
+        }
+
+        internal void SetTrackedConsumer(params IBatchConsumer[] consumersToTrack)
+        {
+            _trackedConsumers = consumersToTrack;
         }
 
         ///<summary>
@@ -110,29 +173,6 @@ namespace Disruptor
             return new ConsumerGroup<T>(this, selectedConsumers);
         }
 
-        ///<summary>
-        /// Create a producer barrier.  The barrier is set up to prevent overwriting any entry that is yet to
-        /// be processed by a consumer that has already been set up.  As such, producer barriers should be
-        /// created as the last step, after all handlers have been set up.
-        ///</summary>
-        ///<returns>the producer barrier.</returns>
-        public IProducerBarrier<T> CreateProducerBarrier()
-        {
-            if (_producerBarrier == null)
-            {
-                var lastConsumersInChain = _consumerRepository.LastConsumersInChain;
-                var period = _entries.Length / 2;
-                foreach (var batchConsumer in lastConsumersInChain)
-                {
-                    batchConsumer.DelaySequenceWrite(period);
-                }
-
-                _producerBarrier = new ProducerBarrier(this, lastConsumersInChain);
-            }
-
-            return _producerBarrier;
-        }
-
         /// <summary>
         ///  Create a <see cref="IConsumerBarrier{T}"/> that gates on the RingBuffer and a list of <see cref="IBatchConsumer"/>s
         /// </summary>
@@ -141,16 +181,6 @@ namespace Disruptor
         internal IConsumerBarrier<T> CreateConsumerBarrier(params IBatchConsumer[] consumersToTrack)
         {
             return new ConsumerBarrier<T>(this, consumersToTrack);
-        }
-
-        /// <summary>
-        /// Create a <see cref="IProducerBarrier{T}"/> on this RingBuffer that tracks dependent <see cref="IBatchConsumer"/>s.
-        /// </summary>
-        /// <param name="consumersToTrack"></param>
-        /// <returns></returns>
-        internal IProducerBarrier<T> CreateProducerBarrier(params IBatchConsumer[] consumersToTrack)
-        {
-            return new ProducerBarrier(this, consumersToTrack);
         }
 
         ///<summary>
@@ -173,6 +203,8 @@ namespace Disruptor
         /// </summary>
         public void StartConsumers()
         {
+            RetrieveConsumersToTrack();
+
             foreach (var consumerInfo in _consumerRepository.Consumers)
             {
                 var thread = new Thread(consumerInfo.BatchConsumer.Run) { IsBackground = true };
@@ -190,9 +222,45 @@ namespace Disruptor
             }
         }
 
+        private void RetrieveConsumersToTrack()
+        {
+            var lastConsumersInChain = _consumerRepository.LastConsumersInChain;
+            var period = _entries.Length / 2;
+            foreach (var batchConsumer in lastConsumersInChain)
+            {
+                batchConsumer.DelaySequenceWrite(period);
+            }
+            _trackedConsumers = lastConsumersInChain;
+        }
+
+        private void EnsureConsumersAreInRange(long sequence)
+        {
+            var wrapPoint = sequence - _ringBufferSize;
+
+            while (wrapPoint > _lastConsumerMinimum && wrapPoint > (_lastConsumerMinimum = _trackedConsumers.GetMinimumSequence()))
+            {
+                Thread.Yield();
+            }
+        }
+
+        private void Commit(long sequence, long batchSize)
+        {
+            if (_isMultithreaded)
+            {
+                long expectedSequence = sequence - batchSize;
+                while (expectedSequence != Cursor)
+                {
+                    // busy spin
+                }
+            }
+
+            Cursor = sequence; // volatile write
+            _waitStrategy.SignalAll();
+        }
+
         ConsumerGroup<T> IConsumerBuilder<T>.CreateConsumers(IBatchConsumer[] barrierConsumers, IBatchHandler<T>[] batchHandlers)
         {
-            if(_producerBarrier != null)
+            if(_trackedConsumers != null)
             {
                 throw new InvalidOperationException("Producer Barrier must be initialised after all consumer barriers.");
             }
@@ -272,104 +340,6 @@ namespace Disruptor
             public void ClearAlert()
             {
                 _alerted = false;
-            }
-        }
-
-        /// <summary>
-        /// <see cref="IProducerBarrier{T}"/> that tracks multiple <see cref="IBatchConsumer"/>s when trying to claim
-        /// a <see cref="Entry{T}"/> in the <see cref="RingBuffer{T}"/>.
-        /// </summary>
-        private sealed class ProducerBarrier  : IProducerBarrier<T> 
-        {
-            private readonly RingBuffer<T> _ringBuffer;
-            private readonly IBatchConsumer[] _consumers;
-            private readonly Entry<T>[] _entries;
-            private readonly IClaimStrategy _claimStrategy;
-            private readonly int _ringModMask;
-            private readonly int _ringBufferSize;
-            private readonly bool _isMultithreaded;
-            private long _lastConsumerMinimum = RingBufferConvention.InitialCursorValue;
-            private readonly IWaitStrategy _waitStrategy;
-
-            public ProducerBarrier(RingBuffer<T> ringBuffer, params IBatchConsumer[] consumers)
-            {
-                if (consumers.Length == 0)
-                {
-                    throw new ArgumentException("There must be at least one Consumer to track for preventing ring wrap");
-                }
-
-                _ringBuffer = ringBuffer;
-                _consumers = consumers;
-                _entries = _ringBuffer._entries;
-                _claimStrategy = _ringBuffer._claimStrategy;
-                _ringModMask = _ringBuffer._ringModMask;
-                _ringBufferSize = _entries.Length;
-                _waitStrategy = _ringBuffer._waitStrategy;
-                _isMultithreaded = _ringBuffer._claimStrategyOption == ClaimStrategyOption.MultipleProducers;
-            }
-
-            public long NextEntry(out T data)
-            {
-                var sequence = _claimStrategy.IncrementAndGet();
-                EnsureConsumersAreInRange(sequence);
-
-                data = _entries[(int) sequence & _ringModMask].Data;
-
-                return sequence;
-            }
-
-            public SequenceBatch NextEntries(int size)
-            {
-                long sequence = _claimStrategy.IncrementAndGet(size);
-                var sequenceBatch = new SequenceBatch(size, sequence);
-                EnsureConsumersAreInRange(sequence);
-
-                return sequenceBatch;
-            }
-
-            public void Commit(long sequence)
-            {
-                Commit(sequence, 1L);
-            }
-
-            public void Commit(SequenceBatch sequenceBatch)
-            {
-                Commit(sequenceBatch.End, sequenceBatch.Size);
-            }
-
-            public long Cursor
-            {
-                get { return _ringBuffer.Cursor; }
-            }
-
-            public T GetEntry(long sequence)
-            {
-                return _entries[(int)sequence & _ringModMask].Data;
-            }
-
-            private void EnsureConsumersAreInRange(long sequence)
-            {
-                var wrapPoint = sequence - _ringBufferSize;
-                
-                while (wrapPoint > _lastConsumerMinimum && wrapPoint > (_lastConsumerMinimum = _consumers.GetMinimumSequence()))
-                {
-                    Thread.Yield();
-                }
-            }
-
-            private void Commit(long sequence, long batchSize)
-            {
-                if (_isMultithreaded)
-                {
-                    long expectedSequence = sequence - batchSize;
-                    while (expectedSequence != _ringBuffer.Cursor)
-                    {
-                        // busy spin
-                    }
-                }
-
-                _ringBuffer.Cursor = sequence; // volatile write
-                _waitStrategy.SignalAll();
             }
         }
     }

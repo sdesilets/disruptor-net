@@ -60,7 +60,6 @@
     <Compile Include="RingBufferConvention.cs" />
     <Compile Include="Entry.cs" />
     <Compile Include="ILifecycleAware.cs" />
-    <Compile Include="IProducerBarrier.cs" />
     <Compile Include="ISequencable.cs" />
     <Compile Include="MemoryLayout\CacheLine.cs" />
     <Compile Include="MemoryLayout\CacheLineStorageLong.cs" />

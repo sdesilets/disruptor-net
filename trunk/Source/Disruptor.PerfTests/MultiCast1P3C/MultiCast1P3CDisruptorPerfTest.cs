@@ -11,7 +11,6 @@ namespace Disruptor.PerfTests.MultiCast1P3C
         private readonly ValueMutationHandler _handler1;
         private readonly ValueMutationHandler _handler2;
         private readonly ValueMutationHandler _handler3;
-        private readonly IProducerBarrier<ValueEntry> _producerBarrier;
 
         public MultiCast1P3CDisruptorPerfTest()
             : base(20 * Million)
@@ -25,7 +24,6 @@ namespace Disruptor.PerfTests.MultiCast1P3C
             _handler3 = new ValueMutationHandler(Operation.And, Iterations);
 
             _ringBuffer.ConsumeWith(_handler1, _handler2, _handler3);
-            _producerBarrier = _ringBuffer.CreateProducerBarrier();
         }
 
         public override long RunPass()
@@ -37,9 +35,9 @@ namespace Disruptor.PerfTests.MultiCast1P3C
             for (long i = 0; i < Iterations; i++)
             {
                 ValueEntry data;
-                var sequence = _producerBarrier.NextEntry(out data);
+                var sequence = _ringBuffer.NextEntry(out data);
                 data.Value = i;
-                _producerBarrier.Commit(sequence);
+                _ringBuffer.Commit(sequence);
             }
 
             while (!_handler1.Done && !_handler2.Done && !_handler3.Done)
