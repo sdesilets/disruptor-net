@@ -10,7 +10,6 @@ namespace Disruptor.PerfTests.Sequencer3P1C
     {
         private readonly RingBuffer<ValueEntry> _ringBuffer;
         private readonly ValueAdditionHandler _handler;
-        private readonly IProducerBarrier<ValueEntry> _producerBarrier;
         private readonly ValueProducer[] _valueProducers;
         private readonly Barrier _testStartBarrier = new Barrier(NumProducers);
 
@@ -23,13 +22,12 @@ namespace Disruptor.PerfTests.Sequencer3P1C
 
             _handler = new ValueAdditionHandler(Iterations * NumProducers);
             _ringBuffer.ConsumeWith(_handler);
-            _producerBarrier = _ringBuffer.CreateProducerBarrier();
             
             _valueProducers = new ValueProducer[NumProducers];
 
             for (int i = 0; i < NumProducers; i++)
             {
-                _valueProducers[i] = new ValueProducer(_testStartBarrier, _producerBarrier, Iterations);
+                _valueProducers[i] = new ValueProducer(_testStartBarrier, _ringBuffer, Iterations);
             }
         }
 

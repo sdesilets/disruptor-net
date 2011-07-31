@@ -12,7 +12,6 @@ namespace Disruptor.PerfTests.Pipeline3StepLatency
         private readonly LatencyStepHandler _stepOneFunctionHandler;
         private readonly LatencyStepHandler _stepTwoFunctionHandler;
         private readonly LatencyStepHandler _stepThreeFunctionHandler;
-        private readonly IProducerBarrier<ValueEntry> _producerBarrier;
 
         public Pipeline3StepLatencyDisruptorPerfTest()
             : base(20 * Million)
@@ -28,8 +27,6 @@ namespace Disruptor.PerfTests.Pipeline3StepLatency
             _ringBuffer.ConsumeWith(_stepOneFunctionHandler)
                 .Then(_stepTwoFunctionHandler)
                 .Then(_stepThreeFunctionHandler);
-
-            _producerBarrier = _ringBuffer.CreateProducerBarrier();
         }
 
         public override void RunPass()
@@ -39,9 +36,9 @@ namespace Disruptor.PerfTests.Pipeline3StepLatency
             for (long i = 0; i < Iterations; i++)
             {
                 ValueEntry data;
-                var sequence = _producerBarrier.NextEntry(out data);
+                var sequence = _ringBuffer.NextEntry(out data);
                 data.Value = Stopwatch.GetTimestamp();
-                _producerBarrier.Commit(sequence);
+                _ringBuffer.Commit(sequence);
 
                 var pauseStart = Stopwatch.GetTimestamp();
                 while (PauseNanos > (Stopwatch.GetTimestamp() - pauseStart) * TicksToNanos)

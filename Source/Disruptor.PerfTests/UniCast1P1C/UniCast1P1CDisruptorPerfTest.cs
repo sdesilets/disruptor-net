@@ -9,7 +9,6 @@ namespace Disruptor.PerfTests.UniCast1P1C
     {
         private readonly RingBuffer<ValueEntry> _ringBuffer;
         private readonly ValueAdditionHandler _handler;
-        private readonly IProducerBarrier<ValueEntry> _producerBarrier;
 
         public UniCast1P1CDisruptorPerfTest()
             : base(20 * Million)
@@ -21,8 +20,6 @@ namespace Disruptor.PerfTests.UniCast1P1C
 
             _handler = new ValueAdditionHandler(Iterations);
             _ringBuffer.ConsumeWith(_handler);
-
-            _producerBarrier = _ringBuffer.CreateProducerBarrier();
         }
 
         public override long RunPass()
@@ -34,11 +31,11 @@ namespace Disruptor.PerfTests.UniCast1P1C
             for (long i = 0; i < Iterations; i++)
             {
                 ValueEntry data;
-                var sequence = _producerBarrier.NextEntry(out data);
+                var sequence = _ringBuffer.NextEntry(out data);
 
                 data.Value = i;
 
-                _producerBarrier.Commit(sequence);
+                _ringBuffer.Commit(sequence);
             }
 
             while (!_handler.Done)

@@ -5,13 +5,13 @@ namespace Disruptor.PerfTests.Support
     public class ValueProducer
     {
         private readonly Barrier _barrier;
-        private readonly IProducerBarrier<ValueEntry> _producerBarrier;
         private readonly long _iterations;
+        private readonly RingBuffer<ValueEntry> _ringBuffer;
 
-        public ValueProducer(Barrier barrier, IProducerBarrier<ValueEntry> producerBarrier, long iterations)
+        public ValueProducer(Barrier barrier, RingBuffer<ValueEntry> ringBuffer, long iterations)
         {
             _barrier = barrier;
-            _producerBarrier = producerBarrier;
+            _ringBuffer = ringBuffer;
             _iterations = iterations;
         }
 
@@ -22,9 +22,9 @@ namespace Disruptor.PerfTests.Support
             for (long i = 0; i < _iterations; i++)
             {
                 ValueEntry data;
-                var sequence = _producerBarrier.NextEntry(out data);
+                var sequence = _ringBuffer.NextEntry(out data);
                 data.Value = i;
-                _producerBarrier.Commit(sequence);
+                _ringBuffer.Commit(sequence);
             }
         }
     }

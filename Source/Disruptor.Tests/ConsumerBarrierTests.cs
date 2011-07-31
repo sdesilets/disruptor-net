@@ -14,7 +14,6 @@ namespace Disruptor.Tests
         private Mock<IBatchConsumer> _consumerMock2;
         private Mock<IBatchConsumer> _consumerMock3;
         private IConsumerBarrier<StubData> _consumerBarrier;
-        private IProducerBarrier<StubData> _producerBarrier;
 
         [SetUp]
         public void SetUp()
@@ -26,7 +25,7 @@ namespace Disruptor.Tests
             _consumerMock3 = new Mock<IBatchConsumer>();
 
             _consumerBarrier = _ringBuffer.CreateConsumerBarrier(_consumerMock1.Object, _consumerMock2.Object, _consumerMock3.Object);
-            _producerBarrier = _ringBuffer.CreateProducerBarrier(new NoOpConsumer<StubData>(_ringBuffer));
+            _ringBuffer.SetTrackedConsumer(new NoOpConsumer<StubData>(_ringBuffer));
         }
 
         [Test]
@@ -65,9 +64,9 @@ namespace Disruptor.Tests
             new Thread(() =>
                     {
                         StubData data;
-                        var sequence = _producerBarrier.NextEntry(out data);
-                        data.Value = (int)sequence; 
-                        _producerBarrier.Commit(sequence);
+                        var sequence = _ringBuffer.NextEntry(out data);
+                        data.Value = (int)sequence;
+                        _ringBuffer.Commit(sequence);
 
                         foreach (var stubWorker in workers)
                         {
@@ -161,9 +160,9 @@ namespace Disruptor.Tests
             for (var i = 0; i < expectedNumberMessages; i++)
             {
                 StubData data;
-                var sequence = _producerBarrier.NextEntry(out data);
+                var sequence = _ringBuffer.NextEntry(out data);
                 data.Value = i;
-                _producerBarrier.Commit(sequence);
+                _ringBuffer.Commit(sequence);
             }
         }
 

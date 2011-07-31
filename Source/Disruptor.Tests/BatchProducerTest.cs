@@ -8,14 +8,13 @@ namespace Disruptor.Tests
     {
         private RingBuffer<StubData> _ringBuffer;
         private IConsumerBarrier<StubData> _consumerBarrier;
-        private IProducerBarrier<StubData> _producerBarrier;
 
         [SetUp]
         public void SetUp()
         {
             _ringBuffer = new RingBuffer<StubData>(() => new StubData(-1), 20);
             _consumerBarrier = _ringBuffer.CreateConsumerBarrier();
-            _producerBarrier = _ringBuffer.CreateProducerBarrier(new NoOpConsumer<StubData>(_ringBuffer));
+            _ringBuffer.SetTrackedConsumer(new NoOpConsumer<StubData>(_ringBuffer));
         }
 
         [Test]
@@ -23,13 +22,13 @@ namespace Disruptor.Tests
         {
             const int batchSize = 5;
 
-            var sequenceBatch = _producerBarrier.NextEntries(batchSize);
+            var sequenceBatch = _ringBuffer.NextEntries(batchSize);
 
             Assert.AreEqual(0L, sequenceBatch.Start);
             Assert.AreEqual(4L, sequenceBatch.End);
             Assert.AreEqual(RingBufferConvention.InitialCursorValue, _ringBuffer.Cursor);
 
-            _producerBarrier.Commit(sequenceBatch);
+            _ringBuffer.Commit(sequenceBatch);
 
             Assert.AreEqual(batchSize - 1, _ringBuffer.Cursor);
             Assert.AreEqual(batchSize - 1, _consumerBarrier.WaitFor(0L).AvailableSequence);

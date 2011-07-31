@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Disruptor.Tests.Support;
@@ -12,14 +11,13 @@ namespace Disruptor.Tests
     {
         private RingBuffer<StubData> _ringBuffer;
         private IConsumerBarrier<StubData> _consumerBarrier;
-        private IProducerBarrier<StubData> _producerBarrier;
 
         [SetUp]
         public void SetUp()
         {
             _ringBuffer = new RingBuffer<StubData>(() => new StubData(-1), 20);
             _consumerBarrier = _ringBuffer.CreateConsumerBarrier();
-            _producerBarrier = _ringBuffer.CreateProducerBarrier(new NoOpConsumer<StubData>(_ringBuffer));
+            _ringBuffer.SetTrackedConsumer(new NoOpConsumer<StubData>(_ringBuffer));
         }
 
         [Test]
@@ -30,9 +28,9 @@ namespace Disruptor.Tests
             var expectedEntry = new Entry<StubData>(-1, new StubData(2701));
 
             StubData oldData;
-            var seq = _producerBarrier.NextEntry(out oldData);
+            var seq = _ringBuffer.NextEntry(out oldData);
             oldData.Value = expectedEntry.Data.Value;
-            _producerBarrier.Commit(seq);
+            _ringBuffer.Commit(seq);
 
             var waitForResult = _consumerBarrier.WaitFor(0);
             Assert.AreEqual(0L, waitForResult.AvailableSequence);
@@ -52,10 +50,10 @@ namespace Disruptor.Tests
             var expectedMessage = new StubData(2701);
 
             StubData oldData;
-            var sequence = _producerBarrier.NextEntry(out oldData);
+            var sequence = _ringBuffer.NextEntry(out oldData);
             oldData.Value = expectedMessage.Value;
 
-            _producerBarrier.Commit(sequence);
+            _ringBuffer.Commit(sequence);
 
             Assert.AreEqual(expectedMessage, messages.Result[0]);
         }
@@ -67,9 +65,9 @@ namespace Disruptor.Tests
             for (var i = 0; i < numMessages; i++)
             {
                 StubData data;
-                var entry = _producerBarrier.NextEntry(out data);
+                var entry = _ringBuffer.NextEntry(out data);
                 data.Value = i;
-                _producerBarrier.Commit(entry);
+                _ringBuffer.Commit(entry);
             }
 
             var expectedSequence = numMessages - 1;
@@ -90,9 +88,9 @@ namespace Disruptor.Tests
             for (var i = 0; i < numMessages + offset; i++)
             {
                 StubData data;
-                var sequence = _producerBarrier.NextEntry(out data);
+                var sequence = _ringBuffer.NextEntry(out data);
                 data.Value = i;
-                _producerBarrier.Commit(sequence);
+                _ringBuffer.Commit(sequence);
             }
 
             var expectedSequence = numMessages + offset - 1;
@@ -126,16 +124,16 @@ namespace Disruptor.Tests
             var producerComplete = false;
             var ringBuffer = new RingBuffer<StubData>(() => new StubData(-1), ringBufferSize);
             var consumer = new TestConsumer(ringBuffer.CreateConsumerBarrier());
-            var producerBarrier = ringBuffer.CreateProducerBarrier(consumer);
+            ringBuffer.SetTrackedConsumer(consumer);
 
             var thread = new Thread(() =>
                                         {
                                             for (int i = 0; i <= ringBufferSize; i++) // produce 5 messages
                                             {
                                                 StubData data;
-                                                long sequence = producerBarrier.NextEntry(out data);
+                                                long sequence = ringBuffer.NextEntry(out data);
                                                 data.Value = i;
-                                                producerBarrier.Commit(sequence);
+                                                ringBuffer.Commit(sequence);
 
                                                 if(i == 3) // unblock main thread after 4th message published
                                                 {

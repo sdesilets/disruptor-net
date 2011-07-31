@@ -12,8 +12,6 @@ namespace Disruptor.PerfTests.DiamondPath1P3C
         private readonly FizzBuzzHandler _buzzHandler;
         private readonly FizzBuzzHandler _fizzBuzzHandler;
 
-        private readonly IProducerBarrier<FizzBuzzEntry> _producerBarrier;
-
         public DiamondPath1P3CDisruptorPerfTest()
             : base(20 * Million)
         {
@@ -28,8 +26,6 @@ namespace Disruptor.PerfTests.DiamondPath1P3C
 
             _ringBuffer.ConsumeWith(_fizzHandler, _buzzHandler)
                        .Then(_fizzBuzzHandler);
-
-            _producerBarrier = _ringBuffer.CreateProducerBarrier();
         }
 
         public override long RunPass()
@@ -41,9 +37,9 @@ namespace Disruptor.PerfTests.DiamondPath1P3C
             for (long i = 0; i < Iterations; i++)
             {
                 FizzBuzzEntry data;
-                var sequence = _producerBarrier.NextEntry(out data);
+                var sequence = _ringBuffer.NextEntry(out data);
                 data.Value = i;
-                _producerBarrier.Commit(sequence);
+                _ringBuffer.Commit(sequence);
             }
 
             while (!_fizzBuzzHandler.Done)
