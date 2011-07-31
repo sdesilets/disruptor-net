@@ -17,8 +17,8 @@ namespace Disruptor.PerfTests.MultiCast1P3C
             : base(20 * Million)
         {
             _ringBuffer = new RingBuffer<ValueEntry>(()=>new ValueEntry(), Size,
-                                       ClaimStrategyFactory.ClaimStrategyOption.SingleThreaded,
-                                       WaitStrategyFactory.WaitStrategyOption.Yielding);
+                                       ClaimStrategyOption.SingleProducer,
+                                       WaitStrategyOption.Yielding);
 
             _handler1 = new ValueMutationHandler(Operation.Addition, Iterations);
             _handler2 = new ValueMutationHandler(Operation.Substraction, Iterations);

@@ -6,33 +6,14 @@ namespace Disruptor
     /// <summary>
     /// Factory used by the <see cref="RingBuffer{T}"/> to instantiate the selected <see cref="IWaitStrategy"/>.
     /// </summary>
-    public static class WaitStrategyFactory
+    public static class WaitStrategyExtensions
     {
-        /// <summary>
-        /// Strategy options which are available to those waiting on a <see cref="RingBuffer{T}"/>
-        /// </summary>
-        public enum WaitStrategyOption
-        {
-            /// <summary>
-            /// This strategy uses a condition variable inside a lock to block the consumer which saves CPU resource as the expense of lock contention.
-            /// </summary>
-            Blocking,
-            /// <summary>
-            /// This strategy calls Thread.yield() in a loop as a waiting strategy which reduces contention at the expense of CPU resource.
-            /// </summary>
-            Yielding,
-            /// <summary>
-            /// This strategy call spins in a loop as a waiting strategy which is lowest and most consistent latency but ties up a CPU
-            /// </summary>
-            BusySpin
-        }
-
         /// <summary>
         /// Used by the <see cref="RingBuffer{T}"/> as a polymorphic constructor.
         /// </summary>
         /// <param name="option">Strategy type.</param>
         /// <returns>a new instance of the WaitStrategy</returns>
-        public static IWaitStrategy GetInstance(WaitStrategyOption option)
+        public static IWaitStrategy GetInstance(this WaitStrategyOption option)
         {
             switch (option)
             {

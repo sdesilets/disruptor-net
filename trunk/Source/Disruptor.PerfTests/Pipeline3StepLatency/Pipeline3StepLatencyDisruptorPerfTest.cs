@@ -18,8 +18,8 @@ namespace Disruptor.PerfTests.Pipeline3StepLatency
             : base(20 * Million)
         {
             _ringBuffer = new RingBuffer<ValueEntry>(()=>new ValueEntry(), Size,
-                                   ClaimStrategyFactory.ClaimStrategyOption.SingleThreaded,
-                                   WaitStrategyFactory.WaitStrategyOption.BusySpin);
+                                   ClaimStrategyOption.SingleProducer,
+                                   WaitStrategyOption.BusySpin);
 
             _stepOneFunctionHandler = new LatencyStepHandler(FunctionStep.One, Histogram, StopwatchTimestampCostInNano, TicksToNanos, Iterations);
             _stepTwoFunctionHandler = new LatencyStepHandler(FunctionStep.Two, Histogram, StopwatchTimestampCostInNano, TicksToNanos, Iterations);

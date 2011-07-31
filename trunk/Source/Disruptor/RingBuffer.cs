@@ -11,7 +11,7 @@ namespace Disruptor
     /// <typeparam name="T">Entry implementation storing the data for sharing during exchange or parallel coordination of an event.</typeparam>
     public sealed class RingBuffer<T> : ISequencable, IConsumerBuilder<T> where T : class 
     {
-        private readonly ClaimStrategyFactory.ClaimStrategyOption _claimStrategyOption;
+        private readonly ClaimStrategyOption _claimStrategyOption;
         private CacheLineStorageLong _cursor = new CacheLineStorageLong(RingBufferConvention.InitialCursorValue);
         private readonly Entry<T>[] _entries;
         private readonly int _ringModMask;
@@ -28,15 +28,15 @@ namespace Disruptor
         /// <param name="size">size of the RingBuffer that will be rounded up to the next power of 2</param>
         /// <param name="claimStrategyOption"> threading strategy for producers claiming entries in the ring.</param>
         /// <param name="waitStrategyOption">waiting strategy employed by consumers waiting on entries becoming available.</param>
-        public RingBuffer(Func<T> entryFactory, int size, ClaimStrategyFactory.ClaimStrategyOption claimStrategyOption = ClaimStrategyFactory.ClaimStrategyOption.Multithreaded, WaitStrategyFactory.WaitStrategyOption waitStrategyOption = WaitStrategyFactory.WaitStrategyOption.Blocking)
+        public RingBuffer(Func<T> entryFactory, int size, ClaimStrategyOption claimStrategyOption = ClaimStrategyOption.MultipleProducers, WaitStrategyOption waitStrategyOption = WaitStrategyOption.Blocking)
         {
             _claimStrategyOption = claimStrategyOption;
             var sizeAsPowerOfTwo = Util.CeilingNextPowerOfTwo(size);
             _ringModMask = sizeAsPowerOfTwo - 1;
             _entries = new Entry<T>[sizeAsPowerOfTwo];
 
-            _claimStrategy = ClaimStrategyFactory.GetInstance(claimStrategyOption);
-            _waitStrategy = WaitStrategyFactory.GetInstance(waitStrategyOption);
+            _claimStrategy = claimStrategyOption.GetInstance();
+            _waitStrategy = waitStrategyOption.GetInstance();
 
             Fill(entryFactory);
         }
@@ -305,7 +305,7 @@ namespace Disruptor
                 _ringModMask = _ringBuffer._ringModMask;
                 _ringBufferSize = _entries.Length;
                 _waitStrategy = _ringBuffer._waitStrategy;
-                _isMultithreaded = _ringBuffer._claimStrategyOption == ClaimStrategyFactory.ClaimStrategyOption.Multithreaded;
+                _isMultithreaded = _ringBuffer._claimStrategyOption == ClaimStrategyOption.MultipleProducers;
             }
 
             public long NextEntry(out T data)

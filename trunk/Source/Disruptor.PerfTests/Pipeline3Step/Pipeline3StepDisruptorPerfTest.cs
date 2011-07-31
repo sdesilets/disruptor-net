@@ -15,8 +15,8 @@ namespace Disruptor.PerfTests.Pipeline3Step
             : base(20 * Million)
         {
             _ringBuffer = new RingBuffer<FunctionEntry>(() => new FunctionEntry(), Size,
-                                                        ClaimStrategyFactory.ClaimStrategyOption.SingleThreaded,
-                                                        WaitStrategyFactory.WaitStrategyOption.Yielding);
+                                                        ClaimStrategyOption.SingleProducer,
+                                                        WaitStrategyOption.Yielding);
 
             _stepThreeFunctionHandler = new FunctionHandler(FunctionStep.Three, Iterations);
 

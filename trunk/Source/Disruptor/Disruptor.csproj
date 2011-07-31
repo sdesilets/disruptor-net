@@ -49,6 +49,7 @@
     </Compile>
     <Compile Include="ActionBatchHandler.cs" />
     <Compile Include="BatchConsumer.cs" />
+    <Compile Include="ClaimStrategyExtensions.cs" />
     <Compile Include="Collections\Histogram.cs" />
     <Compile Include="ConsumerExtensions.cs" />
     <Compile Include="ConsumerGroup.cs" />
@@ -64,7 +65,7 @@
     <Compile Include="MemoryLayout\CacheLine.cs" />
     <Compile Include="MemoryLayout\CacheLineStorageLong.cs" />
     <Compile Include="MemoryLayout\CacheLineStorageBool.cs" />
-    <Compile Include="ClaimStrategyFactory.cs" />
+    <Compile Include="ClaimStrategyOption.cs" />
     <Compile Include="IBatchHandler.cs" />
     <Compile Include="IClaimStrategy.cs" />
     <Compile Include="IBatchConsumer.cs" />
@@ -76,7 +77,8 @@
     <Compile Include="SequenceBatch.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="WaitForResult.cs" />
-    <Compile Include="WaitStrategyFactory.cs" />
+    <Compile Include="WaitStrategyExtensions.cs" />
+    <Compile Include="WaitStrategyOption.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="SequenceDiagram.txt" />

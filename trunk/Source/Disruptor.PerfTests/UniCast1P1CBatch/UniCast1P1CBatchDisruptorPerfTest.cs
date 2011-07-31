@@ -15,9 +15,8 @@ namespace Disruptor.PerfTests.UniCast1P1CBatch
             : base(100 * Million)
         {
             _ringBuffer = new RingBuffer<ValueEntry>(()=>new ValueEntry(), Size,
-                                   ClaimStrategyFactory.ClaimStrategyOption.SingleThreaded,
-                                   WaitStrategyFactory.WaitStrategyOption.Yielding);
-
+                                   ClaimStrategyOption.SingleProducer,
+                                   WaitStrategyOption.Yielding);
 
             _handler = new ValueAdditionHandler(Iterations);
             _ringBuffer.ConsumeWith(_handler);
