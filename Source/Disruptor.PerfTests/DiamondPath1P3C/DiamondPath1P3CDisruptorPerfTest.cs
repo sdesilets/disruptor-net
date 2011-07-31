@@ -18,8 +18,8 @@ namespace Disruptor.PerfTests.DiamondPath1P3C
             : base(20 * Million)
         {
             _ringBuffer = new RingBuffer<FizzBuzzEntry>(() => new FizzBuzzEntry(), Size,
-                                          ClaimStrategyFactory.ClaimStrategyOption.SingleThreaded,
-                                          WaitStrategyFactory.WaitStrategyOption.Yielding);
+                                          ClaimStrategyOption.SingleProducer,
+                                          WaitStrategyOption.Yielding);
 
 
             _fizzHandler = new FizzBuzzHandler(FizzBuzzStep.Fizz, Iterations);

@@ -18,8 +18,8 @@ namespace Disruptor.PerfTests.Sequencer3P1C
             : base(20 * Million)
         {
             _ringBuffer = new RingBuffer<ValueEntry>(()=>new ValueEntry(), Size,
-                                   ClaimStrategyFactory.ClaimStrategyOption.Multithreaded,
-                                   WaitStrategyFactory.WaitStrategyOption.Yielding);
+                                   ClaimStrategyOption.MultipleProducers,
+                                   WaitStrategyOption.Yielding);
 
             _handler = new ValueAdditionHandler(Iterations * NumProducers);
             _ringBuffer.ConsumeWith(_handler);

@@ -6,35 +6,20 @@ namespace Disruptor
     ///<summary>
     /// Fatory used by the <see cref="RingBuffer{T}"/> to instantiate the selected <see cref="IClaimStrategy"/>.
     ///</summary>
-    public static class ClaimStrategyFactory
+    public static class ClaimStrategyExtensions
     {
-        /// <summary>
-        /// Indicates the threading policy to be applied for claiming <see cref="Entry{T}"/>s by producers to the <see cref="RingBuffer{T}"/>.
-        /// </summary>
-        public enum ClaimStrategyOption
-        {
-            /// <summary>
-            /// Strategy to be used when there are multiple producer threads claiming <see cref="Entry{T}"/>s.
-            /// </summary>
-            Multithreaded,
-            /// <summary>
-            /// Optimised strategy can be used when there is a single producer thread claiming <see cref="Entry{T}"/>s.
-            /// </summary>
-            SingleThreaded
-        }
-
         /// <summary>
         /// Used by the <see cref="RingBuffer{T}"/> as a polymorphic constructor.
         /// </summary>
         /// <param name="option">strategy to be used.</param>
         /// <returns>a new instance of the ClaimStrategy</returns>
-        public static IClaimStrategy GetInstance(ClaimStrategyOption option)
+        public static IClaimStrategy GetInstance(this ClaimStrategyOption option)
         {
             switch (option)
             {
-                case ClaimStrategyOption.Multithreaded:
+                case ClaimStrategyOption.MultipleProducers:
                     return new MultiThreadedStrategy();
-                case ClaimStrategyOption.SingleThreaded:
+                case ClaimStrategyOption.SingleProducer:
                     return new SingleThreadedStrategy();
                 default:
                     throw new InvalidOperationException("Option not supported");
