@@ -1,8 +1,8 @@
+#labels Phase-Implementation
 ==Code example==
 
-===Value type messages===
-
-The code below is an example of a single producer and single consumer using the convenience interface `IBatchHandler<T>` for implementing a consumer. The consumer runs on a separate thread receiving entries as they become available. 
+The code below is an example of a single producer and single consumer using the convenience interface `IBatchHandler<T>` for implementing a consumer. 
+The consumer runs on a separate thread receiving entries as they become available. 
 
 Consumers implement this interface for convenience. 
 {{{
@@ -23,37 +23,7 @@ public class ValueAdditionHandler:IBatchHandler<long>
 }
 }}}
 
-Setup the `ValueTypeRingBuffer` and associated barriers. 
-{{{
-var ringBuffer = new ValueTypeRingBuffer<long>(Size,
-            ClaimStrategyFactory.ClaimStrategyOption.SingleThreaded,
-            WaitStrategyFactory.WaitStrategyOption.Yielding);
-
-var consumerBarrier = ringBuffer.CreateConsumerBarrier();
-	
-// create your custom handler
-var handler = new ValueAdditionHandler();
-	
-var batchConsumer = new BatchConsumer<long>(consumerBarrier, handler);
-var producerBarrier = _ringBuffer.CreateProducerBarrier(batchConsumer);
-	
-//run the consumer in a new Thread
-var thread = new Thread(batchConsumer.Run) { Name = "Consumer" };
-thread.Start();
-}}}
-
-Publish messages to the disruptor
-{{{
-var message = 1L;
-	
-// make the entry available to consumers
-producerBarrier.Commit(message);
-}}}
-
-===Reference type messages===
-Consumers implement the `IBatchHandler<T>` the same way, the only difference is the initialisation of the ring buffer and the way you pubblish to it.
-
-Define the type of message exchanged (reference type this time)
+Define the type of message exchanged
 {{{
 public sealed class ValueEntry
 {
@@ -63,22 +33,32 @@ public sealed class ValueEntry
 
 Setup the `RingBuffer` and associated barriers. 
 {{{
-// notice the factory method used to initialise all messages in the ring buffer
-var ringBuffer = new RingBuffer<long>(()=>new ValueEntry(), Size,
-                ClaimStrategyFactory.ClaimStrategyOption.SingleThreaded,
-                WaitStrategyFactory.WaitStrategyOption.Yielding);
+ringBuffer = new RingBuffer<ValueEntry>(()=>new ValueEntry(), // ValueEntry factory
+                                        1000,                 // Size of the RingBuffer (will be rounded to the next power of 2
+                                                     ClaimStrategyFactory.ClaimStrategyOption.SingleThreaded,
+                                                     WaitStrategyFactory.WaitStrategyOption.Yielding);
 
-// same code as before for barriers, batch handlers, and thread creation
+
+handler = new ValueAdditionHandler(Iterations);
+ringBuffer.ConsumeWith(_handler);
+
+producerBarrier = _ringBuffer.CreateProducerBarrier();
+	
+//run the consumer in a new Thread
+ringBuffer.StartConsumers();
 }}}
 
 Publish messages to the disruptor
 {{{
-// Producers claim entries in sequence
-ValueEntry message;
-long sequence = producerBarrier.NextEntry(out message);
-	
-message.Value = 123L;
-	
-// make the entry available to consumers
+ValueEntry data;
+long sequence = _producerBarrier.NextEntry(out data);
+
+data.Value = 123L;
+
 producerBarrier.Commit(sequence);
+}}}
+
+To tear down the `RingBuffer` and stop consumer(s) thread(s):
+{{{
+ringBuffer.Halt();
 }}}
