@@ -1,3 +1,8 @@
+===v1.0===
+ * New API to configure the disruptor (look at the performance tests to see some samples)
+ * Removed value type ring buffer
+ * Improved significantly the perf test runner (better reporting, adjusted duration of tests, print additional system informations, print warnings if insuficient cores or HT is turned on)
+
 ===10th July - v0.7===
  * Add batching support on producer barrier
  * Setup continuous build and new build targets to generate packages
