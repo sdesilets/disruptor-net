@@ -20,7 +20,7 @@ namespace Disruptor
         private readonly IList<Thread> _threads = new List<Thread>();
         private IBatchConsumer[] _trackedConsumers;
         private readonly int _ringBufferSize;
-        private readonly bool _isMultithreaded;
+        private readonly bool _isMultipleProducer;
         private long _lastConsumerMinimum = RingBufferConvention.InitialCursorValue;
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace Disruptor
             _entries = new Entry<T>[_ringBufferSize];
             _claimStrategy = claimStrategyOption.GetInstance();
             _waitStrategy = waitStrategyOption.GetInstance();
-            _isMultithreaded = claimStrategyOption == ClaimStrategyOption.MultipleProducers;
+            _isMultipleProducer = claimStrategyOption == ClaimStrategyOption.MultipleProducers;
 
             Fill(entryFactory);
         }
@@ -245,12 +245,14 @@ namespace Disruptor
 
         private void Commit(long sequence, long batchSize)
         {
-            if (_isMultithreaded)
+            if (_isMultipleProducer)
             {
                 long expectedSequence = sequence - batchSize;
+                
+                var spin = new SpinWait();
                 while (expectedSequence != Cursor)
                 {
-                    // busy spin
+                    spin.SpinOnce();
                 }
             }
 
