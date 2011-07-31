@@ -34,9 +34,9 @@ public sealed class ValueEntry
 Setup the `RingBuffer` and associated barriers. 
 {{{
 ringBuffer = new RingBuffer<ValueEntry>(()=>new ValueEntry(), // ValueEntry factory
-                                        1000,                 // Size of the RingBuffer (will be rounded to the next power of 2
-                                                     ClaimStrategyFactory.ClaimStrategyOption.SingleThreaded,
-                                                     WaitStrategyFactory.WaitStrategyOption.Yielding);
+                                        1000, // Size of the RingBuffer (will be rounded to the next power of 2
+                                        ClaimStrategyFactory.ClaimStrategyOption.SingleThreaded, // Single producer
+                                        WaitStrategyFactory.WaitStrategyOption.Yielding);
 
 
 handler = new ValueAdditionHandler(Iterations);
