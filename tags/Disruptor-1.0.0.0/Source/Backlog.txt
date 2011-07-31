@@ -1,0 +1,10 @@
+- add a fluent API to configure the consumer barriers (this is quite verbose to build that manually) (Olivier)
+- add test coverage (NCover? DotCover?)
+- improve test coverage and test properly ValueTypeRingBuffer and its nested classes
+- generate API documentation in the build process
+- add proper documentation in the wiki
+- review exception handling
+- add TPL dataflow performance tests (Matt)
+- refeactor strategy factories to extension methodes (Matt)
+- print CPU details in the test report (architecture, hyperthreading, logic/physical cores, frequency, etc)
+- implement batching with ValueTypeRingBuffer
