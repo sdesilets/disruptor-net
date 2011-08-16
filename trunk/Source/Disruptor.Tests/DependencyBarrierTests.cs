@@ -63,7 +63,7 @@ namespace Disruptor.Tests
                 workers[i] = new StubEventProcessor(expectedNumberEvents - 1);
             }
 
-            var eventProcessorBarrier = _ringBuffer.CreateBarrier(workers);
+            var dependencyBarrier = _ringBuffer.CreateBarrier(workers);
 
             new Thread(() =>
                     {
@@ -74,13 +74,13 @@ namespace Disruptor.Tests
 
                         foreach (var stubWorker in workers)
                         {
-                            stubWorker.Sequence = sequence;
+                            stubWorker.Sequence.Value = sequence;
                         }
                     })
                     .Start();
 
             const long expectedWorkSequence = expectedNumberEvents;
-            var waitForResult = eventProcessorBarrier.WaitFor(expectedNumberEvents);
+            var waitForResult = dependencyBarrier.WaitFor(expectedNumberEvents);
             Assert.IsTrue(waitForResult.AvailableSequence >= expectedWorkSequence);
         }
 
@@ -137,7 +137,7 @@ namespace Disruptor.Tests
                            {
                                 foreach (var stubWorker in eventProcessors)
                                 {
-                                    stubWorker.Sequence = stubWorker.Sequence + 1;
+                                    stubWorker.Sequence.Value += 1;
                                 }
                            }).Start();
 
