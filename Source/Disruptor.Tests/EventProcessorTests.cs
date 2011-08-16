@@ -65,7 +65,7 @@ namespace Disruptor.Tests
             var thread = new Thread(_eventProcessor.Run);
             thread.Start();
 
-            Assert.AreEqual(-1L, _eventProcessor.Sequence);
+            Assert.AreEqual(-1L, _eventProcessor.Sequence.Value);
 
             StubEvent data;
             var sequence = _ringBuffer.NextEvent(out data);
