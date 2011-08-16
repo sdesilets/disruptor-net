@@ -13,24 +13,24 @@ namespace Disruptor.PerfTests.Pipeline3Step
         private readonly BlockingCollection<long> _stepTwoQueue = new BlockingCollection<long>(Size);
         private readonly BlockingCollection<long> _stepThreeQueue = new BlockingCollection<long>(Size);
 
-        private readonly FunctionQueueConsumer _stepOneQueueConsumer;
-        private readonly FunctionQueueConsumer _stepTwoQueueConsumer;
-        private readonly FunctionQueueConsumer _stepThreeQueueConsumer;
+        private readonly FunctionQueueEventProcessor _stepOneQueueEventProcessor;
+        private readonly FunctionQueueEventProcessor _stepTwoQueueEventProcessor;
+        private readonly FunctionQueueEventProcessor _stepThreeQueueEventProcessor;
 
         public Pipeline3StepBlockingCollectionPerfTest() : base(1*Million)
         {
-            _stepOneQueueConsumer = new FunctionQueueConsumer(FunctionStep.One, _stepOneQueue, _stepTwoQueue, _stepThreeQueue, Iterations);
-            _stepTwoQueueConsumer = new FunctionQueueConsumer(FunctionStep.Two, _stepOneQueue, _stepTwoQueue, _stepThreeQueue, Iterations);
-            _stepThreeQueueConsumer = new FunctionQueueConsumer(FunctionStep.Three, _stepOneQueue, _stepTwoQueue, _stepThreeQueue, Iterations);
+            _stepOneQueueEventProcessor = new FunctionQueueEventProcessor(FunctionStep.One, _stepOneQueue, _stepTwoQueue, _stepThreeQueue, Iterations);
+            _stepTwoQueueEventProcessor = new FunctionQueueEventProcessor(FunctionStep.Two, _stepOneQueue, _stepTwoQueue, _stepThreeQueue, Iterations);
+            _stepThreeQueueEventProcessor = new FunctionQueueEventProcessor(FunctionStep.Three, _stepOneQueue, _stepTwoQueue, _stepThreeQueue, Iterations);
         }
 
         public override long RunPass()
         {
-            _stepThreeQueueConsumer.Reset();
+            _stepThreeQueueEventProcessor.Reset();
 
-            ThreadPool.QueueUserWorkItem(_ => _stepOneQueueConsumer.Run());
-            ThreadPool.QueueUserWorkItem(_ => _stepTwoQueueConsumer.Run());
-            ThreadPool.QueueUserWorkItem(_ => _stepThreeQueueConsumer.Run());
+            ThreadPool.QueueUserWorkItem(_ => _stepOneQueueEventProcessor.Run());
+            ThreadPool.QueueUserWorkItem(_ => _stepTwoQueueEventProcessor.Run());
+            ThreadPool.QueueUserWorkItem(_ => _stepThreeQueueEventProcessor.Run());
 
             var sw = Stopwatch.StartNew();
 
@@ -43,14 +43,14 @@ namespace Disruptor.PerfTests.Pipeline3Step
                 _stepOneQueue.Add(values);
             }
 
-            while (!_stepThreeQueueConsumer.Done)
+            while (!_stepThreeQueueEventProcessor.Done)
             {
                 // busy spin
             }
 
             var opsPerSecond = (Iterations * 1000L) / sw.ElapsedMilliseconds;
 
-            Assert.AreEqual(ExpectedResult, _stepThreeQueueConsumer.StepThreeCounter);
+            Assert.AreEqual(ExpectedResult, _stepThreeQueueEventProcessor.StepThreeCounter);
 
             return opsPerSecond;
         }

@@ -25,29 +25,29 @@ namespace Disruptor.Tests
         [Test]
         public void ShouldReturnMinimumSequence()
         {
-            var consumerMock1 = new Mock<IBatchConsumer>();
-            var consumerMock2 = new Mock<IBatchConsumer>();
-            var consumerMock3 = new Mock<IBatchConsumer>();
+            var eventProcessorMock1 = new Mock<IEventProcessor>();
+            var eventProcessorMock2 = new Mock<IEventProcessor>();
+            var eventProcessorMock3 = new Mock<IEventProcessor>();
 
-            var consumers = new[] {consumerMock1.Object, consumerMock2.Object, consumerMock3.Object};
+            var eventProcessors = new[] {eventProcessorMock1.Object, eventProcessorMock2.Object, eventProcessorMock3.Object};
 
-            consumerMock1.SetupGet(c => c.Sequence).Returns(11);
-            consumerMock2.SetupGet(c => c.Sequence).Returns(4);
-            consumerMock3.SetupGet(c => c.Sequence).Returns(13);
+            eventProcessorMock1.SetupGet(c => c.Sequence).Returns(11);
+            eventProcessorMock2.SetupGet(c => c.Sequence).Returns(4);
+            eventProcessorMock3.SetupGet(c => c.Sequence).Returns(13);
 
-            Assert.AreEqual(4L, consumers.GetMinimumSequence());
+            Assert.AreEqual(4L, eventProcessors.GetMinimumSequence());
 
-            consumerMock1.Verify();
-            consumerMock2.Verify();
-            consumerMock3.Verify();
+            eventProcessorMock1.Verify();
+            eventProcessorMock2.Verify();
+            eventProcessorMock3.Verify();
         }
 
         [Test]
-        public void ShouldReturnLongMaxWhenNoConsumers()
+        public void ShouldReturnLongMaxWhenNoEventProcessors()
         {
-            var consumers = new IBatchConsumer[0];
+            var eventProcessors = new IEventProcessor[0];
 
-            Assert.AreEqual(long.MaxValue, consumers.GetMinimumSequence());
+            Assert.AreEqual(long.MaxValue, eventProcessors.GetMinimumSequence());
         }
     }
 }

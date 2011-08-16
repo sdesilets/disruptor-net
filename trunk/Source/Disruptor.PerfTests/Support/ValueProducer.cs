@@ -6,9 +6,9 @@ namespace Disruptor.PerfTests.Support
     {
         private readonly Barrier _barrier;
         private readonly long _iterations;
-        private readonly RingBuffer<ValueEntry> _ringBuffer;
+        private readonly RingBuffer<ValueEvent> _ringBuffer;
 
-        public ValueProducer(Barrier barrier, RingBuffer<ValueEntry> ringBuffer, long iterations)
+        public ValueProducer(Barrier barrier, RingBuffer<ValueEvent> ringBuffer, long iterations)
         {
             _barrier = barrier;
             _ringBuffer = ringBuffer;
@@ -21,8 +21,8 @@ namespace Disruptor.PerfTests.Support
 
             for (long i = 0; i < _iterations; i++)
             {
-                ValueEntry data;
-                var sequence = _ringBuffer.NextEntry(out data);
+                ValueEvent data;
+                var sequence = _ringBuffer.NextEvent(out data);
                 data.Value = i;
                 _ringBuffer.Commit(sequence);
             }

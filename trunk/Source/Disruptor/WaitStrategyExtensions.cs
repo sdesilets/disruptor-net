@@ -30,14 +30,14 @@ namespace Disruptor
         }
 
         /// <summary>
-        /// Blocking strategy that uses a lock and condition variable for <see cref="IBatchConsumer"/>s waiting on a barrier.
+        /// Blocking strategy that uses a lock and condition variable for <see cref="IEventProcessor"/>s waiting on a barrier.
         /// This strategy should be used when performance and low-latency are not as important as CPU resource.
         /// </summary>
         private sealed class BlockingStrategy : IWaitStrategy
         {
             private readonly object _gate = new object();
 
-            public WaitForResult WaitFor<T>(IBatchConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence)
+            public WaitForResult WaitFor<T>(IEventProcessor[] eventProcessors, ISequencable ringBuffer, IDependencyBarrier<T> barrier, long sequence)
             {
                 var availableSequence = ringBuffer.Cursor; // volatile read
                 if (availableSequence < sequence)
@@ -56,9 +56,9 @@ namespace Disruptor
                     }
                 }
 
-                if (0 != consumers.Length)
+                if (0 != eventProcessors.Length)
                 {
-                    while ((availableSequence = consumers.GetMinimumSequence()) < sequence)
+                    while ((availableSequence = eventProcessors.GetMinimumSequence()) < sequence)
                     {
                         if (barrier.IsAlerted)
                         {
@@ -80,16 +80,16 @@ namespace Disruptor
         }
 
         /// <summary>
-        /// Yielding strategy that uses a Thread.yield() for <see cref="IBatchConsumer"/>s waiting on a barrier.
+        /// Yielding strategy that uses a Thread.yield() for <see cref="IEventProcessor"/>s waiting on a barrier.
         /// This strategy is a good compromise between performance and CPU resource.
         /// </summary>
         private sealed class YieldingStrategy:IWaitStrategy
         {
-        	public WaitForResult WaitFor<T>(IBatchConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence)
+        	public WaitForResult WaitFor<T>(IEventProcessor[] eventProcessors, ISequencable ringBuffer, IDependencyBarrier<T> barrier, long sequence)
             {
                 long availableSequence;
 
-                if (0 == consumers.Length)
+                if (0 == eventProcessors.Length)
                 {
                     while ((availableSequence = ringBuffer.Cursor) < sequence) // volatile read
                     {
@@ -103,7 +103,7 @@ namespace Disruptor
                 }
                 else
                 {
-                    while ((availableSequence = consumers.GetMinimumSequence()) < sequence)
+                    while ((availableSequence = eventProcessors.GetMinimumSequence()) < sequence)
                     {
                         if (barrier.IsAlerted)
                         {
@@ -123,17 +123,17 @@ namespace Disruptor
         }
 
         /// <summary>
-        /// Busy Spin strategy that uses a busy spin loop for <see cref="IBatchConsumer"/>s waiting on a barrier.
+        /// Busy Spin strategy that uses a busy spin loop for <see cref="IEventProcessor"/>s waiting on a barrier.
         /// This strategy will use CPU resource to avoid syscalls which can introduce latency jitter.  It is best
         /// used when threads can be bound to specific CPU cores.
         /// </summary>
         private sealed class BusySpinStrategy:IWaitStrategy
         {
-            public WaitForResult WaitFor<T>(IBatchConsumer[] consumers, ISequencable ringBuffer, IConsumerBarrier<T> barrier, long sequence)
+            public WaitForResult WaitFor<T>(IEventProcessor[] eventProcessors, ISequencable ringBuffer, IDependencyBarrier<T> barrier, long sequence)
             {
                 long availableSequence;
 
-                if (0 == consumers.Length)
+                if (0 == eventProcessors.Length)
                 {
                     while ((availableSequence = ringBuffer.Cursor) < sequence) // volatile read
                     {
@@ -145,7 +145,7 @@ namespace Disruptor
                 }
                 else
                 {
-                    while ((availableSequence = consumers.GetMinimumSequence()) < sequence)
+                    while ((availableSequence = eventProcessors.GetMinimumSequence()) < sequence)
                     {
                         if (barrier.IsAlerted)
                         {

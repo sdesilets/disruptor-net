@@ -7,40 +7,40 @@ namespace Disruptor.PerfTests.Pipeline3Step
     [TestFixture]
     public class Pipeline3StepDisruptorPerfTest : AbstractPipeline3StepPerfTest
     {
-        private readonly RingBuffer<FunctionEntry> _ringBuffer;
-        private readonly FunctionHandler _stepThreeFunctionHandler;
+        private readonly RingBuffer<FunctionEvent> _ringBuffer;
+        private readonly FunctionEventHandler _stepThreeFunctionEventHandler;
 
         public Pipeline3StepDisruptorPerfTest()
             : base(20 * Million)
         {
-            _ringBuffer = new RingBuffer<FunctionEntry>(() => new FunctionEntry(), Size,
+            _ringBuffer = new RingBuffer<FunctionEvent>(() => new FunctionEvent(), Size,
                                                         ClaimStrategyOption.SingleProducer,
                                                         WaitStrategyOption.Yielding);
 
-            _stepThreeFunctionHandler = new FunctionHandler(FunctionStep.Three, Iterations);
+            _stepThreeFunctionEventHandler = new FunctionEventHandler(FunctionStep.Three, Iterations);
 
-            _ringBuffer.ConsumeWith(new FunctionHandler(FunctionStep.One, Iterations))
-                .Then(new FunctionHandler(FunctionStep.Two, Iterations))
-                .Then(_stepThreeFunctionHandler);
+            _ringBuffer.ProcessWith(new FunctionEventHandler(FunctionStep.One, Iterations))
+                .Then(new FunctionEventHandler(FunctionStep.Two, Iterations))
+                .Then(_stepThreeFunctionEventHandler);
         }
 
         public override long RunPass()
         {
-            _ringBuffer.StartConsumers();
+            _ringBuffer.StartProcessors();
 
             var sw = Stopwatch.StartNew();
 
             var operandTwo = OperandTwoInitialValue;
             for (long i = 0; i < Iterations; i++)
             {
-                FunctionEntry data;
-                var sequence = _ringBuffer.NextEntry(out data);
+                FunctionEvent data;
+                var sequence = _ringBuffer.NextEvent(out data);
                 data.OperandOne = i;
                 data.OperandTwo = operandTwo--;
                 _ringBuffer.Commit(sequence);
             }
 
-            while (!_stepThreeFunctionHandler.Done)
+            while (!_stepThreeFunctionEventHandler.Done)
             {
                 // busy spin
             }
@@ -49,7 +49,7 @@ namespace Disruptor.PerfTests.Pipeline3Step
 
             _ringBuffer.Halt();
 
-            Assert.AreEqual(ExpectedResult, _stepThreeFunctionHandler.StepThreeCounter);
+            Assert.AreEqual(ExpectedResult, _stepThreeFunctionEventHandler.StepThreeCounter);
 
             return opsPerSecond;
         }

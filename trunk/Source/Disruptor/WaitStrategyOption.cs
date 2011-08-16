@@ -6,7 +6,7 @@
     public enum WaitStrategyOption
     {
         /// <summary>
-        /// This strategy uses a condition variable inside a lock to block the consumer which saves CPU resource as the expense of lock contention.
+        /// This strategy uses a condition variable inside a lock to block the <see cref="IEventProcessor"/> which saves CPU resource as the expense of lock contention.
         /// </summary>
         Blocking,
         /// <summary>

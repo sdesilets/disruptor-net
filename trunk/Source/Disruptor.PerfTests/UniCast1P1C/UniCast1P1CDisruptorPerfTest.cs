@@ -7,38 +7,38 @@ namespace Disruptor.PerfTests.UniCast1P1C
     [TestFixture]
     public class UniCast1P1CDisruptorPerfTest : AbstractUniCast1P1CPerfTest
     {
-        private readonly RingBuffer<ValueEntry> _ringBuffer;
-        private readonly ValueAdditionHandler _handler;
+        private readonly RingBuffer<ValueEvent> _ringBuffer;
+        private readonly ValueAdditionEventHandler _eventHandler;
 
         public UniCast1P1CDisruptorPerfTest()
             : base(20 * Million)
         {
-            _ringBuffer = new RingBuffer<ValueEntry>(()=>new ValueEntry(),Size,
+            _ringBuffer = new RingBuffer<ValueEvent>(()=>new ValueEvent(),Size,
                                                      ClaimStrategyOption.SingleProducer,
                                                      WaitStrategyOption.Yielding);
 
 
-            _handler = new ValueAdditionHandler(Iterations);
-            _ringBuffer.ConsumeWith(_handler);
+            _eventHandler = new ValueAdditionEventHandler(Iterations);
+            _ringBuffer.ProcessWith(_eventHandler);
         }
 
         public override long RunPass()
         {
-            _ringBuffer.StartConsumers();
+            _ringBuffer.StartProcessors();
 
             var sw = Stopwatch.StartNew();
 
             for (long i = 0; i < Iterations; i++)
             {
-                ValueEntry data;
-                var sequence = _ringBuffer.NextEntry(out data);
+                ValueEvent data;
+                var sequence = _ringBuffer.NextEvent(out data);
 
                 data.Value = i;
 
                 _ringBuffer.Commit(sequence);
             }
 
-            while (!_handler.Done)
+            while (!_eventHandler.Done)
             {
                 // busy spin
             }
@@ -46,7 +46,7 @@ namespace Disruptor.PerfTests.UniCast1P1C
             var opsPerSecond = (Iterations * 1000L) / sw.ElapsedMilliseconds;
             _ringBuffer.Halt();
 
-            Assert.AreEqual(ExpectedResult, _handler.Value.Value, "RunDisruptorPass");
+            Assert.AreEqual(ExpectedResult, _eventHandler.Value.Value, "RunDisruptorPass");
 
             return opsPerSecond;
         }

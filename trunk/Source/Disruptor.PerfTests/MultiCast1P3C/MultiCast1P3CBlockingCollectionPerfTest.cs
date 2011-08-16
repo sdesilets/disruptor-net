@@ -17,22 +17,22 @@ namespace Disruptor.PerfTests.MultiCast1P3C
                                                                     new BlockingCollection<long>(Size)
                                                                 };
 
-        private readonly ValueMutationQueueConsumer[] _queueConsumers = new ValueMutationQueueConsumer[NumConsumers];
+        private readonly ValueMutationQueueEventProcessor[] _queueEventProcessors = new ValueMutationQueueEventProcessor[NumEventProcessors];
 
         public MultiCast1P3CBlockingCollectionPerfTest()
             : base(1 * Million)
         {
-            _queueConsumers[0] = new ValueMutationQueueConsumer(_blockingQueues[0], Operation.Addition, Iterations);
-            _queueConsumers[1] = new ValueMutationQueueConsumer(_blockingQueues[1], Operation.Substraction, Iterations);
-            _queueConsumers[2] = new ValueMutationQueueConsumer(_blockingQueues[2], Operation.And, Iterations);
+            _queueEventProcessors[0] = new ValueMutationQueueEventProcessor(_blockingQueues[0], Operation.Addition, Iterations);
+            _queueEventProcessors[1] = new ValueMutationQueueEventProcessor(_blockingQueues[1], Operation.Substraction, Iterations);
+            _queueEventProcessors[2] = new ValueMutationQueueEventProcessor(_blockingQueues[2], Operation.And, Iterations);
         }
 
         public override long RunPass()
         {
-            for (var i = 0; i < NumConsumers; i++)
+            for (var i = 0; i < NumEventProcessors; i++)
             {
-                _queueConsumers[i].Reset();
-                (new Thread(_queueConsumers[i].Run) { Name = string.Format("Queue consumer {0}", i) }).Start();
+                _queueEventProcessors[i].Reset();
+                (new Thread(_queueEventProcessors[i].Run) { Name = string.Format("Queue event processor {0}", i) }).Start();
             }
 
             var sw = Stopwatch.StartNew();
@@ -44,15 +44,15 @@ namespace Disruptor.PerfTests.MultiCast1P3C
                 _blockingQueues[2].Add(i);
             }
 
-            while (!AllConsumersAreDone())
+            while (!AllEventProcessorsAreDone())
             {
                 // busy spin
             }
 
             var opsPerSecond = (Iterations * 1000L) / sw.ElapsedMilliseconds;
-            for (var i = 0; i < NumConsumers; i++)
+            for (var i = 0; i < NumEventProcessors; i++)
             {
-                Assert.AreEqual(ExpectedResults[i], _queueConsumers[i].Value);
+                Assert.AreEqual(ExpectedResults[i], _queueEventProcessors[i].Value);
             }
 
             return opsPerSecond;
@@ -65,9 +65,9 @@ namespace Disruptor.PerfTests.MultiCast1P3C
         }
 
 
-        private bool AllConsumersAreDone()
+        private bool AllEventProcessorsAreDone()
         {
-            return _queueConsumers[0].Done && _queueConsumers[1].Done && _queueConsumers[2].Done;
+            return _queueEventProcessors[0].Done && _queueEventProcessors[1].Done && _queueEventProcessors[2].Done;
         }
     }
 }

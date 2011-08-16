@@ -7,36 +7,36 @@ namespace Disruptor.PerfTests.Pipeline3StepLatency
     [TestFixture]
     public sealed class Pipeline3StepLatencyDisruptorPerfTest : AbstractPipeline3StepLatencyPerfTest
     {
-        private readonly RingBuffer<ValueEntry> _ringBuffer;
+        private readonly RingBuffer<ValueEvent> _ringBuffer;
 
-        private readonly LatencyStepHandler _stepOneFunctionHandler;
-        private readonly LatencyStepHandler _stepTwoFunctionHandler;
-        private readonly LatencyStepHandler _stepThreeFunctionHandler;
+        private readonly LatencyStepEventHandler _stepOneFunctionEventHandler;
+        private readonly LatencyStepEventHandler _stepTwoFunctionEventHandler;
+        private readonly LatencyStepEventHandler _stepThreeFunctionEventHandler;
 
         public Pipeline3StepLatencyDisruptorPerfTest()
             : base(20 * Million)
         {
-            _ringBuffer = new RingBuffer<ValueEntry>(()=>new ValueEntry(), Size,
+            _ringBuffer = new RingBuffer<ValueEvent>(()=>new ValueEvent(), Size,
                                    ClaimStrategyOption.SingleProducer,
                                    WaitStrategyOption.BusySpin);
 
-            _stepOneFunctionHandler = new LatencyStepHandler(FunctionStep.One, Histogram, StopwatchTimestampCostInNano, TicksToNanos, Iterations);
-            _stepTwoFunctionHandler = new LatencyStepHandler(FunctionStep.Two, Histogram, StopwatchTimestampCostInNano, TicksToNanos, Iterations);
-            _stepThreeFunctionHandler = new LatencyStepHandler(FunctionStep.Three, Histogram, StopwatchTimestampCostInNano, TicksToNanos, Iterations);
+            _stepOneFunctionEventHandler = new LatencyStepEventHandler(FunctionStep.One, Histogram, StopwatchTimestampCostInNano, TicksToNanos, Iterations);
+            _stepTwoFunctionEventHandler = new LatencyStepEventHandler(FunctionStep.Two, Histogram, StopwatchTimestampCostInNano, TicksToNanos, Iterations);
+            _stepThreeFunctionEventHandler = new LatencyStepEventHandler(FunctionStep.Three, Histogram, StopwatchTimestampCostInNano, TicksToNanos, Iterations);
 
-            _ringBuffer.ConsumeWith(_stepOneFunctionHandler)
-                .Then(_stepTwoFunctionHandler)
-                .Then(_stepThreeFunctionHandler);
+            _ringBuffer.ProcessWith(_stepOneFunctionEventHandler)
+                .Then(_stepTwoFunctionEventHandler)
+                .Then(_stepThreeFunctionEventHandler);
         }
 
         public override void RunPass()
         {
-            _ringBuffer.StartConsumers();
+            _ringBuffer.StartProcessors();
 
             for (long i = 0; i < Iterations; i++)
             {
-                ValueEntry data;
-                var sequence = _ringBuffer.NextEntry(out data);
+                ValueEvent data;
+                var sequence = _ringBuffer.NextEvent(out data);
                 data.Value = Stopwatch.GetTimestamp();
                 _ringBuffer.Commit(sequence);
 
@@ -47,7 +47,7 @@ namespace Disruptor.PerfTests.Pipeline3StepLatency
                 }
             }
 
-            while (!_stepThreeFunctionHandler.Done)
+            while (!_stepThreeFunctionEventHandler.Done)
             {
                 // busy spin
             }

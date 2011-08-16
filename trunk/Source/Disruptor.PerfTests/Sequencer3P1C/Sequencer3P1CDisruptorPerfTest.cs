@@ -8,20 +8,20 @@ namespace Disruptor.PerfTests.Sequencer3P1C
     [TestFixture]
     public class Sequencer3P1CDisruptorPerfTest : AbstractSequencer3P1CPerfTest
     {
-        private readonly RingBuffer<ValueEntry> _ringBuffer;
-        private readonly ValueAdditionHandler _handler;
+        private readonly RingBuffer<ValueEvent> _ringBuffer;
+        private readonly ValueAdditionEventHandler _eventHandler;
         private readonly ValueProducer[] _valueProducers;
         private readonly Barrier _testStartBarrier = new Barrier(NumProducers);
 
         public Sequencer3P1CDisruptorPerfTest()
             : base(20 * Million)
         {
-            _ringBuffer = new RingBuffer<ValueEntry>(()=>new ValueEntry(), Size,
+            _ringBuffer = new RingBuffer<ValueEvent>(()=>new ValueEvent(), Size,
                                    ClaimStrategyOption.MultipleProducers,
                                    WaitStrategyOption.Yielding);
 
-            _handler = new ValueAdditionHandler(Iterations * NumProducers);
-            _ringBuffer.ConsumeWith(_handler);
+            _eventHandler = new ValueAdditionEventHandler(Iterations * NumProducers);
+            _ringBuffer.ProcessWith(_eventHandler);
             
             _valueProducers = new ValueProducer[NumProducers];
 
@@ -33,7 +33,7 @@ namespace Disruptor.PerfTests.Sequencer3P1C
 
         public override long RunPass()
         {
-            _ringBuffer.StartConsumers();
+            _ringBuffer.StartProcessors();
 
             for (var i = 0; i < NumProducers - 1; i++)
             {
@@ -43,7 +43,7 @@ namespace Disruptor.PerfTests.Sequencer3P1C
             var sw = Stopwatch.StartNew();
             _valueProducers[NumProducers - 1].Run();
 
-            while (!_handler.Done)
+            while (!_eventHandler.Done)
             {
                 // busy spin
             }

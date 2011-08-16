@@ -10,14 +10,14 @@ namespace Disruptor.PerfTests.Sequencer3P1C
     public class Sequencer3P1CBlockingCollectionPerfTest : AbstractSequencer3P1CPerfTest
     {
         private readonly BlockingCollection<long> _blockingQueue = new BlockingCollection<long>(Size);
-        private readonly ValueAdditionQueueConsumer _queueConsumer;
+        private readonly ValueAdditionQueueEventProcessor _queueEventProcessor;
         private readonly ValueQueueProducer[] _valueQueueProducers;
         private readonly Barrier _testStartBarrier = new Barrier(NumProducers + 1);
 
         public Sequencer3P1CBlockingCollectionPerfTest()
             : base(1 * Million)
         {
-            _queueConsumer = new ValueAdditionQueueConsumer(_blockingQueue, Iterations);
+            _queueEventProcessor = new ValueAdditionQueueEventProcessor(_blockingQueue, Iterations);
             _testStartBarrier = new Barrier(NumProducers + 1);
             _valueQueueProducers = new ValueQueueProducer[NumProducers];
 
@@ -29,18 +29,18 @@ namespace Disruptor.PerfTests.Sequencer3P1C
 
         public override long RunPass()
         {
-            _queueConsumer.Reset();
+            _queueEventProcessor.Reset();
 
             for (var i = 0; i < NumProducers; i++)
             {
                 (new Thread(_valueQueueProducers[i].Run) { Name = "Queue producer " + i }).Start();
             }
-            (new Thread(_queueConsumer.Run) { Name = "Queue consumer" }).Start();
+            (new Thread(_queueEventProcessor.Run) { Name = "Queue event processor" }).Start();
 
             var sw = Stopwatch.StartNew();
             _testStartBarrier.SignalAndWait();
 
-            while (!_queueConsumer.Done)
+            while (!_queueEventProcessor.Done)
             {
                 // busy spin
             }

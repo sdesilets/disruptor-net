@@ -7,35 +7,35 @@ namespace Disruptor.PerfTests.MultiCast1P3C
     [TestFixture]
     public class MultiCast1P3CDisruptorPerfTest:AbstractMultiCast1P3CPerfTest
     {
-        private readonly RingBuffer<ValueEntry> _ringBuffer;
-        private readonly ValueMutationHandler _handler1;
-        private readonly ValueMutationHandler _handler2;
-        private readonly ValueMutationHandler _handler3;
+        private readonly RingBuffer<ValueEvent> _ringBuffer;
+        private readonly ValueMutationEventHandler _handler1;
+        private readonly ValueMutationEventHandler _handler2;
+        private readonly ValueMutationEventHandler _handler3;
 
         public MultiCast1P3CDisruptorPerfTest()
             : base(20 * Million)
         {
-            _ringBuffer = new RingBuffer<ValueEntry>(()=>new ValueEntry(), Size,
+            _ringBuffer = new RingBuffer<ValueEvent>(()=>new ValueEvent(), Size,
                                        ClaimStrategyOption.SingleProducer,
                                        WaitStrategyOption.Yielding);
 
-            _handler1 = new ValueMutationHandler(Operation.Addition, Iterations);
-            _handler2 = new ValueMutationHandler(Operation.Substraction, Iterations);
-            _handler3 = new ValueMutationHandler(Operation.And, Iterations);
+            _handler1 = new ValueMutationEventHandler(Operation.Addition, Iterations);
+            _handler2 = new ValueMutationEventHandler(Operation.Substraction, Iterations);
+            _handler3 = new ValueMutationEventHandler(Operation.And, Iterations);
 
-            _ringBuffer.ConsumeWith(_handler1, _handler2, _handler3);
+            _ringBuffer.ProcessWith(_handler1, _handler2, _handler3);
         }
 
         public override long RunPass()
         {
-            _ringBuffer.StartConsumers();
+            _ringBuffer.StartProcessors();
 
             var sw = Stopwatch.StartNew();
 
             for (long i = 0; i < Iterations; i++)
             {
-                ValueEntry data;
-                var sequence = _ringBuffer.NextEntry(out data);
+                ValueEvent data;
+                var sequence = _ringBuffer.NextEvent(out data);
                 data.Value = i;
                 _ringBuffer.Commit(sequence);
             }

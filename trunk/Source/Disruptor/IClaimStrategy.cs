@@ -1,14 +1,14 @@
 ﻿namespace Disruptor
 {
     /// <summary>
-    /// Strategies employed for claiming the sequence of <see cref="Entry{T}"/>s in the <see cref="RingBuffer{T}"/> by producers.
+    /// Strategies employed for claiming the sequence of <see cref="Event{T}"/>s in the <see cref="RingBuffer{T}"/> by producers.
     /// </summary>
     public interface IClaimStrategy
     {
         /// <summary>
         /// Increment the sequence index in the <see cref="RingBuffer{T}"/> and return the new value
         /// </summary>
-        /// <returns>The <see cref="Entry{T}"/> index to be used for the producer.</returns>
+        /// <returns>The <see cref="Event{T}"/> index to be used for the producer.</returns>
         long IncrementAndGet();
 
         ///<summary>

@@ -6,14 +6,14 @@ namespace Disruptor.Tests.Support
     public class TestWaiter
     {
         private readonly Barrier _barrier;
-        private readonly IConsumerBarrier<StubData> _consumerBarrier;
+        private readonly IDependencyBarrier<StubData> _dependencyBarrier;
         private readonly long _initialSequence;
         private readonly long _toWaitForSequence;
 
-        public TestWaiter(Barrier barrier, IConsumerBarrier<StubData> consumerBarrier, long initialSequence, long toWaitForSequence)
+        public TestWaiter(Barrier barrier, IDependencyBarrier<StubData> dependencyBarrier, long initialSequence, long toWaitForSequence)
         {
             _barrier = barrier;
-            _consumerBarrier = consumerBarrier;
+            _dependencyBarrier = dependencyBarrier;
             _initialSequence = initialSequence;
             _toWaitForSequence = toWaitForSequence;
         }
@@ -21,15 +21,15 @@ namespace Disruptor.Tests.Support
         public List<StubData> Call()
         {
             _barrier.SignalAndWait();
-            _consumerBarrier.WaitFor(_toWaitForSequence);
+            _dependencyBarrier.WaitFor(_toWaitForSequence);
 
-            var messages = new List<StubData>();
+            var events = new List<StubData>();
             for (var l = _initialSequence; l <= _toWaitForSequence; l++)
             {
-                messages.Add(_consumerBarrier.GetEntry(l));
+                events.Add(_dependencyBarrier.GetEvent(l));
             }
 
-            return messages;
+            return events;
         }
     }
 }

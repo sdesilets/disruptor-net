@@ -13,25 +13,25 @@ namespace Disruptor.PerfTests.Pipeline3StepLatency
         private readonly BlockingCollection<long> _stepTwoQueue = new BlockingCollection<long>(Size);
         private readonly BlockingCollection<long> _stepThreeQueue = new BlockingCollection<long>(Size);
 
-        private readonly LatencyStepQueueConsumer _stepOneQueueConsumer;
-        private readonly LatencyStepQueueConsumer _stepTwoQueueConsumer;
-        private readonly LatencyStepQueueConsumer _stepThreeQueueConsumer;
+        private readonly LatencyStepQueueEventProcessor _stepOneQueueEventProcessor;
+        private readonly LatencyStepQueueEventProcessor _stepTwoQueueEventProcessor;
+        private readonly LatencyStepQueueEventProcessor _stepThreeQueueEventProcessor;
 
         public Pipeline3StepLatencyBlockingCollectionPerfTest()
             : base(1 * Million)
         {
-            _stepOneQueueConsumer = new LatencyStepQueueConsumer(FunctionStep.One, _stepOneQueue, _stepTwoQueue, Histogram, StopwatchTimestampCostInNano, TicksToNanos, Iterations);
-            _stepTwoQueueConsumer = new LatencyStepQueueConsumer(FunctionStep.Two, _stepTwoQueue, _stepThreeQueue, Histogram, StopwatchTimestampCostInNano, TicksToNanos, Iterations);
-            _stepThreeQueueConsumer = new LatencyStepQueueConsumer(FunctionStep.Three, _stepThreeQueue, null, Histogram, StopwatchTimestampCostInNano, TicksToNanos, Iterations);
+            _stepOneQueueEventProcessor = new LatencyStepQueueEventProcessor(FunctionStep.One, _stepOneQueue, _stepTwoQueue, Histogram, StopwatchTimestampCostInNano, TicksToNanos, Iterations);
+            _stepTwoQueueEventProcessor = new LatencyStepQueueEventProcessor(FunctionStep.Two, _stepTwoQueue, _stepThreeQueue, Histogram, StopwatchTimestampCostInNano, TicksToNanos, Iterations);
+            _stepThreeQueueEventProcessor = new LatencyStepQueueEventProcessor(FunctionStep.Three, _stepThreeQueue, null, Histogram, StopwatchTimestampCostInNano, TicksToNanos, Iterations);
         }
 
         public override void RunPass()
         {
-            _stepThreeQueueConsumer.Reset();
+            _stepThreeQueueEventProcessor.Reset();
 
-            new Thread(_stepOneQueueConsumer.Run) { Name = "Step 1 queues" }.Start();
-            new Thread(_stepTwoQueueConsumer.Run) { Name = "Step 2 queues" }.Start();
-            new Thread(_stepThreeQueueConsumer.Run) { Name = "Step 3 queues" }.Start();
+            new Thread(_stepOneQueueEventProcessor.Run) { Name = "Step 1 queues" }.Start();
+            new Thread(_stepTwoQueueEventProcessor.Run) { Name = "Step 2 queues" }.Start();
+            new Thread(_stepThreeQueueEventProcessor.Run) { Name = "Step 3 queues" }.Start();
 
             for (long i = 0; i < Iterations; i++)
             {
@@ -44,7 +44,7 @@ namespace Disruptor.PerfTests.Pipeline3StepLatency
                 }
             }
 
-            while (!_stepThreeQueueConsumer.Done)
+            while (!_stepThreeQueueEventProcessor.Done)
             {
                 // busy spin
             }
