@@ -7,3 +7,4 @@
  - merged RingBuffer and ProducerBarrier
  - use a SpinWait instead of a busy spin in the commit (multi producer scenario)
  - use extension methods
+ - review sequence diagram
