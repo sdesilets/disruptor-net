@@ -30,7 +30,7 @@ namespace Disruptor.Tests
             StubEvent oldEvent;
             var seq = _ringBuffer.NextEvent(out oldEvent);
             oldEvent.Value = expectedEvent.Data.Value;
-            _ringBuffer.Commit(seq);
+            _ringBuffer.Publish(seq);
 
             var waitForResult = _dependencyBarrier.WaitFor(0);
             Assert.AreEqual(0L, waitForResult.AvailableSequence);
@@ -53,7 +53,7 @@ namespace Disruptor.Tests
             var sequence = _ringBuffer.NextEvent(out oldEvent);
             oldEvent.Value = expectedEvent.Value;
 
-            _ringBuffer.Commit(sequence);
+            _ringBuffer.Publish(sequence);
 
             Assert.AreEqual(expectedEvent, events.Result[0]);
         }
@@ -67,7 +67,7 @@ namespace Disruptor.Tests
                 StubEvent data;
                 var sequence = _ringBuffer.NextEvent(out data);
                 data.Value = i;
-                _ringBuffer.Commit(sequence);
+                _ringBuffer.Publish(sequence);
             }
 
             var expectedSequence = numEvents - 1;
@@ -90,7 +90,7 @@ namespace Disruptor.Tests
                 StubEvent data;
                 var sequence = _ringBuffer.NextEvent(out data);
                 data.Value = i;
-                _ringBuffer.Commit(sequence);
+                _ringBuffer.Publish(sequence);
             }
 
             var expectedSequence = numEvents + offset - 1;
@@ -133,7 +133,7 @@ namespace Disruptor.Tests
                                                 StubEvent data;
                                                 long sequence = ringBuffer.NextEvent(out data);
                                                 data.Value = i;
-                                                ringBuffer.Commit(sequence);
+                                                ringBuffer.Publish(sequence);
 
                                                 if(i == 3) // unblock main thread after 4th event published
                                                 {

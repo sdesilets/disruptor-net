@@ -24,7 +24,7 @@ namespace Disruptor
 
         /// <summary>
         /// Construct a <see cref="EventProcessor{T}"/> that will automatically track the progress by updating its sequence when
-        /// the <see cref="IEventHandler{T}.OnAvailable"/> method returns.
+        /// the <see cref="IEventHandler{T}.OnNext"/> method returns.
         /// </summary>
         /// <param name="ringBuffer">ringBuffer to which events are published</param>
         /// <param name="dependencyBarrier">dependencyBarrier on which it is waiting.</param>
@@ -89,11 +89,10 @@ namespace Disruptor
                     while (nextSequence <= availableSequence)
                     {
                         T data = _ringBuffer.GetEvent(nextSequence);
-                        _eventHandler.OnAvailable(nextSequence, data);
+                        _eventHandler.OnNext(nextSequence, data, nextSequence == availableSequence);
                         
                         nextSequence++;
                     }
-                    _eventHandler.OnEndOfBatch();
 
                     if(_delaySequenceWrite)
                     {

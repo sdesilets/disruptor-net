@@ -9,7 +9,7 @@ namespace Disruptor
     /// Ring based store of reusable events containing the data representing an <see cref="Event{T}"/> being exchanged between producers and eventProcessors.
     /// </summary>
     /// <typeparam name="T">Event implementation storing the data for sharing during exchange or parallel coordination of an event.</typeparam>
-    public sealed class RingBuffer<T> : ISequencable, IEventProcessorBuilder<T> where T : class 
+    public sealed class RingBuffer<T> : IEventProcessorBuilder<T> where T : class 
     {
         private readonly Sequence _cursor = new Sequence(RingBufferConvention.InitialCursorValue);
         private readonly int _ringModMask;
@@ -84,21 +84,21 @@ namespace Disruptor
         }
 
         /// <summary>
-        /// Commit an event back to the <see cref="RingBuffer{T}"/> to make it visible to <see cref="IEventProcessor"/>s
+        /// Publish an event back to the <see cref="RingBuffer{T}"/> to make it visible to <see cref="IEventProcessor"/>s
         /// </summary>
         /// <param name="sequence">sequence number to be committed back to the <see cref="RingBuffer{T}"/></param>
-        public void Commit(long sequence)
+        public void Publish(long sequence)
         {
-            Commit(sequence, 1L);
+            Publish(sequence, 1L);
         }
 
         /// <summary>
-        /// Commit a batch of ev events the <see cref="RingBuffer{T}"/> to make it visible to <see cref="IEventProcessor"/>s.
+        /// Publish a batch of ev events the <see cref="RingBuffer{T}"/> to make it visible to <see cref="IEventProcessor"/>s.
         /// </summary>
         /// <param name="sequenceBatch"></param>
-        public void Commit(SequenceBatch sequenceBatch)
+        public void Publish(SequenceBatch sequenceBatch)
         {
-            Commit(sequenceBatch.End, sequenceBatch.Size);
+            Publish(sequenceBatch.End, sequenceBatch.Size);
         }
 
         ///<summary>
@@ -248,7 +248,7 @@ namespace Disruptor
             }
         }
 
-        private void Commit(long sequence, long batchSize)
+        private void Publish(long sequence, long batchSize)
         {
             if (_isMultipleProducer)
             {

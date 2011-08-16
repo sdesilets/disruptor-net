@@ -70,7 +70,7 @@ namespace Disruptor.Tests
                         StubEvent data;
                         var sequence = _ringBuffer.NextEvent(out data);
                         data.Value = (int)sequence;
-                        _ringBuffer.Commit(sequence);
+                        _ringBuffer.Publish(sequence);
 
                         foreach (var stubWorker in workers)
                         {
@@ -166,7 +166,7 @@ namespace Disruptor.Tests
                 StubEvent data;
                 var sequence = _ringBuffer.NextEvent(out data);
                 data.Value = i;
-                _ringBuffer.Commit(sequence);
+                _ringBuffer.Publish(sequence);
             }
         }
 

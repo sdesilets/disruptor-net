@@ -4,7 +4,6 @@ namespace Disruptor.PerfTests.Support
     {
         private readonly FizzBuzzStep _fizzBuzzStep;
         private readonly long _iterations;
-        private long _fizzBuzzCounter;
         private volatile bool _done;
 
         public bool Done
@@ -12,10 +11,7 @@ namespace Disruptor.PerfTests.Support
             get { return _done; }
         }
 
-        public long FizzBuzzCounter
-        {
-            get { return _fizzBuzzCounter; }
-        }
+        public long FizzBuzzCounter { get; private set; }
 
         public FizzBuzzEventHandler(FizzBuzzStep fizzBuzzStep, long iterations)
         {
@@ -23,7 +19,7 @@ namespace Disruptor.PerfTests.Support
             _iterations = iterations;
         }
 
-        public void OnAvailable(long sequence, FizzBuzzEvent data)
+        public void OnNext(long sequence, FizzBuzzEvent data, bool endOfBatch)
         {
             switch (_fizzBuzzStep)
             {
@@ -37,7 +33,7 @@ namespace Disruptor.PerfTests.Support
                 case FizzBuzzStep.FizzBuzz:
                     if (data.Fizz && data.Buzz)
                     {
-                        ++_fizzBuzzCounter;
+                        ++FizzBuzzCounter;
                     }
                     break;
             }
@@ -45,10 +41,6 @@ namespace Disruptor.PerfTests.Support
             {
                 _done = true;
             }
-        }
-
-        public void OnEndOfBatch()
-        {
         }
     }
 }

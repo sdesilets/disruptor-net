@@ -24,7 +24,7 @@ namespace Disruptor.PerfTests.Support
                 ValueEvent data;
                 var sequence = _ringBuffer.NextEvent(out data);
                 data.Value = i;
-                _ringBuffer.Commit(sequence);
+                _ringBuffer.Publish(sequence);
             }
         }
     }
