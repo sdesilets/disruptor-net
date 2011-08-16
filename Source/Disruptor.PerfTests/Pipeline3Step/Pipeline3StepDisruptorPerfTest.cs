@@ -37,7 +37,7 @@ namespace Disruptor.PerfTests.Pipeline3Step
                 var sequence = _ringBuffer.NextEvent(out data);
                 data.OperandOne = i;
                 data.OperandTwo = operandTwo--;
-                _ringBuffer.Commit(sequence);
+                _ringBuffer.Publish(sequence);
             }
 
             while (!_stepThreeFunctionEventHandler.Done)

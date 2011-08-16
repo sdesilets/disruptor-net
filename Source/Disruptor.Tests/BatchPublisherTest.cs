@@ -28,7 +28,7 @@ namespace Disruptor.Tests
             Assert.AreEqual(4L, sequenceBatch.End);
             Assert.AreEqual(RingBufferConvention.InitialCursorValue, _ringBuffer.Cursor);
 
-            _ringBuffer.Commit(sequenceBatch);
+            _ringBuffer.Publish(sequenceBatch);
 
             Assert.AreEqual(batchSize - 1, _ringBuffer.Cursor);
             Assert.AreEqual(batchSize - 1, _dependencyBarrier.WaitFor(0L).AvailableSequence);

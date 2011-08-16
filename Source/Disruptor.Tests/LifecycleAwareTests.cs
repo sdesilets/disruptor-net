@@ -60,11 +60,7 @@ namespace Disruptor.Tests
                 _shutdownMru = shutdownMru;
             }
 
-            public void OnAvailable(long sequence, StubEvent data)
-            {
-            }
-
-            public void OnEndOfBatch()
+            public void OnNext(long sequence, StubEvent data, bool endOfBatch)
             {
             }
 

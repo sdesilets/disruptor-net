@@ -47,7 +47,6 @@
     <Compile Include="..\Version.cs">
       <Link>Version.cs</Link>
     </Compile>
-    <Compile Include="ActionEventHandler.cs" />
     <Compile Include="DependencyBarrier.cs" />
     <Compile Include="EventProcessor.cs" />
     <Compile Include="ClaimStrategyExtensions.cs" />
@@ -61,7 +60,6 @@
     <Compile Include="RingBufferConvention.cs" />
     <Compile Include="Event.cs" />
     <Compile Include="ILifecycleAware.cs" />
-    <Compile Include="ISequencable.cs" />
     <Compile Include="MemoryLayout\CacheLine.cs" />
     <Compile Include="MemoryLayout\CacheLineStorageLong.cs" />
     <Compile Include="MemoryLayout\CacheLineStorageBool.cs" />

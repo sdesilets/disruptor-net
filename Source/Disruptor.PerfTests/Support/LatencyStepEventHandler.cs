@@ -26,7 +26,7 @@ namespace Disruptor.PerfTests.Support
             _iterations = iterations;
         }
 
-        public void OnAvailable(long sequence, ValueEvent data) 
+        public void OnNext(long sequence, ValueEvent data, bool endOfBatch) 
         {
             switch (_functionStep)
             {
@@ -44,10 +44,6 @@ namespace Disruptor.PerfTests.Support
             {
                 _done = true;
             }
-        }
-
-        public void OnEndOfBatch() 
-        {
         }
     }
 }

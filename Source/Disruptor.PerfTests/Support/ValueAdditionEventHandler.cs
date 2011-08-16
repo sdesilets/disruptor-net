@@ -26,17 +26,13 @@ namespace Disruptor.PerfTests.Support
             _value.Value = 0;
         }
 
-        public void OnAvailable(long sequence, ValueEvent value)
+        public void OnNext(long sequence, ValueEvent value, bool endOfBatch)
         {
             _value.Value += value.Value;
             if(sequence == _iterations - 1)
             {
                 _done = true;
             }
-        }
-
-        public void OnEndOfBatch()
-        {
         }
     }
 }

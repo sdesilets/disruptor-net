@@ -101,11 +101,9 @@
     <Compile Include="Support\Operation.cs" />
     <Compile Include="Support\OperationExtensions.cs" />
     <Compile Include="Support\ValueAdditionEventHandler.cs" />
-    <Compile Include="Support\ValueAdditionEventHandlerValueType.cs" />
     <Compile Include="Support\ValueAdditionQueueEventProcessor.cs" />
     <Compile Include="Support\ValueEvent.cs" />
     <Compile Include="Support\ValueMutationEventHandler.cs" />
-    <Compile Include="Support\ValueMutationEventHandlerValueType.cs" />
     <Compile Include="Support\ValueMutationQueueEventProcessor.cs" />
     <Compile Include="Support\ValueProducer.cs" />
     <Compile Include="Support\ValueQueueProducer.cs" />

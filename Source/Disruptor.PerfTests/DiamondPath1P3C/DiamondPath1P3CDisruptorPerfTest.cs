@@ -39,7 +39,7 @@ namespace Disruptor.PerfTests.DiamondPath1P3C
                 FizzBuzzEvent data;
                 var sequence = _ringBuffer.NextEvent(out data);
                 data.Value = i;
-                _ringBuffer.Commit(sequence);
+                _ringBuffer.Publish(sequence);
             }
 
             while (!_fizzBuzzEventHandler.Done)

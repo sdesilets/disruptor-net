@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using Disruptor.Tests.Support;
 using Moq;
@@ -34,33 +33,8 @@ namespace Disruptor.Tests
         [Test]
         public void ShouldCallMethodsInLifecycleOrder()
         {
-            var stubData = _ringBuffer[0].Data;
-            int[] sequenceCounter = {0};
-            var handlerOk = false;
-            var signalExceptionThrown = false;
-            
-            //TODO refactor with Moq.Sequence
-            _batchHandlerMock.Setup(bh => bh.OnAvailable(0, stubData))
-                .Callback(()=>
-                              {
-                                  handlerOk = (sequenceCounter[0] == 0);
-                                  sequenceCounter[0]++;
-                              });
-            _batchHandlerMock.Setup(bh => bh.OnEndOfBatch())
-                .Callback(() =>
-                              {
-            	          		  try
-            	          		  {
-	            	          	      _countDownEvent.Signal();
-	                                  handlerOk = handlerOk &&(sequenceCounter[0] == 1);
-	                                  sequenceCounter[0]++;
-            	          		  }
-            	          		  catch(InvalidOperationException)
-            	          		  {
-            	          		  	  signalExceptionThrown = true;
-            	          		  	  Assert.Fail("_countDownEvent.Signal should only be called once");
-            	          		  }
-                              });
+            _batchHandlerMock.Setup(bh => bh.OnNext(0, _ringBuffer[0].Data, true))
+                             .Callback(() => _countDownEvent.Signal());
 
             var thread = new Thread(_eventProcessor.Run);
             thread.Start();
@@ -68,30 +42,26 @@ namespace Disruptor.Tests
             Assert.AreEqual(-1L, _eventProcessor.Sequence.Value);
 
             StubEvent data;
-            var sequence = _ringBuffer.NextEvent(out data);
-            _ringBuffer.Commit(sequence);
+            _ringBuffer.Publish(_ringBuffer.NextEvent(out data));
 
             _countDownEvent.Wait(50);
             _eventProcessor.Halt();
             thread.Join();
 
-            _batchHandlerMock.VerifyAll();
-            Assert.IsTrue(handlerOk);
-            Assert.IsFalse(signalExceptionThrown);
+            _batchHandlerMock.Verify(bh => bh.OnNext(0, _ringBuffer[0].Data, true), Times.Once());
         }
 
         [Test]
         public void ShouldCallMethodsInLifecycleOrderForBatch()
         {
-            _batchHandlerMock.Setup(bh => bh.OnAvailable(0, _ringBuffer[0].Data));
-            _batchHandlerMock.Setup(bh => bh.OnAvailable(1, _ringBuffer[1].Data));
-            _batchHandlerMock.Setup(bh => bh.OnAvailable(2, _ringBuffer[2].Data));
-            _batchHandlerMock.Setup(bh => bh.OnEndOfBatch()).Callback(() => _countDownEvent.Signal());
+            _batchHandlerMock.Setup(bh => bh.OnNext(0, _ringBuffer[0].Data, false));
+            _batchHandlerMock.Setup(bh => bh.OnNext(1, _ringBuffer[1].Data, false));
+            _batchHandlerMock.Setup(bh => bh.OnNext(2, _ringBuffer[2].Data, true)).Callback(() => _countDownEvent.Signal());
 
             StubEvent data;
-            _ringBuffer.Commit(_ringBuffer.NextEvent(out data));
-            _ringBuffer.Commit(_ringBuffer.NextEvent(out data));
-            _ringBuffer.Commit(_ringBuffer.NextEvent(out data));
+            _ringBuffer.Publish(_ringBuffer.NextEvent(out data));
+            _ringBuffer.Publish(_ringBuffer.NextEvent(out data));
+            _ringBuffer.Publish(_ringBuffer.NextEvent(out data));
 
             var thread = new Thread(_eventProcessor.Run);
             thread.Start();

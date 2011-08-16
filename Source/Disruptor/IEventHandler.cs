@@ -11,13 +11,7 @@
         /// </summary>
         /// <param name="sequence">Sequence number committed to the <see cref="RingBuffer{T}"/></param>
         /// <param name="data">Data committed to the <see cref="RingBuffer{T}"/></param>
-        void OnAvailable(long sequence, T data);
-
-        /// <summary>
-        /// Called after each batch of events have been processed before the next waitFor call on a <see cref="IDependencyBarrier"/>.
-        /// This can be taken as a hint to do flush type operations before waiting once again on the <see cref="IDependencyBarrier"/>.
-        /// The user should not expect any pattern or frequency to the batch size.
-        /// </summary>
-        void OnEndOfBatch();
+        /// <param name="endOfBatch">flag to indicate if this is the last event in a batch from the <see cref="RingBuffer{T}"/></param>
+        void OnNext(long sequence, T data, bool endOfBatch);
     }
 }

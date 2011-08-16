@@ -38,7 +38,7 @@ namespace Disruptor.PerfTests.Pipeline3StepLatency
                 ValueEvent data;
                 var sequence = _ringBuffer.NextEvent(out data);
                 data.Value = Stopwatch.GetTimestamp();
-                _ringBuffer.Commit(sequence);
+                _ringBuffer.Publish(sequence);
 
                 var pauseStart = Stopwatch.GetTimestamp();
                 while (PauseNanos > (Stopwatch.GetTimestamp() - pauseStart) * TicksToNanos)

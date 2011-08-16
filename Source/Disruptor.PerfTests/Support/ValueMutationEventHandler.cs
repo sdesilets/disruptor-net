@@ -37,7 +37,7 @@ namespace Disruptor.PerfTests.Support
             get { return _done; }
         }
 
-        public void OnAvailable(long sequence, ValueEvent data)
+        public void OnNext(long sequence, ValueEvent data, bool endOfBatch)
         {
             _value = _operation.Op(_value, data.Value);
 
@@ -60,9 +60,5 @@ namespace Disruptor.PerfTests.Support
             _lines.Add(data.Value);
 #endif
             }
-
-        public void OnEndOfBatch()
-        {
-        }
     }
 }

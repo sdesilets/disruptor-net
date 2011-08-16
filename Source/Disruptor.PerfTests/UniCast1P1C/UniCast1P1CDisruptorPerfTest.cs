@@ -35,7 +35,7 @@ namespace Disruptor.PerfTests.UniCast1P1C
 
                 data.Value = i;
 
-                _ringBuffer.Commit(sequence);
+                _ringBuffer.Publish(sequence);
             }
 
             while (!_eventHandler.Done)
