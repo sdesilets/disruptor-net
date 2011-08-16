@@ -4,15 +4,8 @@
     /// Coordination barrier for tracking the cursor for producers and sequence of
     /// dependent <see cref="IEventProcessor"/>s for a <see cref="RingBuffer{T}"/>
     /// </summary>
-    public interface IDependencyBarrier<out T>
+    public interface IDependencyBarrier
     {
-        /// <summary>
-        /// Get the data for a given sequence from the underlying <see cref="RingBuffer{T}"/>.
-        /// </summary>
-        /// <param name="sequence">sequence of the event to get.</param>
-        /// <returns>the data for the sequence.</returns>
-        T GetEvent(long sequence);
-
         /// <summary>
         /// Wait for the given sequence to be available for consumption.
         /// </summary>
@@ -33,7 +26,7 @@
         bool IsAlerted { get; }
 
         /// <summary>
-        ///  Alert the <see cref="IDependencyBarrier{T}"/> of a status change and stay in this status until cleared.
+        ///  Alert the <see cref="IDependencyBarrier"/> of a status change and stay in this status until cleared.
         /// </summary>
         void Alert();
 

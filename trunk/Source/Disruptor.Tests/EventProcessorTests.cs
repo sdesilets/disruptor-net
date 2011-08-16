@@ -9,20 +9,20 @@ namespace Disruptor.Tests
     [TestFixture]
     public class EventProcessorTests
     {
-        private RingBuffer<StubData> _ringBuffer;
-        private IDependencyBarrier<StubData> _dependencyBarrier;
-        private Mock<IEventHandler<StubData>> _batchHandlerMock;
-        private EventProcessor<StubData> _eventProcessor;
+        private RingBuffer<StubEvent> _ringBuffer;
+        private IDependencyBarrier _dependencyBarrier;
+        private Mock<IEventHandler<StubEvent>> _batchHandlerMock;
+        private EventProcessor<StubEvent> _eventProcessor;
         private CountdownEvent _countDownEvent;
 
         [SetUp]
         public void Setup()
         {
-            _ringBuffer = new RingBuffer<StubData>(()=>new StubData(-1), 16);
+            _ringBuffer = new RingBuffer<StubEvent>(()=>new StubEvent(-1), 16);
             _dependencyBarrier = _ringBuffer.CreateBarrier();
-            _batchHandlerMock = new Mock<IEventHandler<StubData>>();
+            _batchHandlerMock = new Mock<IEventHandler<StubEvent>>();
             _countDownEvent = new CountdownEvent(1);
-            _eventProcessor = new EventProcessor<StubData>(_dependencyBarrier, _batchHandlerMock.Object);
+            _eventProcessor = new EventProcessor<StubEvent>(_ringBuffer, _dependencyBarrier, _batchHandlerMock.Object);
         }
 
         [Test]
@@ -67,7 +67,7 @@ namespace Disruptor.Tests
 
             Assert.AreEqual(-1L, _eventProcessor.Sequence);
 
-            StubData data;
+            StubEvent data;
             var sequence = _ringBuffer.NextEvent(out data);
             _ringBuffer.Commit(sequence);
 
@@ -88,7 +88,7 @@ namespace Disruptor.Tests
             _batchHandlerMock.Setup(bh => bh.OnAvailable(2, _ringBuffer[2].Data));
             _batchHandlerMock.Setup(bh => bh.OnEndOfBatch()).Callback(() => _countDownEvent.Signal());
 
-            StubData data;
+            StubEvent data;
             _ringBuffer.Commit(_ringBuffer.NextEvent(out data));
             _ringBuffer.Commit(_ringBuffer.NextEvent(out data));
             _ringBuffer.Commit(_ringBuffer.NextEvent(out data));

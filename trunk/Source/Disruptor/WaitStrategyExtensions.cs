@@ -37,14 +37,14 @@ namespace Disruptor
         {
             private readonly object _gate = new object();
 
-            public WaitForResult WaitFor<T>(IEventProcessor[] eventProcessors, ISequencable ringBuffer, IDependencyBarrier<T> barrier, long sequence)
+            public WaitForResult WaitFor(Sequence[] dependents, Sequence ringBufferCursor, IDependencyBarrier barrier, long sequence)
             {
-                var availableSequence = ringBuffer.Cursor; // volatile read
+                var availableSequence = ringBufferCursor.Value; // volatile read
                 if (availableSequence < sequence)
                 {
-                    lock(_gate)
+                    lock (_gate)
                     {
-                        while ((availableSequence = ringBuffer.Cursor) < sequence) // volatile read
+                        while ((availableSequence = ringBufferCursor.Value) < sequence) // volatile read
                         {
                             if (barrier.IsAlerted)
                             {
@@ -56,9 +56,9 @@ namespace Disruptor
                     }
                 }
 
-                if (0 != eventProcessors.Length)
+                if (0 != dependents.Length)
                 {
-                    while ((availableSequence = eventProcessors.GetMinimumSequence()) < sequence)
+                    while ((availableSequence = dependents.GetMinimumSequence()) < sequence)
                     {
                         if (barrier.IsAlerted)
                         {
@@ -85,32 +85,43 @@ namespace Disruptor
         /// </summary>
         private sealed class YieldingStrategy:IWaitStrategy
         {
-        	public WaitForResult WaitFor<T>(IEventProcessor[] eventProcessors, ISequencable ringBuffer, IDependencyBarrier<T> barrier, long sequence)
+            private const int SpinTries = 100;
+
+            public WaitForResult WaitFor(Sequence[] dependents, Sequence ringBufferCursor, IDependencyBarrier barrier, long sequence)
             {
                 long availableSequence;
 
-                if (0 == eventProcessors.Length)
+                var counter = SpinTries;
+                if (0 == dependents.Length)
                 {
-                    while ((availableSequence = ringBuffer.Cursor) < sequence) // volatile read
+                    while ((availableSequence = ringBufferCursor.Value) < sequence) // volatile read
                     {
                         if (barrier.IsAlerted)
                         {
                             return WaitForResult.AlertedResult;
                         }
 
-                        Thread.Yield();
+                        if(0 == --counter)
+                        {
+                            Thread.Yield();
+                            counter = SpinTries;
+                        }
                     }
                 }
                 else
                 {
-                    while ((availableSequence = eventProcessors.GetMinimumSequence()) < sequence)
+                    while ((availableSequence = dependents.GetMinimumSequence()) < sequence)
                     {
                         if (barrier.IsAlerted)
                         {
                             return WaitForResult.AlertedResult;
                         }
 
-                        Thread.Yield();
+                        if (0 == --counter)
+                        {
+                            Thread.Yield();
+                            counter = SpinTries;
+                        }
                     }
                 }
 
@@ -129,13 +140,13 @@ namespace Disruptor
         /// </summary>
         private sealed class BusySpinStrategy:IWaitStrategy
         {
-            public WaitForResult WaitFor<T>(IEventProcessor[] eventProcessors, ISequencable ringBuffer, IDependencyBarrier<T> barrier, long sequence)
+            public WaitForResult WaitFor(Sequence[] dependents, Sequence ringBufferCursor, IDependencyBarrier barrier, long sequence)
             {
                 long availableSequence;
 
-                if (0 == eventProcessors.Length)
+                if (0 == dependents.Length)
                 {
-                    while ((availableSequence = ringBuffer.Cursor) < sequence) // volatile read
+                    while ((availableSequence = ringBufferCursor.Value) < sequence) // volatile read
                     {
                         if (barrier.IsAlerted)
                         {
@@ -145,7 +156,7 @@ namespace Disruptor
                 }
                 else
                 {
-                    while ((availableSequence = eventProcessors.GetMinimumSequence()) < sequence)
+                    while ((availableSequence = dependents.GetMinimumSequence()) < sequence)
                     {
                         if (barrier.IsAlerted)
                         {

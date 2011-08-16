@@ -9,15 +9,15 @@ namespace Disruptor.Tests
     [TestFixture]
     public class RingBufferTests
     {
-        private RingBuffer<StubData> _ringBuffer;
-        private IDependencyBarrier<StubData> _dependencyBarrier;
+        private RingBuffer<StubEvent> _ringBuffer;
+        private IDependencyBarrier _dependencyBarrier;
 
         [SetUp]
         public void SetUp()
         {
-            _ringBuffer = new RingBuffer<StubData>(() => new StubData(-1), 20);
+            _ringBuffer = new RingBuffer<StubEvent>(() => new StubEvent(-1), 20);
             _dependencyBarrier = _ringBuffer.CreateBarrier();
-            _ringBuffer.SetTrackedEventProcessors(new NoOpEventProcessor<StubData>(_ringBuffer));
+            _ringBuffer.SetTrackedEventProcessors(new NoOpEventProcessor<StubEvent>(_ringBuffer));
         }
 
         [Test]
@@ -25,11 +25,11 @@ namespace Disruptor.Tests
         {
             Assert.AreEqual(RingBufferConvention.InitialCursorValue, _ringBuffer.Cursor);
 
-            var expectedEvent = new Event<StubData>(-1, new StubData(2701));
+            var expectedEvent = new Event<StubEvent>(-1, new StubEvent(2701));
 
-            StubData oldData;
-            var seq = _ringBuffer.NextEvent(out oldData);
-            oldData.Value = expectedEvent.Data.Value;
+            StubEvent oldEvent;
+            var seq = _ringBuffer.NextEvent(out oldEvent);
+            oldEvent.Value = expectedEvent.Data.Value;
             _ringBuffer.Commit(seq);
 
             var waitForResult = _dependencyBarrier.WaitFor(0);
@@ -47,11 +47,11 @@ namespace Disruptor.Tests
         {
             var events = GetEvents(0, 0);
 
-            var expectedEvent = new StubData(2701);
+            var expectedEvent = new StubEvent(2701);
 
-            StubData oldData;
-            var sequence = _ringBuffer.NextEvent(out oldData);
-            oldData.Value = expectedEvent.Value;
+            StubEvent oldEvent;
+            var sequence = _ringBuffer.NextEvent(out oldEvent);
+            oldEvent.Value = expectedEvent.Value;
 
             _ringBuffer.Commit(sequence);
 
@@ -64,7 +64,7 @@ namespace Disruptor.Tests
             var numEvents = _ringBuffer.Capacity;
             for (var i = 0; i < numEvents; i++)
             {
-                StubData data;
+                StubEvent data;
                 var sequence = _ringBuffer.NextEvent(out data);
                 data.Value = i;
                 _ringBuffer.Commit(sequence);
@@ -87,7 +87,7 @@ namespace Disruptor.Tests
             const int offset = 1000;
             for (var i = 0; i < numEvents + offset; i++)
             {
-                StubData data;
+                StubEvent data;
                 var sequence = _ringBuffer.NextEvent(out data);
                 data.Value = i;
                 _ringBuffer.Commit(sequence);
@@ -103,12 +103,12 @@ namespace Disruptor.Tests
             }
         }
 
-        private Task<Gen.List<StubData>> GetEvents(long initial, long toWaitFor)
+        private Task<Gen.List<StubEvent>> GetEvents(long initial, long toWaitFor)
         {
             var barrier = new Barrier(2);
             var dependencyBarrier = _ringBuffer.CreateBarrier();
 
-            var testWaiter = new TestWaiter(barrier, dependencyBarrier, initial, toWaitFor);
+            var testWaiter = new TestWaiter(barrier, dependencyBarrier, _ringBuffer, initial, toWaitFor);
             var task = Task.Factory.StartNew(() => testWaiter.Call());
 
             barrier.SignalAndWait();
@@ -122,7 +122,7 @@ namespace Disruptor.Tests
             const int ringBufferSize = 4;
             var mre = new ManualResetEvent(false);
             var producerComplete = false;
-            var ringBuffer = new RingBuffer<StubData>(() => new StubData(-1), ringBufferSize);
+            var ringBuffer = new RingBuffer<StubEvent>(() => new StubEvent(-1), ringBufferSize);
             var processor = new TestEventProcessor(ringBuffer.CreateBarrier());
             ringBuffer.SetTrackedEventProcessors(processor);
 
@@ -130,7 +130,7 @@ namespace Disruptor.Tests
                                         {
                                             for (int i = 0; i <= ringBufferSize; i++) // produce 5 events
                                             {
-                                                StubData data;
+                                                StubEvent data;
                                                 long sequence = ringBuffer.NextEvent(out data);
                                                 data.Value = i;
                                                 ringBuffer.Commit(sequence);
@@ -158,22 +158,22 @@ namespace Disruptor.Tests
 
         private class TestEventProcessor : IEventProcessor
         {
-            private readonly IDependencyBarrier<StubData> _dependencyBarrier;
-            private long _sequence = RingBufferConvention.InitialCursorValue;
+            private readonly IDependencyBarrier _dependencyBarrier;
+            private readonly Sequence _sequence = new Sequence(RingBufferConvention.InitialCursorValue);
 
-            public TestEventProcessor(IDependencyBarrier<StubData> dependencyBarrier)
+            public TestEventProcessor(IDependencyBarrier dependencyBarrier)
             {
                 _dependencyBarrier = dependencyBarrier;
-            }
-
-            public long Sequence
-            {
-                get { return Interlocked.Read(ref _sequence); }
             }
 
             public bool Running
             {
                 get { return true; }
+            }
+
+            public Sequence Sequence
+            {
+                get { return _sequence; }
             }
 
             public void Halt()
@@ -183,7 +183,7 @@ namespace Disruptor.Tests
             public void Run()
             {
                 _dependencyBarrier.WaitFor(0L);
-                Interlocked.Increment(ref _sequence);
+                _sequence.Value += 1;
             }
 
             public void DelaySequenceWrite(int period)
