@@ -7,18 +7,18 @@ namespace Disruptor.PerfTests.UniCast1P1CBatch
     [TestFixture]
     public class UniCast1P1CBatchDisruptorPerfTest:AbstractUniCast1P1CBatchPerfTest
     {
-        private readonly RingBuffer<ValueEntry> _ringBuffer;
-        private readonly ValueAdditionHandler _handler;
+        private readonly RingBuffer<ValueEvent> _ringBuffer;
+        private readonly ValueAdditionEventHandler _eventHandler;
 
         public UniCast1P1CBatchDisruptorPerfTest()
             : base(100 * Million)
         {
-            _ringBuffer = new RingBuffer<ValueEntry>(()=>new ValueEntry(), Size,
+            _ringBuffer = new RingBuffer<ValueEvent>(()=>new ValueEvent(), Size,
                                    ClaimStrategyOption.SingleProducer,
                                    WaitStrategyOption.Yielding);
 
-            _handler = new ValueAdditionHandler(Iterations);
-            _ringBuffer.ConsumeWith(_handler);
+            _eventHandler = new ValueAdditionEventHandler(Iterations);
+            _ringBuffer.ProcessWith(_eventHandler);
         }
 
         [Test]
@@ -29,7 +29,7 @@ namespace Disruptor.PerfTests.UniCast1P1CBatch
 
         public override long RunPass()
         {
-            _ringBuffer.StartConsumers();
+            _ringBuffer.StartProcessors();
 
             const int batchSize = 10;
 
@@ -38,16 +38,16 @@ namespace Disruptor.PerfTests.UniCast1P1CBatch
             long offset = 0;
             for (long i = 0; i < Iterations; i += batchSize)
             {
-                var sequenceBatch = _ringBuffer.NextEntries(batchSize);
+                var sequenceBatch = _ringBuffer.NextEvents(batchSize);
                 for (long sequence = sequenceBatch.Start; sequence <= sequenceBatch.End; sequence++)
                 {
-                    ValueEntry entry = _ringBuffer.GetEntry(sequence);
-                    entry.Value = offset++;
+                    ValueEvent valueEvent = _ringBuffer.GetEvent(sequence);
+                    valueEvent.Value = offset++;
                 }
                 _ringBuffer.Commit(sequenceBatch);
             }
 
-            while (!_handler.Done)
+            while (!_eventHandler.Done)
             {
                 // busy spin
             }
@@ -55,7 +55,7 @@ namespace Disruptor.PerfTests.UniCast1P1CBatch
             long opsPerSecond = (Iterations * 1000L) / sw.ElapsedMilliseconds;
             _ringBuffer.Halt();
 
-            Assert.AreEqual(ExpectedResult, _handler.Value.Value);
+            Assert.AreEqual(ExpectedResult, _eventHandler.Value.Value);
 
             return opsPerSecond;
         }

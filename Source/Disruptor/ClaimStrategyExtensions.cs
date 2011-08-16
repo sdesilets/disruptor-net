@@ -27,7 +27,7 @@ namespace Disruptor
         }
 
         /// <summary>
-        /// Strategy to be used when there are multiple producer threads claiming <see cref="Entry{T}"/>s.
+        /// Strategy to be used when there are multiple producer threads claiming <see cref="Event{T}"/>s.
         /// </summary>
         private sealed class MultiThreadedStrategy : IClaimStrategy
         {
@@ -45,7 +45,7 @@ namespace Disruptor
         }
 
         /// <summary>
-        /// Optimised strategy can be used when there is a single producer thread claiming <see cref="Entry{T}"/>s.
+        /// Optimised strategy can be used when there is a single producer thread claiming <see cref="Event{T}"/>s.
         /// </summary>
         private sealed class SingleThreadedStrategy : IClaimStrategy
         {

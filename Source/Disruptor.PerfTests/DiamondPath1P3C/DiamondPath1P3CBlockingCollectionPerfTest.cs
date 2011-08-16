@@ -14,25 +14,25 @@ namespace Disruptor.PerfTests.DiamondPath1P3C
         private readonly BlockingCollection<bool> _fizzOutputQueue = new BlockingCollection<bool>(Size);
         private readonly BlockingCollection<bool> _buzzOutputQueue = new BlockingCollection<bool>(Size);
 
-        private readonly FizzBuzzQueueConsumer _fizzQueueConsumer;
-        private readonly FizzBuzzQueueConsumer _buzzQueueConsumer;
-        private readonly FizzBuzzQueueConsumer _fizzBuzzQueueConsumer;
+        private readonly FizzBuzzQueueEventProcessor _fizzQueueEventProcessor;
+        private readonly FizzBuzzQueueEventProcessor _buzzQueueEventProcessor;
+        private readonly FizzBuzzQueueEventProcessor _fizzBuzzQueueEventProcessor;
 
         public DiamondPath1P3CBlockingCollectionPerfTest()
             : base(1 * Million)
         {
-            _fizzQueueConsumer = new FizzBuzzQueueConsumer(FizzBuzzStep.Fizz, _fizzInputQueue, _buzzInputQueue, _fizzOutputQueue, _buzzOutputQueue, Iterations);
-            _buzzQueueConsumer = new FizzBuzzQueueConsumer(FizzBuzzStep.Buzz, _fizzInputQueue, _buzzInputQueue, _fizzOutputQueue, _buzzOutputQueue, Iterations);
-            _fizzBuzzQueueConsumer = new FizzBuzzQueueConsumer(FizzBuzzStep.FizzBuzz, _fizzInputQueue, _buzzInputQueue, _fizzOutputQueue, _buzzOutputQueue, Iterations);
+            _fizzQueueEventProcessor = new FizzBuzzQueueEventProcessor(FizzBuzzStep.Fizz, _fizzInputQueue, _buzzInputQueue, _fizzOutputQueue, _buzzOutputQueue, Iterations);
+            _buzzQueueEventProcessor = new FizzBuzzQueueEventProcessor(FizzBuzzStep.Buzz, _fizzInputQueue, _buzzInputQueue, _fizzOutputQueue, _buzzOutputQueue, Iterations);
+            _fizzBuzzQueueEventProcessor = new FizzBuzzQueueEventProcessor(FizzBuzzStep.FizzBuzz, _fizzInputQueue, _buzzInputQueue, _fizzOutputQueue, _buzzOutputQueue, Iterations);
         }
 
         public override long RunPass()
         {
-            _fizzBuzzQueueConsumer.Reset();
+            _fizzBuzzQueueEventProcessor.Reset();
 
-            (new Thread(_fizzQueueConsumer.Run) { Name = "Fizz" }).Start();
-            (new Thread(_buzzQueueConsumer.Run) { Name = "Buzz" }).Start();
-            (new Thread(_fizzBuzzQueueConsumer.Run) { Name = "FizzBuzz" }).Start();
+            (new Thread(_fizzQueueEventProcessor.Run) { Name = "Fizz" }).Start();
+            (new Thread(_buzzQueueEventProcessor.Run) { Name = "Buzz" }).Start();
+            (new Thread(_fizzBuzzQueueEventProcessor.Run) { Name = "FizzBuzz" }).Start();
 
             var sw = Stopwatch.StartNew();
 
@@ -42,14 +42,14 @@ namespace Disruptor.PerfTests.DiamondPath1P3C
                 _buzzInputQueue.Add(i);
             }
 
-            while (!_fizzBuzzQueueConsumer.Done)
+            while (!_fizzBuzzQueueEventProcessor.Done)
             {
                 // busy spin
             }
 
             var opsPerSecond = (Iterations * 1000L) / sw.ElapsedMilliseconds;
 
-            Assert.AreEqual(ExpectedResult, _fizzBuzzQueueConsumer.FizzBuzzCounter);
+            Assert.AreEqual(ExpectedResult, _fizzBuzzQueueEventProcessor.FizzBuzzCounter);
 
             return opsPerSecond;
         }

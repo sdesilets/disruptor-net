@@ -5,7 +5,7 @@
     public struct WaitForResult
     {
         ///<summary>
-        /// True if the <see cref="IConsumerBarrier{T}"/> was alerted, false otherwise.
+        /// True if the <see cref="IDependencyBarrier{T}"/> was alerted, false otherwise.
         ///</summary>
         public readonly bool IsAlerted;
 

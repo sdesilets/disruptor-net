@@ -11,34 +11,34 @@ namespace Disruptor.Tests
         private readonly ManualResetEvent _startMru = new ManualResetEvent(false);
         private readonly ManualResetEvent _shutdownMru = new ManualResetEvent(false);
         private readonly RingBuffer<StubData> _ringBuffer = new RingBuffer<StubData>(()=>new StubData(-1), 16);
-        private IConsumerBarrier<StubData> _consumerBarrier;
-        private LifecycleAwareBatchHandler _handler;
-        private BatchConsumer<StubData> _batchConsumer;
+        private IDependencyBarrier<StubData> _dependencyBarrier;
+        private LifecycleAwareEventHandler _eventHandler;
+        private EventProcessor<StubData> _eventProcessor;
 
         [SetUp]
         public void SetUp()
         {
-            _consumerBarrier = _ringBuffer.CreateConsumerBarrier();
-            _handler = new LifecycleAwareBatchHandler(_startMru, _shutdownMru);
-            _batchConsumer = new BatchConsumer<StubData>(_consumerBarrier, _handler);
+            _dependencyBarrier = _ringBuffer.CreateBarrier();
+            _eventHandler = new LifecycleAwareEventHandler(_startMru, _shutdownMru);
+            _eventProcessor = new EventProcessor<StubData>(_dependencyBarrier, _eventHandler);
         }
 
         [Test]
-        public void ShouldNotifyOfBatchConsumerLifecycle()
+        public void ShouldNotifyOfEventProcessorLifecycle()
         {
-            new Thread(_batchConsumer.Run).Start();
+            new Thread(_eventProcessor.Run).Start();
 
             _startMru.WaitOne();
 
-            _batchConsumer.Halt();
+            _eventProcessor.Halt();
 
             _shutdownMru.WaitOne();
 
-            Assert.AreEqual(_handler.StartCounter, 1);
-            Assert.AreEqual(_handler.ShutdownCounter, 1);
+            Assert.AreEqual(_eventHandler.StartCounter, 1);
+            Assert.AreEqual(_eventHandler.ShutdownCounter, 1);
         }
         
-        private sealed class LifecycleAwareBatchHandler : IBatchHandler<StubData>, ILifecycleAware
+        private sealed class LifecycleAwareEventHandler : IEventHandler<StubData>, ILifecycleAware
         {
             private readonly ManualResetEvent _startMru;
             private readonly ManualResetEvent _shutdownMru;
@@ -55,7 +55,7 @@ namespace Disruptor.Tests
                 get { return _shutdownCounter; }
             }
 
-            public LifecycleAwareBatchHandler(ManualResetEvent startMru, ManualResetEvent shutdownMru)
+            public LifecycleAwareEventHandler(ManualResetEvent startMru, ManualResetEvent shutdownMru)
             {
                 _startMru = startMru;
                 _shutdownMru = shutdownMru;
