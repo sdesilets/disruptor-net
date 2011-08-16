@@ -14,8 +14,8 @@
         void OnAvailable(long sequence, T data);
 
         /// <summary>
-        /// Called after each batch of events have been processed before the next waitFor call on a <see cref="IDependencyBarrier{T}"/>.
-        /// This can be taken as a hint to do flush type operations before waiting once again on the <see cref="IDependencyBarrier{T}"/>.
+        /// Called after each batch of events have been processed before the next waitFor call on a <see cref="IDependencyBarrier"/>.
+        /// This can be taken as a hint to do flush type operations before waiting once again on the <see cref="IDependencyBarrier"/>.
         /// The user should not expect any pattern or frequency to the batch size.
         /// </summary>
         void OnEndOfBatch();

@@ -9,23 +9,21 @@ namespace Disruptor.Tests
     [TestFixture]
     public class DependencyBarrierTests
     {
-        private RingBuffer<StubData> _ringBuffer;
+        private RingBuffer<StubEvent> _ringBuffer;
         private Mock<IEventProcessor> _eventProcessorMock1;
         private Mock<IEventProcessor> _eventProcessorMock2;
         private Mock<IEventProcessor> _eventProcessorMock3;
-        private IDependencyBarrier<StubData> _dependencyBarrier;
 
         [SetUp]
         public void SetUp()
         {
-            _ringBuffer = new RingBuffer<StubData>(()=>new StubData(-1), 64);
+            _ringBuffer = new RingBuffer<StubEvent>(()=>new StubEvent(-1), 64);
 
             _eventProcessorMock1 = new Mock<IEventProcessor>();
             _eventProcessorMock2 = new Mock<IEventProcessor>();
             _eventProcessorMock3 = new Mock<IEventProcessor>();
 
-            _dependencyBarrier = _ringBuffer.CreateBarrier(_eventProcessorMock1.Object, _eventProcessorMock2.Object, _eventProcessorMock3.Object);
-            _ringBuffer.SetTrackedEventProcessors(new NoOpEventProcessor<StubData>(_ringBuffer));
+            _ringBuffer.SetTrackedEventProcessors(new NoOpEventProcessor<StubEvent>(_ringBuffer));
         }
 
         [Test]
@@ -35,11 +33,17 @@ namespace Disruptor.Tests
             const int expectedWorkSequence = 9;
             FillRingBuffer(expectedNumberEvents);
 
-            _eventProcessorMock1.SetupGet(c => c.Sequence).Returns(expectedNumberEvents);
-            _eventProcessorMock2.SetupGet(c => c.Sequence).Returns(expectedNumberEvents);
-            _eventProcessorMock3.SetupGet(c => c.Sequence).Returns(expectedNumberEvents);
+            var sequence1 = new Sequence(expectedNumberEvents);
+            var sequence2 = new Sequence(expectedWorkSequence);
+            var sequence3 = new Sequence(expectedNumberEvents);
 
-            var waitForResult = _dependencyBarrier.WaitFor(expectedWorkSequence);
+            _eventProcessorMock1.SetupGet(c => c.Sequence).Returns(sequence1);
+            _eventProcessorMock2.SetupGet(c => c.Sequence).Returns(sequence2);
+            _eventProcessorMock3.SetupGet(c => c.Sequence).Returns(sequence3);
+
+            var dependencyBarrier = _ringBuffer.CreateBarrier(_eventProcessorMock1.Object, _eventProcessorMock2.Object, _eventProcessorMock3.Object);
+
+            var waitForResult = dependencyBarrier.WaitFor(expectedWorkSequence);
             Assert.IsTrue(waitForResult.AvailableSequence >= expectedWorkSequence);
 
             _eventProcessorMock1.Verify();
@@ -63,7 +67,7 @@ namespace Disruptor.Tests
 
             new Thread(() =>
                     {
-                        StubData data;
+                        StubEvent data;
                         var sequence = _ringBuffer.NextEvent(out data);
                         data.Value = (int)sequence;
                         _ringBuffer.Commit(sequence);
@@ -86,27 +90,26 @@ namespace Disruptor.Tests
             const long expectedNumberEvents = 10;
             FillRingBuffer(expectedNumberEvents);
 
-            var countdownEvent = new CountdownEvent(9);
+            var sequence1 = new Sequence(8L);
+            var sequence2 = new Sequence(8L);
+            var sequence3 = new Sequence(8L);
 
-            _eventProcessorMock1.SetupGet(c => c.Sequence).Returns(8L).Callback(() => countdownEvent.Signal());
-            _eventProcessorMock2.SetupGet(c => c.Sequence).Returns(8L).Callback(() => countdownEvent.Signal());
-            _eventProcessorMock3.SetupGet(c => c.Sequence).Returns(8L).Callback(() =>
-                                                                              {
-                                                                                  countdownEvent.Signal();
-                                                                                  Thread.Sleep(100); // wait a bit to prevent race (otherwise the WaitStrategy 
-                                                                                  // does another iterations which decrease the countdown event below 0
-                                                                              });
+            _eventProcessorMock1.SetupGet(c => c.Sequence).Returns(sequence1);
+            _eventProcessorMock2.SetupGet(c => c.Sequence).Returns(sequence2);
+            _eventProcessorMock3.SetupGet(c => c.Sequence).Returns(sequence3);
+
+            var dependencyBarrier = _ringBuffer.CreateBarrier(_eventProcessorMock1.Object, _eventProcessorMock2.Object, _eventProcessorMock3.Object);
 
             var alerted = new[] { false };
             var t = new Thread(() =>
             {
-            	if(_dependencyBarrier.WaitFor(expectedNumberEvents - 1).IsAlerted)
+            	if(dependencyBarrier.WaitFor(expectedNumberEvents - 1).IsAlerted)
             		alerted[0] = true;
             });
 
             t.Start();
-            Assert.IsTrue(countdownEvent.Wait(TimeSpan.FromMilliseconds(100000000)));
-            _dependencyBarrier.Alert();
+            Thread.Sleep(TimeSpan.FromSeconds(1));
+            dependencyBarrier.Alert();
             t.Join();
 
             Assert.IsTrue(alerted[0], "Thread was not interrupted");
@@ -146,20 +149,21 @@ namespace Disruptor.Tests
         [Test]
         public void ShouldSetAndClearAlertStatus()
         {
-            Assert.IsFalse(_dependencyBarrier.IsAlerted);
+            var dependencyBarrier = _ringBuffer.CreateBarrier();
+            Assert.IsFalse(dependencyBarrier.IsAlerted);
 
-            _dependencyBarrier.Alert();
-            Assert.IsTrue(_dependencyBarrier.IsAlerted);
+            dependencyBarrier.Alert();
+            Assert.IsTrue(dependencyBarrier.IsAlerted);
 
-            _dependencyBarrier.ClearAlert();
-            Assert.IsFalse(_dependencyBarrier.IsAlerted);
+            dependencyBarrier.ClearAlert();
+            Assert.IsFalse(dependencyBarrier.IsAlerted);
         }
 
         private void FillRingBuffer(long expectedNumberEvents)
         {
             for (var i = 0; i < expectedNumberEvents; i++)
             {
-                StubData data;
+                StubEvent data;
                 var sequence = _ringBuffer.NextEvent(out data);
                 data.Value = i;
                 _ringBuffer.Commit(sequence);
@@ -168,12 +172,12 @@ namespace Disruptor.Tests
 
         private class StubEventProcessor : IEventProcessor
         {
+            private readonly Sequence _sequence = new Sequence(RingBufferConvention.InitialCursorValue);
+
             public StubEventProcessor(long sequence)
             {
-                _sequence = sequence;
+                _sequence.Value = sequence;
             }
-
-            private long _sequence;
 
             public void Run()
             {
@@ -184,21 +188,14 @@ namespace Disruptor.Tests
                 
             }
 
-            public long Sequence
-            {
-                get
-                {
-                    return Thread.VolatileRead(ref _sequence);
-                }
-                set
-                {
-                    Thread.VolatileWrite(ref _sequence, value);
-                }
-            }
-
             public bool Running
             {
                 get { return true; }
+            }
+
+            public Sequence Sequence
+            {
+                get { return _sequence; }
             }
 
             public void Halt()

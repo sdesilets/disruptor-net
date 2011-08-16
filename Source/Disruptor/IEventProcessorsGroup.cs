@@ -15,7 +15,7 @@
         /// <pre><code>dw.consumeWith(A).then(B);</code></pre>
         ///</summary>
         ///<param name="eventHandlers">handlers the batch handlers that will consume events.</param>
-        ///<returns>a <see cref="EventProcessorsGroup{T}"/> that can be used to set up a <see cref="IDependencyBarrier{T}"/> over the created <see cref="IEventProcessor"/>s.</returns>
+        ///<returns>a <see cref="EventProcessorsGroup{T}"/> that can be used to set up a <see cref="IDependencyBarrier"/> over the created <see cref="IEventProcessor"/>s.</returns>
         IEventProcessorsGroup<T> Then(params IEventHandler<T>[] eventHandlers);
 
         ///<summary>
@@ -28,7 +28,7 @@
         /// <pre><code>dw.after(A).consumeWith(B);</code></pre>
         ///</summary>
         ///<param name="eventHandlers">the <see cref="IEventHandler{T}"/> that will consume events.</param>
-        ///<returns>a <see cref="EventProcessorsGroup{T}"/> that can be used to set up an <see cref="IDependencyBarrier{T}"/> over the created <see cref="IEventProcessor"/>s.</returns>
+        ///<returns>a <see cref="EventProcessorsGroup{T}"/> that can be used to set up an <see cref="IDependencyBarrier"/> over the created <see cref="IEventProcessor"/>s.</returns>
         IEventProcessorsGroup<T> ConsumeWith(IEventHandler<T>[] eventHandlers);
     }
 }

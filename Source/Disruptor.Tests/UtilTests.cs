@@ -1,4 +1,3 @@
-using Moq;
 using NUnit.Framework;
 
 namespace Disruptor.Tests
@@ -25,29 +24,17 @@ namespace Disruptor.Tests
         [Test]
         public void ShouldReturnMinimumSequence()
         {
-            var eventProcessorMock1 = new Mock<IEventProcessor>();
-            var eventProcessorMock2 = new Mock<IEventProcessor>();
-            var eventProcessorMock3 = new Mock<IEventProcessor>();
+            var sequences = new[] {new Sequence(11), new Sequence(4), new Sequence(13)};
 
-            var eventProcessors = new[] {eventProcessorMock1.Object, eventProcessorMock2.Object, eventProcessorMock3.Object};
-
-            eventProcessorMock1.SetupGet(c => c.Sequence).Returns(11);
-            eventProcessorMock2.SetupGet(c => c.Sequence).Returns(4);
-            eventProcessorMock3.SetupGet(c => c.Sequence).Returns(13);
-
-            Assert.AreEqual(4L, eventProcessors.GetMinimumSequence());
-
-            eventProcessorMock1.Verify();
-            eventProcessorMock2.Verify();
-            eventProcessorMock3.Verify();
+            Assert.AreEqual(4L, sequences.GetMinimumSequence());
         }
 
         [Test]
         public void ShouldReturnLongMaxWhenNoEventProcessors()
         {
-            var eventProcessors = new IEventProcessor[0];
+            var sequences = new Sequence[0];
 
-            Assert.AreEqual(long.MaxValue, eventProcessors.GetMinimumSequence());
+            Assert.AreEqual(long.MaxValue, sequences.GetMinimumSequence());
         }
     }
 }

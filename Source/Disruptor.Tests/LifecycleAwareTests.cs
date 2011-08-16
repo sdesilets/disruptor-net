@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using Disruptor.Tests.Support;
 using NUnit.Framework;
@@ -10,17 +9,17 @@ namespace Disruptor.Tests
     {
         private readonly ManualResetEvent _startMru = new ManualResetEvent(false);
         private readonly ManualResetEvent _shutdownMru = new ManualResetEvent(false);
-        private readonly RingBuffer<StubData> _ringBuffer = new RingBuffer<StubData>(()=>new StubData(-1), 16);
-        private IDependencyBarrier<StubData> _dependencyBarrier;
+        private readonly RingBuffer<StubEvent> _ringBuffer = new RingBuffer<StubEvent>(()=>new StubEvent(-1), 16);
+        private IDependencyBarrier _dependencyBarrier;
         private LifecycleAwareEventHandler _eventHandler;
-        private EventProcessor<StubData> _eventProcessor;
+        private EventProcessor<StubEvent> _eventProcessor;
 
         [SetUp]
         public void SetUp()
         {
             _dependencyBarrier = _ringBuffer.CreateBarrier();
             _eventHandler = new LifecycleAwareEventHandler(_startMru, _shutdownMru);
-            _eventProcessor = new EventProcessor<StubData>(_dependencyBarrier, _eventHandler);
+            _eventProcessor = new EventProcessor<StubEvent>(_ringBuffer, _dependencyBarrier, _eventHandler);
         }
 
         [Test]
@@ -38,7 +37,7 @@ namespace Disruptor.Tests
             Assert.AreEqual(_eventHandler.ShutdownCounter, 1);
         }
         
-        private sealed class LifecycleAwareEventHandler : IEventHandler<StubData>, ILifecycleAware
+        private sealed class LifecycleAwareEventHandler : IEventHandler<StubEvent>, ILifecycleAware
         {
             private readonly ManualResetEvent _startMru;
             private readonly ManualResetEvent _shutdownMru;
@@ -61,7 +60,7 @@ namespace Disruptor.Tests
                 _shutdownMru = shutdownMru;
             }
 
-            public void OnAvailable(long sequence, StubData data)
+            public void OnAvailable(long sequence, StubEvent data)
             {
             }
 

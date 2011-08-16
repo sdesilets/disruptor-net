@@ -4,17 +4,17 @@ using NUnit.Framework;
 namespace Disruptor.Tests
 {
     [TestFixture]
-    public class BatchProducerTest
+    public class BatchPublisherTest
     {
-        private RingBuffer<StubData> _ringBuffer;
-        private IDependencyBarrier<StubData> _dependencyBarrier;
+        private RingBuffer<StubEvent> _ringBuffer;
+        private IDependencyBarrier _dependencyBarrier;
 
         [SetUp]
         public void SetUp()
         {
-            _ringBuffer = new RingBuffer<StubData>(() => new StubData(-1), 20);
+            _ringBuffer = new RingBuffer<StubEvent>(() => new StubEvent(-1), 20);
             _dependencyBarrier = _ringBuffer.CreateBarrier();
-            _ringBuffer.SetTrackedEventProcessors(new NoOpEventProcessor<StubData>(_ringBuffer));
+            _ringBuffer.SetTrackedEventProcessors(new NoOpEventProcessor<StubEvent>(_ringBuffer));
         }
 
         [Test]

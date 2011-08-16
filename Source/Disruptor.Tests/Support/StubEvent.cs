@@ -1,8 +1,8 @@
 namespace Disruptor.Tests.Support
 {
-    public class StubData
+    public class StubEvent
     {
-        public StubData(int i)
+        public StubEvent(int i)
         {
             Value = i;
         }
@@ -15,7 +15,7 @@ namespace Disruptor.Tests.Support
             return Value;
         }
 
-        public bool Equals(StubData other)
+        public bool Equals(StubEvent other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
@@ -26,8 +26,8 @@ namespace Disruptor.Tests.Support
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != typeof(StubData)) return false;
-            return Equals((StubData)obj);
+            if (obj.GetType() != typeof(StubEvent)) return false;
+            return Equals((StubEvent)obj);
         }
 
         public override string ToString()

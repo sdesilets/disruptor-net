@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
-using Disruptor.MemoryLayout;
 
 namespace Disruptor
 {
@@ -11,17 +11,20 @@ namespace Disruptor
     /// <typeparam name="T">Event implementation storing the data for sharing during exchange or parallel coordination of an event.</typeparam>
     public sealed class RingBuffer<T> : ISequencable, IEventProcessorBuilder<T> where T : class 
     {
-        private CacheLineStorageLong _cursor = new CacheLineStorageLong(RingBufferConvention.InitialCursorValue);
-        private readonly Event<T>[] _events;
+        private readonly Sequence _cursor = new Sequence(RingBufferConvention.InitialCursorValue);
         private readonly int _ringModMask;
+        private readonly Event<T>[] _events;
+
+        private readonly long[] _minProcessorSequence = new long[6]; // padded to prevent false sharing.
+        private Sequence[] _processorSequencesToTrack;
+
         private readonly IClaimStrategy _claimStrategy;
         private readonly IWaitStrategy _waitStrategy;
+
         private readonly EventProcessorRepository<T> _eventProcessorRepository = new EventProcessorRepository<T>();
         private readonly IList<Thread> _threads = new List<Thread>();
-        private IEventProcessor[] _trackedEventProcessors;
         private readonly int _ringBufferSize;
         private readonly bool _isMultipleProducer;
-        private long _lastEventProcessorMinimum = RingBufferConvention.InitialCursorValue;
 
         /// <summary>
         /// Construct a RingBuffer with the full option set.
@@ -32,7 +35,8 @@ namespace Disruptor
         /// <param name="waitStrategyOption">waiting strategy employed by <see cref="EventProcessor{T}"/> waiting on events becoming available.</param>
         public RingBuffer(Func<T> eventFactory, int size, ClaimStrategyOption claimStrategyOption = ClaimStrategyOption.MultipleProducers, WaitStrategyOption waitStrategyOption = WaitStrategyOption.Blocking)
         {
-           _ringBufferSize = Util.CeilingNextPowerOfTwo(size);
+            _minProcessorSequence[0] = RingBufferConvention.InitialCursorValue;
+            _ringBufferSize = Util.CeilingNextPowerOfTwo(size);
             _ringModMask = _ringBufferSize - 1;
             _events = new Event<T>[_ringBufferSize];
             _claimStrategy = claimStrategyOption.GetInstance();
@@ -112,8 +116,7 @@ namespace Disruptor
         /// </summary>
         public long Cursor
         {
-            get { return _cursor.Data; }
-            private set{ _cursor.Data = value;}
+            get { return _cursor.Value; }
         }
 
         ///<summary>
@@ -130,7 +133,7 @@ namespace Disruptor
 
         internal void SetTrackedEventProcessors(params IEventProcessor[] eventProcessorsToTrack)
         {
-            _trackedEventProcessors = eventProcessorsToTrack;
+            _processorSequencesToTrack = eventProcessorsToTrack.Select(ep => ep.Sequence).ToArray();
         }
 
         ///<summary>
@@ -143,21 +146,21 @@ namespace Disruptor
         /// <pre><code>dw.ProcessWith(A).Then(B);</code></pre>
         ///</summary>
         ///<param name="eventHandlers">the <see cref="IEventHandler{T}"/>s that will process events.</param>
-        ///<returns>a <see cref="IEventProcessorsGroup{T}"/> that can be used to set up a <see cref="IDependencyBarrier{T}"/> over the created <see cref="IEventProcessor"/>.</returns>
+        ///<returns>a <see cref="IEventProcessorsGroup{T}"/> that can be used to set up a <see cref="IDependencyBarrier"/> over the created <see cref="IEventProcessor"/>.</returns>
         public IEventProcessorsGroup<T> ProcessWith(params IEventHandler<T>[] eventHandlers)
         {
             return ((IEventProcessorBuilder<T>) this).CreateEventProcessors(new IEventProcessor[0], eventHandlers);
         }
 
         ///<summary>
-        /// Specifies a group of <see cref="IEventHandler{T}"/> that can then be used to build a <see cref="IDependencyBarrier{T}"/> for dependent <see cref="IEventProcessor"/>s.
+        /// Specifies a group of <see cref="IEventHandler{T}"/> that can then be used to build a <see cref="IDependencyBarrier"/> for dependent <see cref="IEventProcessor"/>s.
         /// For example if the handler <code>A</code> must process events before handler <code>B</code>:
         /// <p/>
         /// <pre><code>dw.After(A).ProcessWith(B);</code></pre>
         ///</summary>
         ///<param name="eventHandlers">the <see cref="IEventHandler{T}"/>s, previously set up with ProcessWith,
         /// that will form the barrier for subsequent handlers.</param>
-        ///<returns> a <see cref="IEventProcessorsGroup{T}"/> that can be used to setup a <see cref="IDependencyBarrier{T}"/> over the specified <see cref="IEventProcessor"/>.</returns>
+        ///<returns> a <see cref="IEventProcessorsGroup{T}"/> that can be used to setup a <see cref="IDependencyBarrier"/> over the specified <see cref="IEventProcessor"/>.</returns>
         public IEventProcessorsGroup<T> After(params IEventHandler<T>[] eventHandlers)
         {
             var eventProcessors = new IEventProcessor[eventHandlers.Length];
@@ -174,13 +177,15 @@ namespace Disruptor
         }
 
         /// <summary>
-        ///  Create a <see cref="IDependencyBarrier{T}"/> that gates on the RingBuffer and a list of <see cref="IEventProcessor"/>s
+        ///  Create a <see cref="IDependencyBarrier"/> that gates on the RingBuffer and a list of <see cref="IEventProcessor"/>s
         /// </summary>
         /// <param name="eventProcessorsToTrack">eventProcessorsToTrack this barrier will track</param>
         /// <returns>the barrier gated as required</returns>
-        internal IDependencyBarrier<T> CreateBarrier(params IEventProcessor[] eventProcessorsToTrack)
+        internal IDependencyBarrier CreateBarrier(params IEventProcessor[] eventProcessorsToTrack)
         {
-            return new DependencyBarrier<T>(this, eventProcessorsToTrack);
+            var dependentProcessorSequences = eventProcessorsToTrack.Select(ep => ep.Sequence).ToArray();
+
+            return new DependencyBarrier(_waitStrategy, _cursor, dependentProcessorSequences);
         }
 
         ///<summary>
@@ -230,14 +235,14 @@ namespace Disruptor
             {
                 eventProcessor.DelaySequenceWrite(period);
             }
-            _trackedEventProcessors = lastEventProcessorsInChain;
+            SetTrackedEventProcessors(lastEventProcessorsInChain);
         }
 
         private void EnsureEventProcessorsAreInRange(long sequence)
         {
             var wrapPoint = sequence - _ringBufferSize;
 
-            while (wrapPoint > _lastEventProcessorMinimum && wrapPoint > (_lastEventProcessorMinimum = _trackedEventProcessors.GetMinimumSequence()))
+            while (wrapPoint > _minProcessorSequence[0] && wrapPoint > (_minProcessorSequence[0] = _processorSequencesToTrack.GetMinimumSequence()))
             {
                 Thread.Yield();
             }
@@ -248,21 +253,25 @@ namespace Disruptor
             if (_isMultipleProducer)
             {
                 long expectedSequence = sequence - batchSize;
-                
-                var spin = new SpinWait();
+
+                int counter = 1000;
                 while (expectedSequence != Cursor)
                 {
-                    spin.SpinOnce();
+                    if(--counter == 0)
+                    {
+                        counter = 1000;
+                        Thread.Yield();
+                    }
                 }
             }
 
-            Cursor = sequence; // volatile write
+            _cursor.Value = sequence; // volatile write
             _waitStrategy.SignalAll();
         }
 
         EventProcessorsGroup<T> IEventProcessorBuilder<T>.CreateEventProcessors(IEventProcessor[] barrierEventProcessors, IEventHandler<T>[] eventHandlers)
         {
-            if(_trackedEventProcessors != null)
+            if(_processorSequencesToTrack != null)
             {
                 throw new InvalidOperationException("Producer Barrier must be initialised after all event processor barriers.");
             }
@@ -271,8 +280,8 @@ namespace Disruptor
             for (int i = 0; i < eventHandlers.Length; i++)
             {
                 var batchHandler = eventHandlers[i];
-                var barrier = new DependencyBarrier<T>(this, barrierEventProcessors);
-                var eventProcessor = new EventProcessor<T>(barrier, batchHandler);
+                var barrier = new DependencyBarrier(_waitStrategy, _cursor, barrierEventProcessors.Select(ep=>ep.Sequence).ToArray());
+                var eventProcessor = new EventProcessor<T>(this, barrier, batchHandler);
 
                 _eventProcessorRepository.Add(eventProcessor, batchHandler);
                 createdEventProcessors[i] = eventProcessor;
@@ -288,60 +297,6 @@ namespace Disruptor
             {
                 var data = eventFactory();
                 _events[i] = new Event<T>(-1, data);
-            }
-        }
-
-        /// <summary>
-        /// dependencyBarrier handed out for gating eventProcessors of the RingBuffer and dependent <see cref="IEventProcessor"/>(s)
-        /// </summary>
-        /// <typeparam name="TU"></typeparam>
-        private sealed class DependencyBarrier<TU> : IDependencyBarrier<TU> where TU : class
-        {
-            private readonly IEventProcessor[] _eventProcessors;
-            private volatile bool _alerted;
-            private readonly RingBuffer<TU> _ringBuffer;
-            private readonly Event<TU>[] _events;
-            private readonly int _ringModMask;
-            private readonly IWaitStrategy _waitStrategy;
-
-            public DependencyBarrier(RingBuffer<TU> ringBuffer, params IEventProcessor[] eventProcessors)
-            {
-                _ringBuffer = ringBuffer;
-                _eventProcessors = eventProcessors;
-                _waitStrategy = _ringBuffer._waitStrategy;
-                _ringModMask = _ringBuffer._ringModMask;
-                _events = _ringBuffer._events;
-            }
-
-            public TU GetEvent(long sequence)
-            {
-                return _events[(int)sequence & _ringModMask].Data;
-            }
-
-            public WaitForResult WaitFor(long sequence)
-            {
-                return _waitStrategy.WaitFor(_eventProcessors, _ringBuffer, this, sequence);
-            }
-
-            public long Cursor
-            {
-                get { return _ringBuffer.Cursor; }
-            }
-
-            public bool IsAlerted
-            {
-                get { return _alerted; }
-            }
-
-            public void Alert()
-            {
-                _alerted = true;
-                _waitStrategy.SignalAll();
-            }
-
-            public void ClearAlert()
-            {
-                _alerted = false;
             }
         }
     }
