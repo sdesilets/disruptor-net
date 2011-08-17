@@ -1,6 +1,4 @@
-﻿using Disruptor.MemoryLayout;
-
-namespace Disruptor
+﻿namespace Disruptor
 {
     /// <summary>
     /// Convenience class for handling the batching semantics of consuming events from a <see cref="RingBuffer{T}"/>
@@ -16,7 +14,7 @@ namespace Disruptor
         private readonly IDependencyBarrier _dependencyBarrier;
         private readonly IEventHandler<T> _eventHandler;
 
-        private CacheLineStorageBool _running = new CacheLineStorageBool(true);
+        private volatile bool _running = true;
         private readonly Sequence _sequence = new Sequence(RingBufferConvention.InitialCursorValue);
         private bool _delaySequenceWrite;
         private int _sequenceUpdatePeriod;
@@ -61,7 +59,7 @@ namespace Disruptor
         /// </summary>
         public bool Running
         {
-            get { return _running.Data; }
+            get { return _running; }
         }
 
         public Sequence Sequence
@@ -74,13 +72,13 @@ namespace Disruptor
         /// </summary>
         public void Run()
         {
-            _running.Data = true;
+            _running = true;
             
             OnStart();
 
             var nextSequence = _sequence.Value + 1; 
 
-            while (_running.Data)
+            while (true)
             {
                 var waitForResult = _dependencyBarrier.WaitFor(nextSequence);
                 if (!waitForResult.IsAlerted)
@@ -105,6 +103,13 @@ namespace Disruptor
                     else
                     {
                         _sequence.Value = nextSequence - 1; // volatile write
+                    }
+                }
+                else
+                {
+                    if(!_running)
+                    {
+                        break;
                     }
                 }
             }
@@ -136,7 +141,7 @@ namespace Disruptor
         /// </summary>
         public void Halt()
         {
-            _running.Data = false;
+            _running = false;
             _dependencyBarrier.Alert();
         }
     }
