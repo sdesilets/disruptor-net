@@ -62,7 +62,6 @@
     <Compile Include="ILifecycleAware.cs" />
     <Compile Include="MemoryLayout\CacheLine.cs" />
     <Compile Include="MemoryLayout\CacheLineStorageLong.cs" />
-    <Compile Include="MemoryLayout\CacheLineStorageBool.cs" />
     <Compile Include="ClaimStrategyOption.cs" />
     <Compile Include="IEventHandler.cs" />
     <Compile Include="IClaimStrategy.cs" />

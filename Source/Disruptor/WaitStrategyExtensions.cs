@@ -37,14 +37,14 @@ namespace Disruptor
         {
             private readonly object _gate = new object();
 
-            public WaitForResult WaitFor(Sequence[] dependents, Sequence ringBufferCursor, IDependencyBarrier barrier, long sequence)
+            public WaitForResult WaitFor(Sequence[] dependents, Sequence cursor, IDependencyBarrier barrier, long sequence)
             {
-                var availableSequence = ringBufferCursor.Value; // volatile read
+                var availableSequence = cursor.Value; // volatile read
                 if (availableSequence < sequence)
                 {
                     lock (_gate)
                     {
-                        while ((availableSequence = ringBufferCursor.Value) < sequence) // volatile read
+                        while ((availableSequence = cursor.Value) < sequence) // volatile read
                         {
                             if (barrier.IsAlerted)
                             {
@@ -87,14 +87,14 @@ namespace Disruptor
         {
             private const int SpinTries = 100;
 
-            public WaitForResult WaitFor(Sequence[] dependents, Sequence ringBufferCursor, IDependencyBarrier barrier, long sequence)
+            public WaitForResult WaitFor(Sequence[] dependents, Sequence cursor, IDependencyBarrier barrier, long sequence)
             {
                 long availableSequence;
 
                 var counter = SpinTries;
                 if (0 == dependents.Length)
                 {
-                    while ((availableSequence = ringBufferCursor.Value) < sequence) // volatile read
+                    while ((availableSequence = cursor.Value) < sequence) // volatile read
                     {
                         if (barrier.IsAlerted)
                         {
@@ -140,13 +140,13 @@ namespace Disruptor
         /// </summary>
         private sealed class BusySpinStrategy:IWaitStrategy
         {
-            public WaitForResult WaitFor(Sequence[] dependents, Sequence ringBufferCursor, IDependencyBarrier barrier, long sequence)
+            public WaitForResult WaitFor(Sequence[] dependents, Sequence cursor, IDependencyBarrier barrier, long sequence)
             {
                 long availableSequence;
 
                 if (0 == dependents.Length)
                 {
-                    while ((availableSequence = ringBufferCursor.Value) < sequence) // volatile read
+                    while ((availableSequence = cursor.Value) < sequence) // volatile read
                     {
                         if (barrier.IsAlerted)
                         {
