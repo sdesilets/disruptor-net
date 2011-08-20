@@ -33,11 +33,10 @@ namespace Disruptor.PerfTests.Pipeline3Step
             var operandTwo = OperandTwoInitialValue;
             for (long i = 0; i < Iterations; i++)
             {
-                FunctionEvent data;
-                var sequence = _ringBuffer.NextEvent(out data);
-                data.OperandOne = i;
-                data.OperandTwo = operandTwo--;
-                _ringBuffer.Publish(sequence);
+                var evt = _ringBuffer.NextEvent();
+                evt.Data.OperandOne = i;
+                evt.Data.OperandTwo = operandTwo--;
+                _ringBuffer.Publish(evt);
             }
 
             while (!_stepThreeFunctionEventHandler.Done)

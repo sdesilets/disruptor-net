@@ -3,7 +3,7 @@
     /// <summary>
     /// Strategies employed for claiming the sequence of <see cref="Event{T}"/>s in the <see cref="RingBuffer{T}"/> by producers.
     /// </summary>
-    public interface IClaimStrategy
+    internal interface IClaimStrategy
     {
         /// <summary>
         /// Increment the sequence index in the <see cref="RingBuffer{T}"/> and return the new value

@@ -27,10 +27,9 @@ namespace Disruptor.Tests
 
             var expectedEvent = new Event<StubEvent>(-1, new StubEvent(2701));
 
-            StubEvent oldEvent;
-            var seq = _ringBuffer.NextEvent(out oldEvent);
-            oldEvent.Value = expectedEvent.Data.Value;
-            _ringBuffer.Publish(seq);
+            var evt = _ringBuffer.NextEvent();
+            evt.Data.Value = expectedEvent.Data.Value;
+            _ringBuffer.Publish(evt);
 
             var waitForResult = _dependencyBarrier.WaitFor(0);
             Assert.AreEqual(0L, waitForResult.AvailableSequence);
@@ -49,11 +48,10 @@ namespace Disruptor.Tests
 
             var expectedEvent = new StubEvent(2701);
 
-            StubEvent oldEvent;
-            var sequence = _ringBuffer.NextEvent(out oldEvent);
-            oldEvent.Value = expectedEvent.Value;
+            var evt = _ringBuffer.NextEvent();
+            evt.Data.Value = expectedEvent.Value;
 
-            _ringBuffer.Publish(sequence);
+            _ringBuffer.Publish(evt);
 
             Assert.AreEqual(expectedEvent, events.Result[0]);
         }
@@ -64,10 +62,9 @@ namespace Disruptor.Tests
             var numEvents = _ringBuffer.Capacity;
             for (var i = 0; i < numEvents; i++)
             {
-                StubEvent data;
-                var sequence = _ringBuffer.NextEvent(out data);
-                data.Value = i;
-                _ringBuffer.Publish(sequence);
+                var evt = _ringBuffer.NextEvent();
+                evt.Data.Value = i;
+                _ringBuffer.Publish(evt);
             }
 
             var expectedSequence = numEvents - 1;
@@ -87,10 +84,9 @@ namespace Disruptor.Tests
             const int offset = 1000;
             for (var i = 0; i < numEvents + offset; i++)
             {
-                StubEvent data;
-                var sequence = _ringBuffer.NextEvent(out data);
-                data.Value = i;
-                _ringBuffer.Publish(sequence);
+                var evt = _ringBuffer.NextEvent();
+                evt.Data.Value = i;
+                _ringBuffer.Publish(evt);
             }
 
             var expectedSequence = numEvents + offset - 1;
@@ -130,10 +126,9 @@ namespace Disruptor.Tests
                                         {
                                             for (int i = 0; i <= ringBufferSize; i++) // produce 5 events
                                             {
-                                                StubEvent data;
-                                                long sequence = ringBuffer.NextEvent(out data);
-                                                data.Value = i;
-                                                ringBuffer.Publish(sequence);
+                                                var evt = ringBuffer.NextEvent();
+                                                evt.Data.Value = i;
+                                                ringBuffer.Publish(evt);
 
                                                 if(i == 3) // unblock main thread after 4th event published
                                                 {

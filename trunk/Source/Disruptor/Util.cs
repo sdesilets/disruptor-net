@@ -3,7 +3,7 @@
     /// <summary>
     /// Set of common functions used by the Disruptor
     /// </summary>
-    public static class Util
+    internal static class Util
     {
         /// <summary>
         /// Calculate the next power of 2, greater than or equal to x.

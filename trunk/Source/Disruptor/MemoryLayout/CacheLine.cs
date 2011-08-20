@@ -3,7 +3,7 @@
     ///<summary>
     /// Constant definition of cache line size
     ///</summary>
-    public static class CacheLine
+    internal static class CacheLine
     {
         ///<summary>
         /// Size of a cache line in bytes

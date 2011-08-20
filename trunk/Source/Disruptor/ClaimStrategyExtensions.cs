@@ -7,7 +7,7 @@ namespace Disruptor
     ///<summary>
     /// Fatory used by the <see cref="RingBuffer{T}"/> to instantiate the selected <see cref="IClaimStrategy"/>.
     ///</summary>
-    public static class ClaimStrategyExtensions
+    internal static class ClaimStrategyExtensions
     {
         /// <summary>
         /// Used by the <see cref="RingBuffer{T}"/> as a polymorphic constructor.

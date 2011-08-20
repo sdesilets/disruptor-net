@@ -30,12 +30,9 @@ namespace Disruptor.PerfTests.UniCast1P1C
 
             for (long i = 0; i < Iterations; i++)
             {
-                ValueEvent data;
-                var sequence = _ringBuffer.NextEvent(out data);
-
-                data.Value = i;
-
-                _ringBuffer.Publish(sequence);
+                var evt = _ringBuffer.NextEvent();
+                evt.Data.Value = i;
+                _ringBuffer.Publish(evt);
             }
 
             while (!_eventHandler.Done)

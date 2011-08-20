@@ -3,7 +3,7 @@
     /// <summary>
     /// Strategy employed for making <see cref="IEventProcessor"/>s wait on a <see cref="RingBuffer{T}"/>.
     /// </summary>
-    public interface IWaitStrategy
+    internal interface IWaitStrategy
     {
         /// <summary>
         /// Wait for the given sequence to be available for consumption in a <see cref="RingBuffer{T}"/>
