@@ -68,6 +68,20 @@ namespace Disruptor
             {
                 return _sequence.IncrementAndGet(delta);
             }
+
+            public void SerialisePublishing(Sequence cursor, long sequence, long batchSize)
+            {
+                long expectedSequence = sequence - batchSize;
+	            int counter = 1000;
+	            while (expectedSequence != cursor.Value)
+	            {
+	                if (0 == --counter)
+	                {
+	                    counter = 1000;
+	                    Thread.Yield();
+	                }
+	            }
+            }
         }
 
         /// <summary>
@@ -109,6 +123,10 @@ namespace Disruptor
             {
                 _sequence.Data += delta;
                 return _sequence.Data;
+            }
+
+            public void SerialisePublishing(Sequence cursor, long sequence, long batchSize)
+            {
             }
         }
     }
