@@ -12,6 +12,13 @@
         long IncrementAndGet();
 
         ///<summary>
+        /// Ensure dependent <see cref="Sequence"/>s are in range without over taking them for the buffer size.
+        ///</summary>
+        ///<param name="sequence">sequence to check is in range</param>
+        ///<param name="dependentSequences">sequences to be checked for range.</param>
+        void EnsureProcessorsAreInRange(long sequence, Sequence[] dependentSequences);
+
+        ///<summary>
         /// Increment by a delta and get the result.
         ///</summary>
         ///<param name="delta">delta to increment by.</param>

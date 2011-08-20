@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Disruptor.MemoryLayout;
 
 namespace Disruptor
 {
@@ -16,7 +15,6 @@ namespace Disruptor
         private readonly int _ringModMask;
         private readonly Event<T>[] _events;
 
-        private CacheLineStorageLong _minProcessorSequence;
         private Sequence[] _processorSequencesToTrack;
 
         private readonly IClaimStrategy _claimStrategy;
@@ -36,11 +34,10 @@ namespace Disruptor
         /// <param name="waitStrategyOption">waiting strategy employed by <see cref="EventProcessor{T}"/> waiting on events becoming available.</param>
         public RingBuffer(Func<T> eventFactory, int size, ClaimStrategyOption claimStrategyOption = ClaimStrategyOption.MultipleProducers, WaitStrategyOption waitStrategyOption = WaitStrategyOption.Blocking)
         {
-            _minProcessorSequence.Data = RingBufferConvention.InitialCursorValue;
             _ringBufferSize = Util.CeilingNextPowerOfTwo(size);
             _ringModMask = _ringBufferSize - 1;
             _events = new Event<T>[_ringBufferSize];
-            _claimStrategy = claimStrategyOption.GetInstance();
+            _claimStrategy = claimStrategyOption.GetInstance(_ringBufferSize);
             _waitStrategy = waitStrategyOption.GetInstance();
             _isMultipleProducer = claimStrategyOption == ClaimStrategyOption.MultipleProducers;
 
@@ -63,7 +60,7 @@ namespace Disruptor
         public long NextEvent(out T data)
         {
             var sequence = _claimStrategy.IncrementAndGet();
-            EnsureEventProcessorsAreInRange(sequence);
+            _claimStrategy.EnsureProcessorsAreInRange(sequence, _processorSequencesToTrack);
 
             data = _events[(int)sequence & _ringModMask].Data;
 
@@ -79,7 +76,7 @@ namespace Disruptor
         {
             long sequence = _claimStrategy.IncrementAndGet(size);
             var sequenceBatch = new SequenceBatch(size, sequence);
-            EnsureEventProcessorsAreInRange(sequence);
+            _claimStrategy.EnsureProcessorsAreInRange(sequence, _processorSequencesToTrack);
 
             return sequenceBatch;
         }
@@ -237,16 +234,6 @@ namespace Disruptor
                 eventProcessor.DelaySequenceWrite(period);
             }
             SetTrackedEventProcessors(lastEventProcessorsInChain);
-        }
-
-        private void EnsureEventProcessorsAreInRange(long sequence)
-        {
-            var wrapPoint = sequence - _ringBufferSize;
-
-            while (wrapPoint > _minProcessorSequence.Data && wrapPoint > (_minProcessorSequence.Data = _processorSequencesToTrack.GetMinimumSequence()))
-            {
-                Thread.Yield();
-            }
         }
 
         private void Publish(long sequence, long batchSize)
