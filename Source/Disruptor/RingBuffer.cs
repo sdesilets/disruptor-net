@@ -53,16 +53,16 @@ namespace Disruptor
         ///<summary>
         /// Claim the next sequence number and a pre-allocated instance of T for a producer on the <see cref="RingBuffer{T}"/>
         ///</summary>
-        ///<param name="data">A pre-allocated instance of T to be reused by the producer, to prevent memory allocation. This instance needs to be flushed properly before commiting back to the <see cref="RingBuffer{T}"/></param>
-        ///<returns>the claimed sequence.</returns>
-        public long NextEvent(out T data)
+        ///<returns>the claimed event containing a pre-allocated instance of T to be reused by the producer, to prevent memory allocation. This instance needs to be flushed properly before commiting back to the <see cref="RingBuffer{T}"/></returns>
+        public Event<T> NextEvent()
         {
             var sequence = _claimStrategy.IncrementAndGet();
             _claimStrategy.EnsureProcessorsAreInRange(sequence, _processorSequencesToTrack);
 
-            data = _events[(int)sequence & _ringModMask].Data;
+            var evt = _events[(int)sequence & _ringModMask];
+            evt.Sequence = sequence;
 
-            return sequence;
+            return evt;
         }
 
         /// <summary>
@@ -82,10 +82,10 @@ namespace Disruptor
         /// <summary>
         /// Publish an event back to the <see cref="RingBuffer{T}"/> to make it visible to <see cref="IEventProcessor"/>s
         /// </summary>
-        /// <param name="sequence">sequence number to be committed back to the <see cref="RingBuffer{T}"/></param>
-        public void Publish(long sequence)
+        /// <param name="publishedEvent">event to be committed back to the <see cref="RingBuffer{T}"/></param>
+        public void Publish(Event<T> publishedEvent)
         {
-            Publish(sequence, 1L);
+            Publish(publishedEvent.Sequence, 1L);
         }
 
         /// <summary>
@@ -121,10 +121,7 @@ namespace Disruptor
         ///<param name="sequence">sequence for the <see cref="Event{T}"/></param>
         internal Event<T> this[long sequence]
         {
-            get
-            {
-                return _events[(int)sequence & _ringModMask];
-            }
+            get { return _events[(int)sequence & _ringModMask]; }
         }
 
         internal void SetTrackedEventProcessors(params IEventProcessor[] eventProcessorsToTrack)
@@ -241,7 +238,7 @@ namespace Disruptor
             _waitStrategy.SignalAll();
         }
 
-        EventProcessorsGroup<T> IEventProcessorBuilder<T>.CreateEventProcessors(IEventProcessor[] barrierEventProcessors, IEventHandler<T>[] eventHandlers)
+        EventProcessorsGroup<T> IEventProcessorBuilder<T>.CreateEventProcessors(IEnumerable<IEventProcessor> barrierEventProcessors, IEventHandler<T>[] eventHandlers)
         {
             if(_processorSequencesToTrack != null)
             {

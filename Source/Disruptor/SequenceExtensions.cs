@@ -3,7 +3,7 @@
     /// <summary>
     /// Provides an extension method for <see cref="IEventProcessor"/>[]
     /// </summary>
-    public static class SequenceExtensions
+    internal static class SequenceExtensions
     {
         /// <summary>
         /// Get the minimum sequence from an array of <see cref="Sequence"/>s.

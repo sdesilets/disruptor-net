@@ -67,14 +67,13 @@ namespace Disruptor.Tests
 
             new Thread(() =>
                     {
-                        StubEvent data;
-                        var sequence = _ringBuffer.NextEvent(out data);
-                        data.Value = (int)sequence;
-                        _ringBuffer.Publish(sequence);
+                        var evt = _ringBuffer.NextEvent();
+                        evt.Data.Value = (int)evt.Sequence;
+                        _ringBuffer.Publish(evt);
 
                         foreach (var stubWorker in workers)
                         {
-                            stubWorker.Sequence.Value = sequence;
+                            stubWorker.Sequence.Value = evt.Sequence;
                         }
                     })
                     .Start();
@@ -163,10 +162,9 @@ namespace Disruptor.Tests
         {
             for (var i = 0; i < expectedNumberEvents; i++)
             {
-                StubEvent data;
-                var sequence = _ringBuffer.NextEvent(out data);
-                data.Value = i;
-                _ringBuffer.Publish(sequence);
+                var evt = _ringBuffer.NextEvent();
+                evt.Data.Value = i;
+                _ringBuffer.Publish(evt);
             }
         }
 

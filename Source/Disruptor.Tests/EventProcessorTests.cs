@@ -41,8 +41,7 @@ namespace Disruptor.Tests
 
             Assert.AreEqual(-1L, _eventProcessor.Sequence.Value);
 
-            StubEvent data;
-            _ringBuffer.Publish(_ringBuffer.NextEvent(out data));
+            _ringBuffer.Publish(_ringBuffer.NextEvent());
 
             _countDownEvent.Wait(50);
             _eventProcessor.Halt();
@@ -58,10 +57,9 @@ namespace Disruptor.Tests
             _batchHandlerMock.Setup(bh => bh.OnNext(1, _ringBuffer[1].Data, false));
             _batchHandlerMock.Setup(bh => bh.OnNext(2, _ringBuffer[2].Data, true)).Callback(() => _countDownEvent.Signal());
 
-            StubEvent data;
-            _ringBuffer.Publish(_ringBuffer.NextEvent(out data));
-            _ringBuffer.Publish(_ringBuffer.NextEvent(out data));
-            _ringBuffer.Publish(_ringBuffer.NextEvent(out data));
+            _ringBuffer.Publish(_ringBuffer.NextEvent());
+            _ringBuffer.Publish(_ringBuffer.NextEvent());
+            _ringBuffer.Publish(_ringBuffer.NextEvent());
 
             var thread = new Thread(_eventProcessor.Run);
             thread.Start();

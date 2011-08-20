@@ -11,7 +11,7 @@
         bool Running { get; }
 
         /// <summary>
-        /// Return a reference to the <see cref="Disruptor.Sequence"/> up to which this instance has processed events
+        /// Return a reference to the <see cref="Sequence"/> up to which this instance has processed events
         /// </summary>
         Sequence Sequence { get; }
 

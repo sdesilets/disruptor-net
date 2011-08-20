@@ -2,7 +2,7 @@
 {
     ///<summary>
     ///</summary>
-    public struct WaitForResult
+    internal struct WaitForResult
     {
         ///<summary>
         /// True if the <see cref="IDependencyBarrier"/> was alerted, false otherwise.

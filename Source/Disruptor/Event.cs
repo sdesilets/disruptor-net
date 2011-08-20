@@ -4,7 +4,7 @@ namespace Disruptor
     /// Events are the items exchanged via a RingBuffer.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    internal struct Event<T>
+    public struct Event<T>
     {
         /// <summary>
         /// get: Get the sequence number assigned to this item in the series.

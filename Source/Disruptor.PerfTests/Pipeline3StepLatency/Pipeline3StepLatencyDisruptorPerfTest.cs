@@ -35,10 +35,9 @@ namespace Disruptor.PerfTests.Pipeline3StepLatency
 
             for (long i = 0; i < Iterations; i++)
             {
-                ValueEvent data;
-                var sequence = _ringBuffer.NextEvent(out data);
-                data.Value = Stopwatch.GetTimestamp();
-                _ringBuffer.Publish(sequence);
+                var evt = _ringBuffer.NextEvent();
+                evt.Data.Value = Stopwatch.GetTimestamp();
+                _ringBuffer.Publish(evt);
 
                 var pauseStart = Stopwatch.GetTimestamp();
                 while (PauseNanos > (Stopwatch.GetTimestamp() - pauseStart) * TicksToNanos)

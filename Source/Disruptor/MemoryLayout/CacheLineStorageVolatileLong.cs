@@ -47,7 +47,8 @@ namespace Disruptor.MemoryLayout
             }
             set
             {
-                Thread.VolatileWrite(ref _data, value);
+               // Thread.VolatileWrite(ref _data, value);
+                _data = value;
             }
         }
     }

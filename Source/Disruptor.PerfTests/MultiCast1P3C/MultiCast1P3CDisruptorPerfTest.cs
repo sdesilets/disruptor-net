@@ -34,10 +34,9 @@ namespace Disruptor.PerfTests.MultiCast1P3C
 
             for (long i = 0; i < Iterations; i++)
             {
-                ValueEvent data;
-                var sequence = _ringBuffer.NextEvent(out data);
-                data.Value = i;
-                _ringBuffer.Publish(sequence);
+                var @event = _ringBuffer.NextEvent();
+                @event.Data.Value = i;
+                _ringBuffer.Publish(@event);
             }
 
             while (!_handler1.Done && !_handler2.Done && !_handler3.Done)

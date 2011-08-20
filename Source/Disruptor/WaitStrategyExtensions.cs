@@ -6,7 +6,7 @@ namespace Disruptor
     /// <summary>
     /// Factory used by the <see cref="RingBuffer{T}"/> to instantiate the selected <see cref="IWaitStrategy"/>.
     /// </summary>
-    public static class WaitStrategyExtensions
+    internal static class WaitStrategyExtensions
     {
         /// <summary>
         /// Used by the <see cref="RingBuffer{T}"/> as a polymorphic constructor.

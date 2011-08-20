@@ -4,7 +4,7 @@
     /// Coordination barrier for tracking the cursor for producers and sequence of
     /// dependent <see cref="IEventProcessor"/>s for a <see cref="RingBuffer{T}"/>
     /// </summary>
-    public interface IDependencyBarrier
+    internal interface IDependencyBarrier
     {
         /// <summary>
         /// Wait for the given sequence to be available for consumption.

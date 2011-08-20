@@ -6,7 +6,7 @@ namespace Disruptor.MemoryLayout
     /// A <see cref="long"/> wrapped in CacheLineStorageLong is guaranteed to live on its own cache line
     /// </summary>
     [StructLayout(LayoutKind.Explicit, Size = 2 * CacheLine.Size)]
-    public struct CacheLineStorageLong
+    internal struct CacheLineStorageLong
     {
         [FieldOffset(CacheLine.Size)]
         private long _data;

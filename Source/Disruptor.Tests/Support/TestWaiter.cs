@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace Disruptor.Tests.Support
 {
-    public class TestWaiter
+    internal class TestWaiter
     {
         private readonly Barrier _barrier;
         private readonly IDependencyBarrier _dependencyBarrier;
