@@ -51,6 +51,8 @@
     <Compile Include="EventProcessor.cs" />
     <Compile Include="ClaimStrategyExtensions.cs" />
     <Compile Include="Collections\Histogram.cs" />
+    <Compile Include="MemoryLayout\CacheLineStorageAtomicLong.cs" />
+    <Compile Include="MemoryLayout\CacheLineStorageLong.cs" />
     <Compile Include="SequenceExtensions.cs" />
     <Compile Include="EventProcessorsGroup.cs" />
     <Compile Include="EventProcessorInfo.cs" />
@@ -61,7 +63,7 @@
     <Compile Include="Event.cs" />
     <Compile Include="ILifecycleAware.cs" />
     <Compile Include="MemoryLayout\CacheLine.cs" />
-    <Compile Include="MemoryLayout\CacheLineStorageLong.cs" />
+    <Compile Include="MemoryLayout\CacheLineStorageVolatileLong.cs" />
     <Compile Include="ClaimStrategyOption.cs" />
     <Compile Include="IEventHandler.cs" />
     <Compile Include="IClaimStrategy.cs" />

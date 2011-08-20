@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Disruptor.MemoryLayout;
 
 namespace Disruptor
 {
@@ -15,7 +16,7 @@ namespace Disruptor
         private readonly int _ringModMask;
         private readonly Event<T>[] _events;
 
-        private readonly long[] _minProcessorSequence = new long[6]; // padded to prevent false sharing.
+        private CacheLineStorageLong _minProcessorSequence;
         private Sequence[] _processorSequencesToTrack;
 
         private readonly IClaimStrategy _claimStrategy;
@@ -35,7 +36,7 @@ namespace Disruptor
         /// <param name="waitStrategyOption">waiting strategy employed by <see cref="EventProcessor{T}"/> waiting on events becoming available.</param>
         public RingBuffer(Func<T> eventFactory, int size, ClaimStrategyOption claimStrategyOption = ClaimStrategyOption.MultipleProducers, WaitStrategyOption waitStrategyOption = WaitStrategyOption.Blocking)
         {
-            _minProcessorSequence[0] = RingBufferConvention.InitialCursorValue;
+            _minProcessorSequence.Data = RingBufferConvention.InitialCursorValue;
             _ringBufferSize = Util.CeilingNextPowerOfTwo(size);
             _ringModMask = _ringBufferSize - 1;
             _events = new Event<T>[_ringBufferSize];
@@ -143,11 +144,11 @@ namespace Disruptor
         /// <p>This method can be used as the start of a chain. For example if the handler <code>A</code> must
         /// process events before handler <code>B</code>:</p>
         /// <p/>
-        /// <pre><code>dw.ProcessWith(A).Then(B);</code></pre>
+        /// <pre><code>dw.HandleEventsWith(A).Then(B);</code></pre>
         ///</summary>
         ///<param name="eventHandlers">the <see cref="IEventHandler{T}"/>s that will process events.</param>
         ///<returns>a <see cref="IEventProcessorsGroup{T}"/> that can be used to set up a <see cref="IDependencyBarrier"/> over the created <see cref="IEventProcessor"/>.</returns>
-        public IEventProcessorsGroup<T> ProcessWith(params IEventHandler<T>[] eventHandlers)
+        public IEventProcessorsGroup<T> HandleEventsWith(params IEventHandler<T>[] eventHandlers)
         {
             return ((IEventProcessorBuilder<T>) this).CreateEventProcessors(new IEventProcessor[0], eventHandlers);
         }
@@ -156,9 +157,9 @@ namespace Disruptor
         /// Specifies a group of <see cref="IEventHandler{T}"/> that can then be used to build a <see cref="IDependencyBarrier"/> for dependent <see cref="IEventProcessor"/>s.
         /// For example if the handler <code>A</code> must process events before handler <code>B</code>:
         /// <p/>
-        /// <pre><code>dw.After(A).ProcessWith(B);</code></pre>
+        /// <pre><code>dw.After(A).HandleEventsWith(B);</code></pre>
         ///</summary>
-        ///<param name="eventHandlers">the <see cref="IEventHandler{T}"/>s, previously set up with ProcessWith,
+        ///<param name="eventHandlers">the <see cref="IEventHandler{T}"/>s, previously set up with HandleEventsWith,
         /// that will form the barrier for subsequent handlers.</param>
         ///<returns> a <see cref="IEventProcessorsGroup{T}"/> that can be used to setup a <see cref="IDependencyBarrier"/> over the specified <see cref="IEventProcessor"/>.</returns>
         public IEventProcessorsGroup<T> After(params IEventHandler<T>[] eventHandlers)
@@ -181,11 +182,11 @@ namespace Disruptor
         /// </summary>
         /// <param name="eventProcessorsToTrack">eventProcessorsToTrack this barrier will track</param>
         /// <returns>the barrier gated as required</returns>
-        internal IDependencyBarrier CreateBarrier(params IEventProcessor[] eventProcessorsToTrack)
+        internal IDependencyBarrier CreateDependencyBarrier(params IEventProcessor[] eventProcessorsToTrack)
         {
-            var dependentProcessorSequences = eventProcessorsToTrack.Select(ep => ep.Sequence).ToArray();
+            var processorSequences = eventProcessorsToTrack.Select(ep => ep.Sequence).ToArray();
 
-            return new DependencyBarrier(_waitStrategy, _cursor, dependentProcessorSequences);
+            return new DependencyBarrier(_waitStrategy, _cursor, processorSequences);
         }
 
         ///<summary>
@@ -242,7 +243,7 @@ namespace Disruptor
         {
             var wrapPoint = sequence - _ringBufferSize;
 
-            while (wrapPoint > _minProcessorSequence[0] && wrapPoint > (_minProcessorSequence[0] = _processorSequencesToTrack.GetMinimumSequence()))
+            while (wrapPoint > _minProcessorSequence.Data && wrapPoint > (_minProcessorSequence.Data = _processorSequencesToTrack.GetMinimumSequence()))
             {
                 Thread.Yield();
             }

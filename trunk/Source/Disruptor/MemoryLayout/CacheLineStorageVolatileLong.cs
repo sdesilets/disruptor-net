@@ -4,7 +4,7 @@ using System.Threading;
 namespace Disruptor.MemoryLayout
 {
     /// <summary>
-    /// A <see cref="long"/> wrapped in CacheLineStorage is guaranteed to live on its own cache line
+    /// A <see cref="long"/> wrapped in CacheLineStorageVolatileLong is guaranteed to live on its own cache line
     /// </summary>
     /// <remarks>
     /// http://drdobbs.com/go-parallel/article/217500206?pgno=4
@@ -22,7 +22,7 @@ namespace Disruptor.MemoryLayout
     /// assembly 'Disruptor' because generic types cannot have explicit layout. 
     /// </remarks>
     [StructLayout(LayoutKind.Explicit, Size = 2 * CacheLine.Size)]
-    public struct CacheLineStorageLong
+    public struct CacheLineStorageVolatileLong
     {
         [FieldOffset(CacheLine.Size)]
         private long _data;
@@ -31,7 +31,7 @@ namespace Disruptor.MemoryLayout
         /// Initialise a new instance of CacheLineStorage
         ///</summary>
         ///<param name="data">default value of data</param>
-        public CacheLineStorageLong(long data)
+        public CacheLineStorageVolatileLong(long data)
         {
             _data = data;
         }

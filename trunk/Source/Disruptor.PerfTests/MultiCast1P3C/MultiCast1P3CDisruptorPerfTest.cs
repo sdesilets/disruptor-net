@@ -23,7 +23,7 @@ namespace Disruptor.PerfTests.MultiCast1P3C
             _handler2 = new ValueMutationEventHandler(Operation.Substraction, Iterations);
             _handler3 = new ValueMutationEventHandler(Operation.And, Iterations);
 
-            _ringBuffer.ProcessWith(_handler1, _handler2, _handler3);
+            _ringBuffer.HandleEventsWith(_handler1, _handler2, _handler3);
         }
 
         public override long RunPass()

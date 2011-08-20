@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Threading;
+using Disruptor.MemoryLayout;
 
 namespace Disruptor
 {
@@ -31,16 +31,16 @@ namespace Disruptor
         /// </summary>
         private sealed class MultiThreadedStrategy : IClaimStrategy
         {
-            private long _sequence = RingBufferConvention.InitialCursorValue;
+            private CacheLineStorageAtomicLong _sequence = new CacheLineStorageAtomicLong(RingBufferConvention.InitialCursorValue);
 
             public long IncrementAndGet()
             {
-                return Interlocked.Increment(ref _sequence);
+                return _sequence.IncrementAndGet();
             }
 
             public long IncrementAndGet(int delta)
             {
-                return Interlocked.Add(ref _sequence, delta);
+                return _sequence.IncrementAndGet(delta);
             }
         }
 
@@ -49,17 +49,17 @@ namespace Disruptor
         /// </summary>
         private sealed class SingleThreadedStrategy : IClaimStrategy
         {
-            private long _sequence = RingBufferConvention.InitialCursorValue;
+            private CacheLineStorageLong _sequence = new CacheLineStorageLong(RingBufferConvention.InitialCursorValue);
 
             public long IncrementAndGet()
             {
-                return ++_sequence;
+                return ++_sequence.Data;
             }
 
             public long IncrementAndGet(int delta)
             {
-                _sequence += delta;
-                return _sequence;
+                _sequence.Data += delta;
+                return _sequence.Data;
             }
         }
     }

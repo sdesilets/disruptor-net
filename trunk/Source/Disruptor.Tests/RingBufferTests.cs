@@ -16,7 +16,7 @@ namespace Disruptor.Tests
         public void SetUp()
         {
             _ringBuffer = new RingBuffer<StubEvent>(() => new StubEvent(-1), 20);
-            _dependencyBarrier = _ringBuffer.CreateBarrier();
+            _dependencyBarrier = _ringBuffer.CreateDependencyBarrier();
             _ringBuffer.SetTrackedEventProcessors(new NoOpEventProcessor<StubEvent>(_ringBuffer));
         }
 
@@ -106,7 +106,7 @@ namespace Disruptor.Tests
         private Task<Gen.List<StubEvent>> GetEvents(long initial, long toWaitFor)
         {
             var barrier = new Barrier(2);
-            var dependencyBarrier = _ringBuffer.CreateBarrier();
+            var dependencyBarrier = _ringBuffer.CreateDependencyBarrier();
 
             var testWaiter = new TestWaiter(barrier, dependencyBarrier, _ringBuffer, initial, toWaitFor);
             var task = Task.Factory.StartNew(() => testWaiter.Call());
@@ -123,7 +123,7 @@ namespace Disruptor.Tests
             var mre = new ManualResetEvent(false);
             var producerComplete = false;
             var ringBuffer = new RingBuffer<StubEvent>(() => new StubEvent(-1), ringBufferSize);
-            var processor = new TestEventProcessor(ringBuffer.CreateBarrier());
+            var processor = new TestEventProcessor(ringBuffer.CreateDependencyBarrier());
             ringBuffer.SetTrackedEventProcessors(processor);
 
             var thread = new Thread(() =>

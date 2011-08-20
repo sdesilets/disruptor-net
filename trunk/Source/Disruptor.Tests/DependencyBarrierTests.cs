@@ -41,7 +41,7 @@ namespace Disruptor.Tests
             _eventProcessorMock2.SetupGet(c => c.Sequence).Returns(sequence2);
             _eventProcessorMock3.SetupGet(c => c.Sequence).Returns(sequence3);
 
-            var dependencyBarrier = _ringBuffer.CreateBarrier(_eventProcessorMock1.Object, _eventProcessorMock2.Object, _eventProcessorMock3.Object);
+            var dependencyBarrier = _ringBuffer.CreateDependencyBarrier(_eventProcessorMock1.Object, _eventProcessorMock2.Object, _eventProcessorMock3.Object);
 
             var waitForResult = dependencyBarrier.WaitFor(expectedWorkSequence);
             Assert.IsTrue(waitForResult.AvailableSequence >= expectedWorkSequence);
@@ -63,7 +63,7 @@ namespace Disruptor.Tests
                 workers[i] = new StubEventProcessor(expectedNumberEvents - 1);
             }
 
-            var dependencyBarrier = _ringBuffer.CreateBarrier(workers);
+            var dependencyBarrier = _ringBuffer.CreateDependencyBarrier(workers);
 
             new Thread(() =>
                     {
@@ -98,7 +98,7 @@ namespace Disruptor.Tests
             _eventProcessorMock2.SetupGet(c => c.Sequence).Returns(sequence2);
             _eventProcessorMock3.SetupGet(c => c.Sequence).Returns(sequence3);
 
-            var dependencyBarrier = _ringBuffer.CreateBarrier(_eventProcessorMock1.Object, _eventProcessorMock2.Object, _eventProcessorMock3.Object);
+            var dependencyBarrier = _ringBuffer.CreateDependencyBarrier(_eventProcessorMock1.Object, _eventProcessorMock2.Object, _eventProcessorMock3.Object);
 
             var alerted = new[] { false };
             var t = new Thread(() =>
@@ -131,7 +131,7 @@ namespace Disruptor.Tests
                 eventProcessors[i] = new StubEventProcessor(expectedNumberEvents - 2);
             }
 
-            var eventProcessorBarrier = _ringBuffer.CreateBarrier(eventProcessors);
+            var eventProcessorBarrier = _ringBuffer.CreateDependencyBarrier(eventProcessors);
 
             new Thread(()=>
                            {
@@ -149,7 +149,7 @@ namespace Disruptor.Tests
         [Test]
         public void ShouldSetAndClearAlertStatus()
         {
-            var dependencyBarrier = _ringBuffer.CreateBarrier();
+            var dependencyBarrier = _ringBuffer.CreateDependencyBarrier();
             Assert.IsFalse(dependencyBarrier.IsAlerted);
 
             dependencyBarrier.Alert();
