@@ -17,7 +17,7 @@ namespace Disruptor.Tests
         [SetUp]
         public void SetUp()
         {
-            _dependencyBarrier = _ringBuffer.CreateBarrier();
+            _dependencyBarrier = _ringBuffer.CreateDependencyBarrier();
             _eventHandler = new LifecycleAwareEventHandler(_startMru, _shutdownMru);
             _eventProcessor = new EventProcessor<StubEvent>(_ringBuffer, _dependencyBarrier, _eventHandler);
         }

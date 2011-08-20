@@ -24,7 +24,7 @@ namespace Disruptor.PerfTests.Pipeline3StepLatency
             _stepTwoFunctionEventHandler = new LatencyStepEventHandler(FunctionStep.Two, Histogram, StopwatchTimestampCostInNano, TicksToNanos, Iterations);
             _stepThreeFunctionEventHandler = new LatencyStepEventHandler(FunctionStep.Three, Histogram, StopwatchTimestampCostInNano, TicksToNanos, Iterations);
 
-            _ringBuffer.ProcessWith(_stepOneFunctionEventHandler)
+            _ringBuffer.HandleEventsWith(_stepOneFunctionEventHandler)
                 .Then(_stepTwoFunctionEventHandler)
                 .Then(_stepThreeFunctionEventHandler);
         }

@@ -7,7 +7,7 @@ namespace Disruptor
     /// </summary>
     public class Sequence
     {
-        private CacheLineStorageLong _sequence;
+        private CacheLineStorageVolatileLong _sequence;
 
         /// <summary>
         /// Construct a new sequence with a initial value
@@ -15,7 +15,7 @@ namespace Disruptor
         /// <param name="initialValue">initial value</param>
         public Sequence(long initialValue)
         {
-            _sequence = new CacheLineStorageLong(initialValue);
+            _sequence = new CacheLineStorageVolatileLong(initialValue);
         }
 
         /// <summary>

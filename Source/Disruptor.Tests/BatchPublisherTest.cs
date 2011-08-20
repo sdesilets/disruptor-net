@@ -13,7 +13,7 @@ namespace Disruptor.Tests
         public void SetUp()
         {
             _ringBuffer = new RingBuffer<StubEvent>(() => new StubEvent(-1), 20);
-            _dependencyBarrier = _ringBuffer.CreateBarrier();
+            _dependencyBarrier = _ringBuffer.CreateDependencyBarrier();
             _ringBuffer.SetTrackedEventProcessors(new NoOpEventProcessor<StubEvent>(_ringBuffer));
         }
 

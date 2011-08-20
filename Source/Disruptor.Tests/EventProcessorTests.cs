@@ -18,7 +18,7 @@ namespace Disruptor.Tests
         public void Setup()
         {
             _ringBuffer = new RingBuffer<StubEvent>(()=>new StubEvent(-1), 16);
-            _dependencyBarrier = _ringBuffer.CreateBarrier();
+            _dependencyBarrier = _ringBuffer.CreateDependencyBarrier();
             _batchHandlerMock = new Mock<IEventHandler<StubEvent>>();
             _countDownEvent = new CountdownEvent(1);
             _eventProcessor = new EventProcessor<StubEvent>(_ringBuffer, _dependencyBarrier, _batchHandlerMock.Object);

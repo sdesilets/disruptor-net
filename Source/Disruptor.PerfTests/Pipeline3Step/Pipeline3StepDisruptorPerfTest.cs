@@ -19,7 +19,7 @@ namespace Disruptor.PerfTests.Pipeline3Step
 
             _stepThreeFunctionEventHandler = new FunctionEventHandler(FunctionStep.Three, Iterations);
 
-            _ringBuffer.ProcessWith(new FunctionEventHandler(FunctionStep.One, Iterations))
+            _ringBuffer.HandleEventsWith(new FunctionEventHandler(FunctionStep.One, Iterations))
                 .Then(new FunctionEventHandler(FunctionStep.Two, Iterations))
                 .Then(_stepThreeFunctionEventHandler);
         }

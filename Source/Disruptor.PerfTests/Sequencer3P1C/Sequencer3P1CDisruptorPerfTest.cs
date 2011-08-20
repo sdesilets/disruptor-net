@@ -21,7 +21,7 @@ namespace Disruptor.PerfTests.Sequencer3P1C
                                    WaitStrategyOption.Yielding);
 
             _eventHandler = new ValueAdditionEventHandler(Iterations * NumProducers);
-            _ringBuffer.ProcessWith(_eventHandler);
+            _ringBuffer.HandleEventsWith(_eventHandler);
             
             _valueProducers = new ValueProducer[NumProducers];
 

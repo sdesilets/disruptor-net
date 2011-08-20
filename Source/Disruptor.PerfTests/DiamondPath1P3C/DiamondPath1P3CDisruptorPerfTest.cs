@@ -24,7 +24,7 @@ namespace Disruptor.PerfTests.DiamondPath1P3C
             _buzzEventHandler = new FizzBuzzEventHandler(FizzBuzzStep.Buzz, Iterations);
             _fizzBuzzEventHandler = new FizzBuzzEventHandler(FizzBuzzStep.FizzBuzz, Iterations);
 
-            _ringBuffer.ProcessWith(_fizzEventHandler, _buzzEventHandler)
+            _ringBuffer.HandleEventsWith(_fizzEventHandler, _buzzEventHandler)
                        .Then(_fizzBuzzEventHandler);
         }
 

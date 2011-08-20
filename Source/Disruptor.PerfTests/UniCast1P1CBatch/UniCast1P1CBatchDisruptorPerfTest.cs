@@ -18,7 +18,7 @@ namespace Disruptor.PerfTests.UniCast1P1CBatch
                                    WaitStrategyOption.Yielding);
 
             _eventHandler = new ValueAdditionEventHandler(Iterations);
-            _ringBuffer.ProcessWith(_eventHandler);
+            _ringBuffer.HandleEventsWith(_eventHandler);
         }
 
         [Test]

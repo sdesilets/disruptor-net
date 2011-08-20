@@ -19,7 +19,7 @@ namespace Disruptor.PerfTests.UniCast1P1C
 
 
             _eventHandler = new ValueAdditionEventHandler(Iterations);
-            _ringBuffer.ProcessWith(_eventHandler);
+            _ringBuffer.HandleEventsWith(_eventHandler);
         }
 
         public override long RunPass()
