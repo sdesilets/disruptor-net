@@ -23,7 +23,6 @@ namespace Disruptor
         private readonly EventProcessorRepository<T> _eventProcessorRepository = new EventProcessorRepository<T>();
         private readonly IList<Thread> _threads = new List<Thread>();
         private readonly int _ringBufferSize;
-        private readonly bool _isMultipleProducer;
 
         /// <summary>
         /// Construct a RingBuffer with the full option set.
@@ -39,7 +38,6 @@ namespace Disruptor
             _events = new Event<T>[_ringBufferSize];
             _claimStrategy = claimStrategyOption.GetInstance(_ringBufferSize);
             _waitStrategy = waitStrategyOption.GetInstance();
-            _isMultipleProducer = claimStrategyOption == ClaimStrategyOption.MultipleProducers;
 
             Fill(eventFactory);
         }
@@ -238,21 +236,7 @@ namespace Disruptor
 
         private void Publish(long sequence, long batchSize)
         {
-            if (_isMultipleProducer)
-            {
-                long expectedSequence = sequence - batchSize;
-
-                int counter = 1000;
-                while (expectedSequence != Cursor)
-                {
-                    if(--counter == 0)
-                    {
-                        counter = 1000;
-                        Thread.Yield();
-                    }
-                }
-            }
-
+            _claimStrategy.SerialisePublishing(_cursor, sequence, batchSize);
             _cursor.Value = sequence; // volatile write
             _waitStrategy.SignalAll();
         }

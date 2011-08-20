@@ -2,7 +2,7 @@ namespace Disruptor.PerfTests.DiamondPath1P3C
 {
     public abstract class AbstractDiamondPath1P3CPerfTest:ThroughputPerfTest
     {
-        protected const int Size = 1024 * 32;
+        protected const int Size = 1024 * 8;
         private long _expectedResult;
 
         protected AbstractDiamondPath1P3CPerfTest(int iterations) : base(iterations)

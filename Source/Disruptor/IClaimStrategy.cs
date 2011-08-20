@@ -24,5 +24,13 @@
         ///<param name="delta">delta to increment by.</param>
         ///<returns>the result after incrementing.</returns>
         long IncrementAndGet(int delta);
+
+        ///<summary>
+        /// Serialise publishing in sequence.
+        ///</summary>
+        ///<param name="cursor">cursor to serialise against.</param>
+        ///<param name="sequence">sequence to be applied</param>
+        ///<param name="batchSize">batchSize of the sequence.</param>
+        void SerialisePublishing(Sequence cursor, long sequence, long batchSize);
     }
 }

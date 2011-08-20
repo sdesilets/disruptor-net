@@ -3,14 +3,15 @@ using Disruptor.MemoryLayout;
 namespace Disruptor
 {
     /// <summary>
-    /// Volatile sequence counter that is cache line padded.
+    /// Cache line padded sequence counter.
+    /// Can be used across threads without worrying about false sharing if a located adjacent to another counter in memory.
     /// </summary>
     public class Sequence
     {
         private CacheLineStorageVolatileLong _sequence;
 
         /// <summary>
-        /// Construct a new sequence with a initial value
+        /// Construct a new sequence that can be tracked across threads.
         /// </summary>
         /// <param name="initialValue">initial value</param>
         public Sequence(long initialValue)
