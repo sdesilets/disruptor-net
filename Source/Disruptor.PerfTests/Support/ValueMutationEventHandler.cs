@@ -15,6 +15,11 @@ namespace Disruptor.PerfTests.Support
             _iterations = iterations;
         }
 
+        public long Value
+        {
+            get { return _value.Data; }
+        }
+
         public bool Done
         {
             get { return _done; }

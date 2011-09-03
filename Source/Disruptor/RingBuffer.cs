@@ -31,7 +31,7 @@ namespace Disruptor
         /// <param name="size">size of the RingBuffer that will be rounded up to the next power of 2</param>
         /// <param name="claimStrategyOption"> threading strategy for producers claiming events in the ring.</param>
         /// <param name="waitStrategyOption">waiting strategy employed by <see cref="EventProcessor{T}"/> waiting on events becoming available.</param>
-        public RingBuffer(Func<T> eventFactory, int size, ClaimStrategyOption claimStrategyOption = ClaimStrategyOption.MultipleProducers, WaitStrategyOption waitStrategyOption = WaitStrategyOption.Blocking)
+        public RingBuffer(Func<T> eventFactory, int size, ClaimStrategyOption claimStrategyOption = ClaimStrategyOption.MultipleProducers, WaitStrategyOption waitStrategyOption = WaitStrategyOption.SpinWait)
         {
             _ringBufferSize = Util.CeilingNextPowerOfTwo(size);
             _ringModMask = _ringBufferSize - 1;
@@ -212,11 +212,6 @@ namespace Disruptor
         private void RetrieveEventProcessorsToTrack()
         {
             var lastEventProcessorsInChain = _eventProcessorRepository.LastEventProcessorsInChain;
-            var period = _events.Length / 2;
-            foreach (var eventProcessor in lastEventProcessorsInChain)
-            {
-                eventProcessor.DelaySequenceWrite(period);
-            }
             SetTrackedEventProcessors(lastEventProcessorsInChain);
         }
 
