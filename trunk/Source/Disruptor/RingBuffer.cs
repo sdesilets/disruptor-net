@@ -210,7 +210,7 @@ namespace Disruptor
                 thread.Start();
             }
 
-            //wait all event processors are properly started
+            //wait all event processors to be started
             foreach (var eventProcessorInfo in _eventProcessorRepository.EventProcessors)
             {
                 while (!eventProcessorInfo.EventProcessor.Running)

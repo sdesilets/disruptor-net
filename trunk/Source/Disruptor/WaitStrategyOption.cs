@@ -16,6 +16,11 @@
         /// <summary>
         /// This strategy call spins in a loop as a waiting strategy which is lowest and most consistent latency but ties up a CPU
         /// </summary>
-        BusySpin
+        BusySpin,
+        /// <summary>
+        /// This strategy uses a progressive back off strategy by first spinning, then yielding, then sleeping for 1ms periods.
+        /// This is a good strategy for burst traffic then quiet periods when latency is not critical.
+        /// </summary>
+        SpinWait
     }
 }

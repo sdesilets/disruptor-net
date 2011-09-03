@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using Disruptor.PerfTests.Runner;
 
 namespace Disruptor.PerfTests
@@ -25,6 +26,8 @@ namespace Disruptor.PerfTests
             Console.WriteLine(new ComputerSpecifications().ToString());
 
             var session = new PerformanceTestSession(scenarioType, implementationType, runs);
+
+            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;
 
             session.Run();
 
