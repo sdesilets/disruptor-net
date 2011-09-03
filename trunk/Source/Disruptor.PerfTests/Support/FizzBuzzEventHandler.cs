@@ -1,3 +1,5 @@
+using Disruptor.MemoryLayout;
+
 namespace Disruptor.PerfTests.Support
 {
     public class FizzBuzzEventHandler : IEventHandler<FizzBuzzEvent>
@@ -5,18 +7,23 @@ namespace Disruptor.PerfTests.Support
         private readonly FizzBuzzStep _fizzBuzzStep;
         private readonly long _iterations;
         private volatile bool _done;
+        private PaddedLong _fizzBuzzCounter;
 
         public bool Done
         {
             get { return _done; }
         }
 
-        public long FizzBuzzCounter { get; private set; }
+        public long FizzBuzzCounter
+        {
+            get { return _fizzBuzzCounter.Data; }
+        }
 
         public FizzBuzzEventHandler(FizzBuzzStep fizzBuzzStep, long iterations)
         {
             _fizzBuzzStep = fizzBuzzStep;
             _iterations = iterations;
+            _fizzBuzzCounter = new PaddedLong(0);
         }
 
         public void OnNext(long sequence, FizzBuzzEvent data, bool endOfBatch)
@@ -33,7 +40,7 @@ namespace Disruptor.PerfTests.Support
                 case FizzBuzzStep.FizzBuzz:
                     if (data.Fizz && data.Buzz)
                     {
-                        ++FizzBuzzCounter;
+                        ++_fizzBuzzCounter.Data;
                     }
                     break;
             }

@@ -1,15 +1,17 @@
+using Disruptor.MemoryLayout;
+
 namespace Disruptor.PerfTests.Support
 {
     public class FunctionEventHandler:IEventHandler<FunctionEvent>
     {
         private readonly FunctionStep _functionStep;
-        private long _stepThreeCounter;
+        private PaddedLong _stepThreeCounter;
         private readonly long _iterations;
         private volatile bool _done;
 
         public long StepThreeCounter
         {
-            get { return _stepThreeCounter; }
+            get { return _stepThreeCounter.Data; }
         }
 
         public bool Done
@@ -37,7 +39,7 @@ namespace Disruptor.PerfTests.Support
                 case FunctionStep.Three:
                     if ((data.StepTwoResult & 4L) == 4L)
                     {
-                        _stepThreeCounter++;
+                        _stepThreeCounter.Data++;
                     }
                     break;
             }

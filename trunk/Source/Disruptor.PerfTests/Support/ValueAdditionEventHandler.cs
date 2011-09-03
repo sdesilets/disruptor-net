@@ -1,9 +1,11 @@
+using Disruptor.MemoryLayout;
+
 namespace Disruptor.PerfTests.Support
 {
     public class ValueAdditionEventHandler : IEventHandler<ValueEvent>
     {
         private readonly long _iterations;
-        private readonly ValueEvent _value = new ValueEvent();
+        private PaddedLong _value;
         private volatile bool _done;
 
         public bool Done
@@ -16,19 +18,14 @@ namespace Disruptor.PerfTests.Support
             _iterations = iterations;
         }
 
-        public ValueEvent Value
+        public long Value
         {
-            get { return _value; }
-        }
-
-        public void Reset()
-        {
-            _value.Value = 0;
+            get { return _value.Data; }
         }
 
         public void OnNext(long sequence, ValueEvent value, bool endOfBatch)
         {
-            _value.Value += value.Value;
+            _value.Data += value.Value;
             if(sequence == _iterations - 1)
             {
                 _done = true;

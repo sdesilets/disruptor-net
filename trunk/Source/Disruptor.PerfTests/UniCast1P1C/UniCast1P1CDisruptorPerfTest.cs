@@ -43,7 +43,7 @@ namespace Disruptor.PerfTests.UniCast1P1C
             var opsPerSecond = (Iterations * 1000L) / sw.ElapsedMilliseconds;
             _ringBuffer.Halt();
 
-            Assert.AreEqual(ExpectedResult, _eventHandler.Value.Value, "RunDisruptorPass");
+            Assert.AreEqual(ExpectedResult, _eventHandler.Value, "RunDisruptorPass");
 
             return opsPerSecond;
         }
