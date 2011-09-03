@@ -25,12 +25,5 @@
         /// Starts this instance 
         /// </summary>
         void Run();
-
-        /// <summary>
-        /// Throttle the sequence publication to other threads
-        /// Can only be applied to the last <see cref="IEventProcessor"/>s of a chain (the one tracked by the producer barrier)
-        /// </summary>
-        /// <param name="period">Sequence will be published every 'period' events</param>
-        void DelaySequenceWrite(int period);
     }
 }

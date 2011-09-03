@@ -16,9 +16,6 @@
 
         private volatile bool _running = true;
         private readonly Sequence _sequence = new Sequence(RingBufferConvention.InitialCursorValue);
-        private bool _delaySequenceWrite;
-        private int _sequenceUpdatePeriod;
-        private int _nextSequencePublish = 1;
 
         /// <summary>
         /// Construct a <see cref="EventProcessor{T}"/> that will automatically track the progress by updating its sequence when
@@ -32,18 +29,6 @@
             _ringBuffer = ringBuffer;
             _dependencyBarrier = dependencyBarrier;
             _eventHandler = eventHandler;
-        }
-
-        /// <summary>
-        /// Throttle the sequence publication to other threads
-        /// Can only be applied to the last eventProcessors of a chain (the one tracked by the producer barrier)
-        /// </summary>
-        /// <param name="period">Sequence will be published every 'period' events</param>
-        public void DelaySequenceWrite(int period)
-        {
-            _delaySequenceWrite = true;
-            _sequenceUpdatePeriod = period;
-            _nextSequencePublish = period;
         }
 
         /// <summary>
@@ -92,18 +77,7 @@
                         nextSequence++;
                     }
 
-                    if(_delaySequenceWrite)
-                    {
-                        if(nextSequence > _nextSequencePublish)
-                        {
-                            _sequence.Value = nextSequence - 1; // volatile write
-                            _nextSequencePublish += _sequenceUpdatePeriod;
-                        }
-                    }
-                    else
-                    {
-                        _sequence.Value = nextSequence - 1; // volatile write
-                    }
+                    _sequence.Value = nextSequence - 1; // volatile write
                 }
                 else
                 {

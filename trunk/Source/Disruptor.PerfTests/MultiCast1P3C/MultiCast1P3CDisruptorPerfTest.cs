@@ -48,10 +48,9 @@ namespace Disruptor.PerfTests.MultiCast1P3C
 
             _ringBuffer.Halt();
 
-            // TODO some random failure here to fix (the sequence number received by the consumer seems ok all the time but the end result is not.
-            //Assert.AreEqual(ExpectedResults[0], _handler1.Value, "Addition");
-            //Assert.AreEqual(ExpectedResults[1], _handler2.Value, "Sub");
-            //Assert.AreEqual(ExpectedResults[2], _handler3.Value, "And");
+            Assert.AreEqual(ExpectedResults[0], _handler1.Value, "Addition");
+            Assert.AreEqual(ExpectedResults[1], _handler2.Value, "Sub");
+            Assert.AreEqual(ExpectedResults[2], _handler3.Value, "And");
 
             return opsPerSecond;
         }
