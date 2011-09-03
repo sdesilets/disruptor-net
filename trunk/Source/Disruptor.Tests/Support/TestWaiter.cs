@@ -28,7 +28,7 @@ namespace Disruptor.Tests.Support
             var events = new List<StubEvent>();
             for (var l = _initialSequence; l <= _toWaitForSequence; l++)
             {
-                events.Add(_ringBuffer.GetEvent(l));
+                events.Add(_ringBuffer[l]);
             }
 
             return events;

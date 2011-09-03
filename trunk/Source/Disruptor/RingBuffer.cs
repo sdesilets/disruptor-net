@@ -13,7 +13,7 @@ namespace Disruptor
     {
         private readonly Sequence _cursor = new Sequence(RingBufferConvention.InitialCursorValue);
         private readonly int _ringModMask;
-        private readonly Event<T>[] _events;
+        private readonly T[] _events;
 
         private Sequence[] _processorSequencesToTrack;
 
@@ -35,7 +35,7 @@ namespace Disruptor
         {
             _ringBufferSize = Util.CeilingNextPowerOfTwo(size);
             _ringModMask = _ringBufferSize - 1;
-            _events = new Event<T>[_ringBufferSize];
+            _events = new T[_ringBufferSize];
             _claimStrategy = claimStrategyOption.GetInstance(_ringBufferSize);
             _waitStrategy = waitStrategyOption.GetInstance();
 
@@ -59,8 +59,7 @@ namespace Disruptor
             var sequence = _claimStrategy.IncrementAndGet();
             _claimStrategy.EnsureProcessorsAreInRange(sequence, _processorSequencesToTrack);
 
-            var evt = _events[(int)sequence & _ringModMask];
-            evt.Sequence = sequence;
+            var evt = new Event<T>(sequence, _events[(int)sequence & _ringModMask]);
 
             return evt;
         }
@@ -97,16 +96,6 @@ namespace Disruptor
             Publish(sequenceBatch.End, sequenceBatch.Size);
         }
 
-        ///<summary>
-        /// Get the data for a given sequence from the underlying <see cref="RingBuffer{T}"/>.
-        ///</summary>
-        ///<param name="sequence">sequence of the event to get.</param>
-        ///<returns>the data for the sequence</returns>
-        public T GetEvent(long sequence)
-        {
-            return _events[(int)sequence & _ringModMask].Data;
-        }
-
         /// <summary>
         /// Get the current sequence that producers have committed to the RingBuffer.
         /// </summary>
@@ -116,10 +105,10 @@ namespace Disruptor
         }
 
         ///<summary>
-        /// Get the <see cref="Event{T}"/> for a given sequence in the RingBuffer.
+        /// Get the event for a given sequence in the RingBuffer.
         ///</summary>
         ///<param name="sequence">sequence for the <see cref="Event{T}"/></param>
-        internal Event<T> this[long sequence]
+        public T this[long sequence]
         {
             get { return _events[(int)sequence & _ringModMask]; }
         }
@@ -264,8 +253,7 @@ namespace Disruptor
         {
             for (var i = 0; i < _events.Length; i++)
             {
-                var data = eventFactory();
-                _events[i] = new Event<T>(-1, data);
+                _events[i] = eventFactory();
             }
         }
     }

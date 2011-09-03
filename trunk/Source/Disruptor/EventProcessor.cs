@@ -86,7 +86,7 @@
                     var availableSequence = waitForResult.AvailableSequence;
                     while (nextSequence <= availableSequence)
                     {
-                        T data = _ringBuffer.GetEvent(nextSequence);
+                        T data = _ringBuffer[nextSequence];
                         _eventHandler.OnNext(nextSequence, data, nextSequence == availableSequence);
                         
                         nextSequence++;

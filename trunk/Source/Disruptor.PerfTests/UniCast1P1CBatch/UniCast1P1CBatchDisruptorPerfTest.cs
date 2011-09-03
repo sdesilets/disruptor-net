@@ -41,7 +41,7 @@ namespace Disruptor.PerfTests.UniCast1P1CBatch
                 var sequenceBatch = _ringBuffer.NextEvents(batchSize);
                 for (long sequence = sequenceBatch.Start; sequence <= sequenceBatch.End; sequence++)
                 {
-                    ValueEvent valueEvent = _ringBuffer.GetEvent(sequence);
+                    ValueEvent valueEvent = _ringBuffer[sequence];
                     valueEvent.Value = offset++;
                 }
                 _ringBuffer.Publish(sequenceBatch);
