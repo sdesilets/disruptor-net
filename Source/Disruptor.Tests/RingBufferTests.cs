@@ -25,10 +25,10 @@ namespace Disruptor.Tests
         {
             Assert.AreEqual(RingBufferConvention.InitialCursorValue, _ringBuffer.Cursor);
 
-            var expectedEvent = new Event<StubEvent>(-1, new StubEvent(2701));
+            var expectedEvent = new StubEvent(2701);
 
             var evt = _ringBuffer.NextEvent();
-            evt.Data.Value = expectedEvent.Data.Value;
+            evt.Data.Value = expectedEvent.Value;
             _ringBuffer.Publish(evt);
 
             var waitForResult = _dependencyBarrier.WaitFor(0);
@@ -73,7 +73,7 @@ namespace Disruptor.Tests
 
             for (var i = 0; i < numEvents; i++)
             {
-                Assert.AreEqual(i, _ringBuffer[i].Data.Value);
+                Assert.AreEqual(i, _ringBuffer[i].Value);
             }
         }
 
@@ -95,7 +95,7 @@ namespace Disruptor.Tests
 
             for (var i = offset; i < numEvents + offset; i++)
             {
-                Assert.AreEqual(i, _ringBuffer[i].Data.Value);
+                Assert.AreEqual(i, _ringBuffer[i].Value);
             }
         }
 
