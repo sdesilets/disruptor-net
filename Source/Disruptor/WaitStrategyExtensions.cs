@@ -23,7 +23,8 @@ namespace Disruptor
                     return new YieldingStrategy();
                 case WaitStrategyOption.BusySpin:
                     return new BusySpinStrategy();
-                    //TODO implement a strategy based on SpinWait
+                case WaitStrategyOption.SpinWait:
+                    return new SpinWaitStrategy();
                 default:
                     throw new ArgumentOutOfRangeException("option");
             }
@@ -80,12 +81,14 @@ namespace Disruptor
         }
 
         /// <summary>
-        /// Yielding strategy that uses a Thread.yield() for <see cref="IEventProcessor"/>s waiting on a barrier.
+        /// Yielding strategy that uses a Thread.yield() for <see cref="IEventProcessor"/>s waiting on a barrier
+        /// after an initially spinning.
+        /// 
         /// This strategy is a good compromise between performance and CPU resource.
         /// </summary>
         private sealed class YieldingStrategy:IWaitStrategy
         {
-            private const int SpinTries = 100;
+            private const int SpinTries = 200;
 
             public WaitForResult WaitFor(Sequence[] dependents, Sequence cursor, IDependencyBarrier barrier, long sequence)
             {
@@ -101,10 +104,13 @@ namespace Disruptor
                             return WaitForResult.AlertedResult;
                         }
 
-                        if(0 == --counter)
+                        if(0 == counter)
                         {
                             Thread.Yield();
-                            counter = SpinTries;
+                        }
+                        else
+                        {
+                            counter--;
                         }
                     }
                 }
@@ -117,10 +123,13 @@ namespace Disruptor
                             return WaitForResult.AlertedResult;
                         }
 
-                        if (0 == --counter)
+                        if (0 == counter)
                         {
                             Thread.Yield();
-                            counter = SpinTries;
+                        }
+                        else
+                        {
+                            counter--;
                         }
                     }
                 }
@@ -162,6 +171,46 @@ namespace Disruptor
                         {
                             return WaitForResult.AlertedResult;
                         }
+                    }
+                }
+
+                return new WaitForResult(availableSequence, false);
+            }
+
+            public void SignalAll()
+            {
+            }
+        }
+
+        private sealed class SpinWaitStrategy : IWaitStrategy
+        {
+            public WaitForResult WaitFor(Sequence[] dependents, Sequence cursor, IDependencyBarrier barrier, long sequence)
+            {
+                long availableSequence;
+
+                var spinWait = new SpinWait();
+                if (0 == dependents.Length)
+                {
+                    while ((availableSequence = cursor.Value) < sequence) // volatile read
+                    {
+                        if (barrier.IsAlerted)
+                        {
+                            return WaitForResult.AlertedResult;
+                        }
+
+                        spinWait.SpinOnce();
+                    }
+                }
+                else
+                {
+                    while ((availableSequence = dependents.GetMinimumSequence()) < sequence)
+                    {
+                        if (barrier.IsAlerted)
+                        {
+                            return WaitForResult.AlertedResult;
+                        }
+
+                        spinWait.SpinOnce();
                     }
                 }
 

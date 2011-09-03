@@ -47,6 +47,7 @@
     <Compile Include="..\Version.cs">
       <Link>Version.cs</Link>
     </Compile>
+    <Compile Include="Affinity\ProcessorAffinity.cs" />
     <Compile Include="DependencyBarrier.cs" />
     <Compile Include="EventProcessor.cs" />
     <Compile Include="ClaimStrategyExtensions.cs" />
