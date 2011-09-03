@@ -4,10 +4,10 @@ using System.Threading;
 namespace Disruptor.MemoryLayout
 {
     /// <summary>
-    /// A <see cref="long"/> wrapped in CacheLineStorageLong is guaranteed to live on its own cache line
+    /// A <see cref="long"/> wrapped in PaddedLong is guaranteed to live on its own cache line
     /// </summary>
     [StructLayout(LayoutKind.Explicit, Size = 2 * CacheLine.Size)]
-    internal struct CacheLineStorageAtomicLong
+    internal struct PaddedAtomicLong
     {
         [FieldOffset(CacheLine.Size)]
         private long _data;
@@ -16,7 +16,7 @@ namespace Disruptor.MemoryLayout
         /// Initialise a new instance of CacheLineStorage
         ///</summary>
         ///<param name="data">default value of data</param>
-        public CacheLineStorageAtomicLong(long data)
+        public PaddedAtomicLong(long data)
         {
             _data = data;
         }

@@ -37,6 +37,7 @@ namespace Disruptor.PerfTests.DiamondPath1P3C
             for (long i = 0; i < Iterations; i++)
             {
                 var evt = _ringBuffer.NextEvent();
+                evt.Data.Reset();
                 evt.Data.Value = i;
                 _ringBuffer.Publish(evt);
             }

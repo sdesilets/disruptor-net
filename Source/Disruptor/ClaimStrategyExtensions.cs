@@ -34,8 +34,8 @@ namespace Disruptor
         private sealed class MultiThreadedStrategy : IClaimStrategy
         {
             private readonly int _bufferSize;
-            private CacheLineStorageAtomicLong _sequence = new CacheLineStorageAtomicLong(RingBufferConvention.InitialCursorValue);
-            private CacheLineStorageVolatileLong _minProcessorSequence;
+            private PaddedAtomicLong _sequence = new PaddedAtomicLong(RingBufferConvention.InitialCursorValue);
+            private PaddedVolatileLong _minProcessorSequence;
 
             public MultiThreadedStrategy(int bufferSize)
             {
@@ -90,8 +90,8 @@ namespace Disruptor
         private sealed class SingleThreadedStrategy : IClaimStrategy
         {
             private readonly int _bufferSize;
-            private CacheLineStorageLong _sequence = new CacheLineStorageLong(RingBufferConvention.InitialCursorValue);
-            private CacheLineStorageLong _minProcessorSequence;
+            private PaddedLong _sequence = new PaddedLong(RingBufferConvention.InitialCursorValue);
+            private PaddedLong _minProcessorSequence;
 
             public SingleThreadedStrategy(int bufferSize)
             {

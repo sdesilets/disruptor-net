@@ -55,7 +55,7 @@ namespace Disruptor.PerfTests.UniCast1P1CBatch
             long opsPerSecond = (Iterations * 1000L) / sw.ElapsedMilliseconds;
             _ringBuffer.Halt();
 
-            Assert.AreEqual(ExpectedResult, _eventHandler.Value.Value);
+            Assert.AreEqual(ExpectedResult, _eventHandler.Value);
 
             return opsPerSecond;
         }

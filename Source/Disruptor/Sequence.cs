@@ -8,7 +8,7 @@ namespace Disruptor
     /// </summary>
     public class Sequence
     {
-        private CacheLineStorageVolatileLong _sequence;
+        private PaddedVolatileLong _sequence;
 
         /// <summary>
         /// Construct a new sequence that can be tracked across threads.
@@ -16,7 +16,7 @@ namespace Disruptor
         /// <param name="initialValue">initial value</param>
         public Sequence(long initialValue)
         {
-            _sequence = new CacheLineStorageVolatileLong(initialValue);
+            _sequence = new PaddedVolatileLong(initialValue);
         }
 
         /// <summary>
