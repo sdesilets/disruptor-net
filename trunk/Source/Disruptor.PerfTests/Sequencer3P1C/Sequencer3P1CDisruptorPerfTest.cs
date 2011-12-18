@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Threading;
+using Disruptor.Dsl;
 using Disruptor.PerfTests.Support;
 using NUnit.Framework;
 
@@ -12,18 +13,21 @@ namespace Disruptor.PerfTests.Sequencer3P1C
         private readonly ValueAdditionEventHandler _eventHandler;
         private readonly ValueProducer[] _valueProducers;
         private readonly Barrier _testStartBarrier = new Barrier(NumProducers);
+        private readonly Disruptor<ValueEvent> _disruptor;
+        private readonly ManualResetEvent _mru;
 
         public Sequencer3P1CDisruptorPerfTest()
             : base(20 * Million)
         {
-            _ringBuffer = new RingBuffer<ValueEvent>(()=>new ValueEvent(), Size,
-                                   ClaimStrategyOption.MultipleProducers,
-                                   WaitStrategyOption.Yielding);
-
-            _eventHandler = new ValueAdditionEventHandler(Iterations * NumProducers);
-            _ringBuffer.HandleEventsWith(_eventHandler);
+            _disruptor = new Disruptor<ValueEvent>(()=>new ValueEvent(), 
+                                                   new MultiThreadedClaimStrategy(Size),
+                                                   new YieldingWaitStrategy());
+            _mru = new ManualResetEvent(false);
+            _eventHandler = new ValueAdditionEventHandler(Iterations * NumProducers, _mru);
+            _disruptor.HandleEventsWith(_eventHandler);
             
             _valueProducers = new ValueProducer[NumProducers];
+            _ringBuffer = _disruptor.RingBuffer;
 
             for (int i = 0; i < NumProducers; i++)
             {
@@ -33,7 +37,7 @@ namespace Disruptor.PerfTests.Sequencer3P1C
 
         public override long RunPass()
         {
-            _ringBuffer.StartProcessors();
+            _disruptor.Start();
 
             for (var i = 0; i < NumProducers - 1; i++)
             {
@@ -43,13 +47,10 @@ namespace Disruptor.PerfTests.Sequencer3P1C
             var sw = Stopwatch.StartNew();
             _valueProducers[NumProducers - 1].Run();
 
-            while (!_eventHandler.Done)
-            {
-                // busy spin
-            }
+            _mru.WaitOne();
 
             var opsPerSecond = (NumProducers * Iterations * 1000L) / sw.ElapsedMilliseconds;
-            _ringBuffer.Halt();
+            _disruptor.Shutdown();
 
             return opsPerSecond;
         }

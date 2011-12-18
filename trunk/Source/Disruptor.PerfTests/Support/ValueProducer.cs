@@ -21,9 +21,9 @@ namespace Disruptor.PerfTests.Support
 
             for (long i = 0; i < _iterations; i++)
             {
-                var evt = _ringBuffer.NextEvent();
-                evt.Data.Value = i;
-                _ringBuffer.Publish(evt);
+                var sequence = _ringBuffer.Next();
+                _ringBuffer[sequence].Value = i;
+                _ringBuffer.Publish(sequence);
             }
         }
     }

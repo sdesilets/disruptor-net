@@ -1,23 +1,37 @@
-﻿namespace Disruptor
+﻿using System;
+
+namespace Disruptor
 {
     /// <summary>
     /// Strategy employed for making <see cref="IEventProcessor"/>s wait on a <see cref="RingBuffer{T}"/>.
     /// </summary>
-    internal interface IWaitStrategy
+    public interface IWaitStrategy
     {
         /// <summary>
-        /// Wait for the given sequence to be available for consumption in a <see cref="RingBuffer{T}"/>
+        /// Wait for the given sequence to be available
         /// </summary>
-        /// <param name="dependents">dependents further back the chain that must advance first</param>
-        /// <param name="cursor">Ring buffer cursor on which to wait.</param>
-        /// <param name="barrier">barrier the <see cref="IEventProcessor"/> is waiting on.</param>
         /// <param name="sequence">sequence to be waited on.</param>
+        /// <param name="cursor">Ring buffer cursor on which to wait.</param>
+        /// <param name="dependents">dependents further back the chain that must advance first</param>
+        /// <param name="barrier">barrier the <see cref="IEventProcessor"/> is waiting on.</param>
         /// <returns>the sequence that is available which may be greater than the requested sequence.</returns>
-        WaitForResult WaitFor(Sequence[] dependents, Sequence cursor, IDependencyBarrier barrier, long sequence);
+        long WaitFor(long sequence, Sequence cursor, Sequence[] dependents, ISequenceBarrier barrier);
 
         /// <summary>
-        /// Signal those waiting that the <see cref="RingBuffer{T}"/> cursor has advanced.
+        /// Wait for the given sequence to be available with a timeout specified.
         /// </summary>
-        void SignalAll();
+        /// <param name="sequence">sequence to be waited on.</param>
+        /// <param name="cursor">cursor on which to wait.</param>
+        /// <param name="dependents">dependents further back the chain that must advance first</param>
+        /// <param name="barrier">barrier the processor is waiting on.</param>
+        /// <param name="timeout">timeout value to abort after.</param>
+        /// <returns>the sequence that is available which may be greater than the requested sequence.</returns>
+        /// <exception cref="AlertException">AlertException if the status of the Disruptor has changed.</exception>
+        long WaitFor(long sequence, Sequence cursor, Sequence[] dependents, ISequenceBarrier barrier, TimeSpan timeout);
+
+        /// <summary>
+        /// Signal those <see cref="IEventProcessor"/> waiting that the cursor has advanced.
+        /// </summary>
+        void SignalAllWhenBlocking();
     }
 }

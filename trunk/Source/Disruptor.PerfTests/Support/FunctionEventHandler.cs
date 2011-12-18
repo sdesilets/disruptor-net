@@ -1,31 +1,28 @@
+using System.Threading;
 using Disruptor.MemoryLayout;
 
 namespace Disruptor.PerfTests.Support
 {
-    public class FunctionEventHandler:IEventHandler<FunctionEvent>
+    public class FunctionEventHandler : IEventHandler<FunctionEvent>
     {
         private readonly FunctionStep _functionStep;
         private PaddedLong _stepThreeCounter;
         private readonly long _iterations;
-        private volatile bool _done;
+        private readonly ManualResetEvent _mru;
 
         public long StepThreeCounter
         {
-            get { return _stepThreeCounter.Data; }
+            get { return _stepThreeCounter.Value; }
         }
 
-        public bool Done
-        {
-            get { return _done; }
-        }
-
-        public FunctionEventHandler(FunctionStep functionStep, long iterations)
+        public FunctionEventHandler(FunctionStep functionStep, long iterations, ManualResetEvent mru)
         {
             _functionStep = functionStep;
             _iterations = iterations;
+            _mru = mru;
         }
 
-        public void OnNext(long sequence, FunctionEvent data, bool endOfBatch)
+        public void OnNext(FunctionEvent data, long sequence, bool endOfBatch)
         {
             switch (_functionStep)
             {
@@ -39,14 +36,14 @@ namespace Disruptor.PerfTests.Support
                 case FunctionStep.Three:
                     if ((data.StepTwoResult & 4L) == 4L)
                     {
-                        _stepThreeCounter.Data++;
+                        _stepThreeCounter.Value++;
                     }
                     break;
             }
 
             if(sequence == _iterations-1)
             {
-                _done = true;
+                _mru.Set();
             }
         }
     }

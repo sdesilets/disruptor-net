@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Threading;
 using Disruptor.Collections;
 
 namespace Disruptor.PerfTests.Support
@@ -10,23 +11,19 @@ namespace Disruptor.PerfTests.Support
         private readonly long _nanoTimeCost;
         private readonly double _ticksToNanos;
         private readonly long _iterations;
-        private volatile bool _done;
+        private readonly ManualResetEvent _mru;
 
-        public bool Done
-        {
-            get { return _done; }
-        }
-
-        public LatencyStepEventHandler(FunctionStep functionStep, Histogram histogram, long nanoTimeCost, double ticksToNanos, long iterations)
+        public LatencyStepEventHandler(FunctionStep functionStep, Histogram histogram, long nanoTimeCost, double ticksToNanos, long iterations, ManualResetEvent mru)
         {
             _functionStep = functionStep;
             _histogram = histogram;
             _nanoTimeCost = nanoTimeCost;
             _ticksToNanos = ticksToNanos;
             _iterations = iterations;
+            _mru = mru;
         }
 
-        public void OnNext(long sequence, ValueEvent data, bool endOfBatch) 
+        public void OnNext(ValueEvent data, long sequence, bool endOfBatch) 
         {
             switch (_functionStep)
             {
@@ -42,7 +39,7 @@ namespace Disruptor.PerfTests.Support
             }
             if(sequence == _iterations - 1)
             {
-                _done = true;
+                _mru.Set();
             }
         }
     }

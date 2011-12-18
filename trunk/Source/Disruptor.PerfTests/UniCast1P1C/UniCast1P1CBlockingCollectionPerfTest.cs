@@ -10,7 +10,7 @@ namespace Disruptor.PerfTests.UniCast1P1C
     [TestFixture]
     public class UniCast1P1CBlockingCollectionPerfTest : AbstractUniCast1P1CPerfTest
     {
-        private readonly BlockingCollection<long> _queue = new BlockingCollection<long>(Size);
+        private readonly BlockingCollection<long> _queue = new BlockingCollection<long>(BufferSize);
         private readonly ValueAdditionQueueEventProcessor _queueEventProcessor;
 
         public UniCast1P1CBlockingCollectionPerfTest() : base(2 * Million)

@@ -6,15 +6,15 @@ namespace Disruptor.Tests.Support
     internal class TestWaiter
     {
         private readonly Barrier _barrier;
-        private readonly IDependencyBarrier _dependencyBarrier;
+        private readonly ISequenceBarrier _sequenceBarrier;
         private readonly long _initialSequence;
         private readonly long _toWaitForSequence;
         private readonly RingBuffer<StubEvent> _ringBuffer;
 
-        public TestWaiter(Barrier barrier, IDependencyBarrier dependencyBarrier, RingBuffer<StubEvent> ringBuffer, long initialSequence, long toWaitForSequence)
+        public TestWaiter(Barrier barrier, ISequenceBarrier sequenceBarrier, RingBuffer<StubEvent> ringBuffer, long initialSequence, long toWaitForSequence)
         {
             _barrier = barrier;
-            _dependencyBarrier = dependencyBarrier;
+            _sequenceBarrier = sequenceBarrier;
             _ringBuffer = ringBuffer;
             _initialSequence = initialSequence;
             _toWaitForSequence = toWaitForSequence;
@@ -23,7 +23,7 @@ namespace Disruptor.Tests.Support
         public List<StubEvent> Call()
         {
             _barrier.SignalAndWait();
-            _dependencyBarrier.WaitFor(_toWaitForSequence);
+            _sequenceBarrier.WaitFor(_toWaitForSequence);
 
             var events = new List<StubEvent>();
             for (var l = _initialSequence; l <= _toWaitForSequence; l++)

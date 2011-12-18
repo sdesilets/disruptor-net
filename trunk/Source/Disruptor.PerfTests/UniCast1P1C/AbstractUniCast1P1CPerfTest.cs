@@ -3,7 +3,7 @@ namespace Disruptor.PerfTests.UniCast1P1C
     public abstract class AbstractUniCast1P1CPerfTest : ThroughputPerfTest
     {
         private long _expectedResult;
-        protected const int Size = 1024 * 32;
+        protected const int BufferSize = 1024 * 8;
 
         protected AbstractUniCast1P1CPerfTest(int iterations) : base(iterations)
         {

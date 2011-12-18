@@ -26,7 +26,7 @@ namespace Disruptor.Tests
         {
             var sequences = new[] {new Sequence(11), new Sequence(4), new Sequence(13)};
 
-            Assert.AreEqual(4L, sequences.GetMinimumSequence());
+            Assert.AreEqual(4L, Util.GetMinimumSequence(sequences));
         }
 
         [Test]
@@ -34,7 +34,7 @@ namespace Disruptor.Tests
         {
             var sequences = new Sequence[0];
 
-            Assert.AreEqual(long.MaxValue, sequences.GetMinimumSequence());
+            Assert.AreEqual(long.MaxValue, Util.GetMinimumSequence(sequences));
         }
     }
 }
