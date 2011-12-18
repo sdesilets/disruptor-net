@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Threading;
+using Disruptor.Dsl;
 using Disruptor.PerfTests.Support;
 using NUnit.Framework;
 
@@ -11,45 +13,44 @@ namespace Disruptor.PerfTests.DiamondPath1P3C
         private readonly FizzBuzzEventHandler _fizzEventHandler;
         private readonly FizzBuzzEventHandler _buzzEventHandler;
         private readonly FizzBuzzEventHandler _fizzBuzzEventHandler;
+        private readonly ManualResetEvent _mru;
+        private readonly Disruptor<FizzBuzzEvent> _disruptor;
 
         public DiamondPath1P3CDisruptorPerfTest()
-            : base(20 * Million)
+            : base(100 * Million)
         {
-            _ringBuffer = new RingBuffer<FizzBuzzEvent>(() => new FizzBuzzEvent(), Size,
-                                          ClaimStrategyOption.SingleProducer,
-                                          WaitStrategyOption.Yielding);
+            _disruptor = new Disruptor<FizzBuzzEvent>(() => new FizzBuzzEvent(),
+                                                      new SingleThreadedClaimStrategy(Size),
+                                                      new YieldingWaitStrategy());
 
+            _mru = new ManualResetEvent(false);
+            _fizzEventHandler = new FizzBuzzEventHandler(FizzBuzzStep.Fizz, Iterations, _mru);
+            _buzzEventHandler = new FizzBuzzEventHandler(FizzBuzzStep.Buzz, Iterations, _mru);
+            _fizzBuzzEventHandler = new FizzBuzzEventHandler(FizzBuzzStep.FizzBuzz, Iterations, _mru);
 
-            _fizzEventHandler = new FizzBuzzEventHandler(FizzBuzzStep.Fizz, Iterations);
-            _buzzEventHandler = new FizzBuzzEventHandler(FizzBuzzStep.Buzz, Iterations);
-            _fizzBuzzEventHandler = new FizzBuzzEventHandler(FizzBuzzStep.FizzBuzz, Iterations);
-
-            _ringBuffer.HandleEventsWith(_fizzEventHandler, _buzzEventHandler)
-                       .Then(_fizzBuzzEventHandler);
+            _disruptor.HandleEventsWith(_fizzEventHandler, _buzzEventHandler)
+                      .Then(_fizzBuzzEventHandler);
+            _ringBuffer = _disruptor.RingBuffer;
         }
 
         public override long RunPass()
         {
-            _ringBuffer.StartProcessors();
+            _disruptor.Start();
 
             var sw = Stopwatch.StartNew();
 
             for (long i = 0; i < Iterations; i++)
             {
-                var evt = _ringBuffer.NextEvent();
-                evt.Data.Reset();
-                evt.Data.Value = i;
-                _ringBuffer.Publish(evt);
+                var sequence = _ringBuffer.Next();
+                _ringBuffer[sequence].Value = i;
+                _ringBuffer.Publish(sequence);
             }
 
-            while (!_fizzBuzzEventHandler.Done)
-            {
-                // busy spin
-            }
+            _mru.WaitOne();
 
             var opsPerSecond = (Iterations * 1000L) / sw.ElapsedMilliseconds;
 
-            _ringBuffer.Halt();
+            _disruptor.Shutdown();
 
             Assert.AreEqual(ExpectedResult, _fizzBuzzEventHandler.FizzBuzzCounter);
 

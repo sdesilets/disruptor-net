@@ -6,18 +6,13 @@
     public interface IEventProcessor
     {
         /// <summary>
-        /// Return true if the instance is started, false otherwise
-        /// </summary>
-        bool Running { get; }
-
-        /// <summary>
-        /// Return a reference to the <see cref="Sequence"/> up to which this instance has processed events
+        /// Return a reference to the <see cref="Sequence"/> being used by this <see cref="IEventProcessor"/>
         /// </summary>
         Sequence Sequence { get; }
 
         /// <summary>
         /// Signal that this <see cref="IEventProcessor"/> should stop when it has finished consuming at the next clean break.
-        /// It will call <see cref="IDependencyBarrier.Alert"/> to notify the thread to check status.
+        /// It will call <see cref="ISequenceBarrier.Alert"/> to notify the thread to check status.
         /// </summary>
         void Halt();
 

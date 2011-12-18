@@ -1,3 +1,5 @@
+using System;
+
 namespace Disruptor.Tests.Support
 {
     public class StubEvent
@@ -33,6 +35,11 @@ namespace Disruptor.Tests.Support
         public override string ToString()
         {
             return string.Format("Value: {0}, TestString: {1}", Value, TestString);
+        }
+
+        public void Copy(StubEvent evt)
+        {
+            Value = evt.Value;
         }
     }
 }

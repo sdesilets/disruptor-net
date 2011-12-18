@@ -4,7 +4,6 @@ namespace Disruptor.PerfTests.Runner
     {
         All = 0,
         Disruptor = 1,
-        BlockingCollection = 2,
-        Dataflow = 3
+        BlockingCollection = 2
     }
 }

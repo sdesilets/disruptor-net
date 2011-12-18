@@ -1,21 +1,20 @@
 ﻿namespace Disruptor
 {
     /// <summary>
-    /// No operation version of a <see cref="IEventProcessor"/> that simply tracks a <see cref="RingBuffer{T}"/>.
-    ///  This is useful in tests or for pre-filling a <see cref="RingBuffer{T}"/> from a producer.
+    /// No operation version of a <see cref="IEventProcessor"/> that simply tracks a <see cref="Sequencer"/>.
+    /// This is useful in tests or for pre-filling a <see cref="RingBuffer{T}"/> from a producer.
     /// </summary>
-    public sealed class NoOpEventProcessor<T>:IEventProcessor where T : class
+    public sealed class NoOpEventProcessor : IEventProcessor
     {
-        private volatile bool _running;
-        private readonly RingBufferTrackingSequence _sequence;
+        private readonly SequencerFollowingSequence _sequence;
 
         /// <summary>
-        /// Construct a <see cref="IEventProcessor"/> that simply tracks a <see cref="RingBuffer{T}"/>.
+        /// Construct a <see cref="IEventProcessor"/> that simply tracks a <see cref="Sequencer"/>.
         /// </summary>
-        /// <param name="ringBuffer"></param>
-        public NoOpEventProcessor(RingBuffer<T> ringBuffer)
+        /// <param name="sequencer">sequencer to track.</param>
+        public NoOpEventProcessor(Sequencer sequencer)
         {
-            _sequence = new RingBufferTrackingSequence(ringBuffer);
+            _sequence = new SequencerFollowingSequence(sequencer);
         }
 
         /// <summary>
@@ -23,24 +22,6 @@
         /// </summary>
         public void Run()
         {
-            _running = true;
-        }
-
-        /// <summary>
-        /// No op
-        /// </summary>
-        /// <param name="period"></param>
-        public void DelaySequenceWrite(int period)
-        {
-            
-        }
-
-        /// <summary>
-        /// Return true if the instance is started, false otherwise
-        /// </summary>
-        public bool Running
-        {
-            get { return _running; }
         }
 
         /// <summary>
@@ -56,21 +37,21 @@
         /// </summary>
         public void Halt()
         {
-            _running = false;
         }
 
-	    private sealed class RingBufferTrackingSequence : Sequence
+	    private sealed class SequencerFollowingSequence : Sequence
 	    {
-	        private readonly RingBuffer<T> _ringBuffer;
-	
-	        public RingBufferTrackingSequence(RingBuffer<T> ringBuffer) : base(RingBufferConvention.InitialCursorValue)
+	        private readonly Sequencer _sequencer;
+
+            public SequencerFollowingSequence(Sequencer sequencer)
+                : base(Sequencer.InitialCursorValue)
 	        {
-	            _ringBuffer = ringBuffer;
+                _sequencer = sequencer;
 	        }
 
             public override long Value
             {
-                get { return _ringBuffer.Cursor; }
+                get { return _sequencer.Cursor; }
             } 
 	    }
     }

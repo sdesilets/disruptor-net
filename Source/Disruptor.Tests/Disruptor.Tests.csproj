@@ -52,13 +52,31 @@
     <Compile Include="..\Version.cs">
       <Link>Version.cs</Link>
     </Compile>
-    <Compile Include="EventProcessorTests.cs" />
-    <Compile Include="BatchPublisherTest.cs" />
+    <Compile Include="AggregateEventHandlerTests.cs" />
+    <Compile Include="BatchPublisherTests.cs" />
     <Compile Include="Collections\HistogramTests.cs" />
-    <Compile Include="DependencyBarrierTests.cs" />
-    <Compile Include="LifecycleAwareTests.cs" />
+    <Compile Include="BatchEventProcessorTests.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SequenceBarrierTests.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="EventPublisherTests.cs" />
+    <Compile Include="FatalExceptionHandlerTests.cs" />
+    <Compile Include="IgnoreExceptionHandlerTests.cs" />
+    <Compile Include="LifecycleAwareTests.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MultiTreadedClaimStrategyTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RingBufferTests.cs" />
+    <Compile Include="RingBufferTests.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SequenceGroupTests.cs" />
+    <Compile Include="SequenceReportingCallbackTests.cs" />
+    <Compile Include="SequencerTests.cs" />
+    <Compile Include="SingleThreadedClaimStrategyTests.cs" />
+    <Compile Include="Support\LongEvent.cs" />
     <Compile Include="Support\StubEvent.cs" />
     <Compile Include="Support\TestWaiter.cs" />
     <Compile Include="UtilTests.cs" />

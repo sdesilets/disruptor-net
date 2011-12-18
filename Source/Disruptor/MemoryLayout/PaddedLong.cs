@@ -9,24 +9,24 @@ namespace Disruptor.MemoryLayout
     public struct PaddedLong
     {
         [FieldOffset(CacheLine.Size)]
-        private long _data;
+        private long _value;
 
         ///<summary>
         /// Initialise a new instance of CacheLineStorage
         ///</summary>
-        ///<param name="data">default value of data</param>
-        public PaddedLong(long data)
+        ///<param name="value">default value of Value</param>
+        public PaddedLong(long value)
         {
-            _data = data;
+            _value = value;
         }
 
         /// <summary>
-        /// Expose data with full fence on read and write
+        /// Expose Value with full fence on read and write
         /// </summary>
-        public long Data
+        public long Value
         {
-            get { return _data; }
-            set { _data = value; }
+            get { return _value; }
+            set { _value = value; }
         }
     }
 }

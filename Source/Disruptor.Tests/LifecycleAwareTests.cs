@@ -10,26 +10,26 @@ namespace Disruptor.Tests
         private readonly ManualResetEvent _startMru = new ManualResetEvent(false);
         private readonly ManualResetEvent _shutdownMru = new ManualResetEvent(false);
         private readonly RingBuffer<StubEvent> _ringBuffer = new RingBuffer<StubEvent>(()=>new StubEvent(-1), 16);
-        private IDependencyBarrier _dependencyBarrier;
+        private ISequenceBarrier _sequenceBarrier;
         private LifecycleAwareEventHandler _eventHandler;
-        private EventProcessor<StubEvent> _eventProcessor;
+        private BatchEventProcessor<StubEvent> _batchEventProcessor;
 
         [SetUp]
         public void SetUp()
         {
-            _dependencyBarrier = _ringBuffer.CreateDependencyBarrier();
+            _sequenceBarrier = _ringBuffer.NewBarrier();
             _eventHandler = new LifecycleAwareEventHandler(_startMru, _shutdownMru);
-            _eventProcessor = new EventProcessor<StubEvent>(_ringBuffer, _dependencyBarrier, _eventHandler);
+            _batchEventProcessor = new BatchEventProcessor<StubEvent>(_ringBuffer, _sequenceBarrier, _eventHandler);
         }
 
         [Test]
         public void ShouldNotifyOfEventProcessorLifecycle()
         {
-            new Thread(_eventProcessor.Run).Start();
+            new Thread(_batchEventProcessor.Run).Start();
 
             _startMru.WaitOne();
 
-            _eventProcessor.Halt();
+            _batchEventProcessor.Halt();
 
             _shutdownMru.WaitOne();
 
@@ -60,7 +60,7 @@ namespace Disruptor.Tests
                 _shutdownMru = shutdownMru;
             }
 
-            public void OnNext(long sequence, StubEvent data, bool endOfBatch)
+            public void OnNext(StubEvent data, long sequence, bool endOfBatch)
             {
             }
 
@@ -70,7 +70,7 @@ namespace Disruptor.Tests
                 _startMru.Set();
             }
 
-            public void OnStop()
+            public void OnShutdown()
             {
                 ++_shutdownCounter;
                 _shutdownMru.Set();

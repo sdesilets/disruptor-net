@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Threading;
+using Disruptor.Dsl;
 using Disruptor.PerfTests.Support;
 using NUnit.Framework;
 
@@ -9,16 +11,19 @@ namespace Disruptor.PerfTests.UniCast1P1CBatch
     {
         private readonly RingBuffer<ValueEvent> _ringBuffer;
         private readonly ValueAdditionEventHandler _eventHandler;
+        private readonly Disruptor<ValueEvent> _disruptor;
+        private readonly ManualResetEvent _mru;
 
         public UniCast1P1CBatchDisruptorPerfTest()
             : base(100 * Million)
         {
-            _ringBuffer = new RingBuffer<ValueEvent>(()=>new ValueEvent(), Size,
-                                   ClaimStrategyOption.SingleProducer,
-                                   WaitStrategyOption.Yielding);
-
-            _eventHandler = new ValueAdditionEventHandler(Iterations);
-            _ringBuffer.HandleEventsWith(_eventHandler);
+            _disruptor = new Disruptor<ValueEvent>(()=>new ValueEvent(),
+                                                   new SingleThreadedClaimStrategy(BufferSize),
+                                                   new YieldingWaitStrategy());
+            _mru = new ManualResetEvent(false);
+            _eventHandler = new ValueAdditionEventHandler(Iterations, _mru);
+            _disruptor.HandleEventsWith(_eventHandler);
+            _ringBuffer = _disruptor.RingBuffer;
         }
 
         [Test]
@@ -29,31 +34,28 @@ namespace Disruptor.PerfTests.UniCast1P1CBatch
 
         public override long RunPass()
         {
-            _ringBuffer.StartProcessors();
+            _disruptor.Start();
 
             const int batchSize = 10;
+            var batchDescriptor = _ringBuffer.NewBatchDescriptor(batchSize);
 
             var sw = Stopwatch.StartNew();
 
             long offset = 0;
             for (long i = 0; i < Iterations; i += batchSize)
             {
-                var sequenceBatch = _ringBuffer.NextEvents(batchSize);
-                for (long sequence = sequenceBatch.Start; sequence <= sequenceBatch.End; sequence++)
+                _ringBuffer.Next(batchDescriptor);
+                for (long sequence = batchDescriptor.Start; sequence <= batchDescriptor.End; sequence++)
                 {
-                    ValueEvent valueEvent = _ringBuffer[sequence];
-                    valueEvent.Value = offset++;
+                    _ringBuffer[sequence].Value = offset++;
                 }
-                _ringBuffer.Publish(sequenceBatch);
+                _ringBuffer.Publish(batchDescriptor);
             }
 
-            while (!_eventHandler.Done)
-            {
-                // busy spin
-            }
+            _mru.WaitOne();
 
             long opsPerSecond = (Iterations * 1000L) / sw.ElapsedMilliseconds;
-            _ringBuffer.Halt();
+            _disruptor.Shutdown();
 
             Assert.AreEqual(ExpectedResult, _eventHandler.Value);
 

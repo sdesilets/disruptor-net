@@ -10,15 +10,15 @@ namespace Disruptor.MemoryLayout
     internal struct PaddedAtomicLong
     {
         [FieldOffset(CacheLine.Size)]
-        private long _data;
+        private long _value;
 
         ///<summary>
         /// Initialise a new instance of CacheLineStorage
         ///</summary>
-        ///<param name="data">default value of data</param>
-        public PaddedAtomicLong(long data)
+        ///<param name="value">default value</param>
+        public PaddedAtomicLong(long value)
         {
-            _data = data;
+            _value = value;
         }
 
         ///<summary>
@@ -27,7 +27,7 @@ namespace Disruptor.MemoryLayout
         ///<returns>incremented result</returns>
         public long IncrementAndGet()
         {
-            return Interlocked.Increment(ref _data);
+            return Interlocked.Increment(ref _value);
         }
 
         /// <summary>
@@ -37,7 +37,26 @@ namespace Disruptor.MemoryLayout
         /// <returns></returns>
         public long IncrementAndGet(int delta)
         {
-            return Interlocked.Add(ref _data, delta);
+            return Interlocked.Add(ref _value, delta);
+        }
+
+        /// <summary>
+        /// Expose data with full fence on read and write
+        /// </summary>
+        public long Value
+        {
+            get { return Thread.VolatileRead(ref _value); }
+            set { Thread.VolatileWrite(ref _value, value); }
+        }
+
+        public void LazySet(long value)
+        {
+            _value = value;
+        }
+
+        public bool CompareAndSet(long comparand, long value)
+        {
+            return Interlocked.CompareExchange(ref _value, value, comparand) == comparand;
         }
     }
 }

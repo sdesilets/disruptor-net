@@ -1,3 +1,4 @@
+using System.Threading;
 using Disruptor.MemoryLayout;
 
 namespace Disruptor.PerfTests.Support
@@ -6,29 +7,26 @@ namespace Disruptor.PerfTests.Support
     {
         private readonly long _iterations;
         private PaddedLong _value;
-        private volatile bool _done;
+        private readonly ManualResetEvent _mru;
 
-        public bool Done
-        {
-            get { return _done; }
-        }
-
-        public ValueAdditionEventHandler(long iterations)
+        public ValueAdditionEventHandler(long iterations, ManualResetEvent mru)
         {
             _iterations = iterations;
+            _mru = mru;
         }
 
         public long Value
         {
-            get { return _value.Data; }
+            get { return _value.Value; }
         }
 
-        public void OnNext(long sequence, ValueEvent value, bool endOfBatch)
+        public void OnNext(ValueEvent value, long sequence, bool endOfBatch)
         {
-            _value.Data += value.Value;
+            _value.Value += value.Value;
+
             if(sequence == _iterations - 1)
             {
-                _done = true;
+                _mru.Set();
             }
         }
     }

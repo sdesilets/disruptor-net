@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Threading;
 using Disruptor.PerfTests.Support;
 using NUnit.Framework;
 
@@ -11,42 +12,44 @@ namespace Disruptor.PerfTests.MultiCast1P3C
         private readonly ValueMutationEventHandler _handler1;
         private readonly ValueMutationEventHandler _handler2;
         private readonly ValueMutationEventHandler _handler3;
+        private readonly CountdownEvent _latch;
+        private readonly Dsl.Disruptor<ValueEvent> _disruptor;
 
         public MultiCast1P3CDisruptorPerfTest()
-            : base(20 * Million)
+            : base(100 * Million)
         {
-            _ringBuffer = new RingBuffer<ValueEvent>(()=>new ValueEvent(), Size,
-                                       ClaimStrategyOption.SingleProducer,
-                                       WaitStrategyOption.Yielding);
+            _disruptor = new Dsl.Disruptor<ValueEvent>(() => new ValueEvent(),
+                                                      new SingleThreadedClaimStrategy(Size),
+                                                      new YieldingWaitStrategy());
 
-            _handler1 = new ValueMutationEventHandler(Operation.Addition, Iterations);
-            _handler2 = new ValueMutationEventHandler(Operation.Substraction, Iterations);
-            _handler3 = new ValueMutationEventHandler(Operation.And, Iterations);
+            _latch = new CountdownEvent(3);
 
-            _ringBuffer.HandleEventsWith(_handler1, _handler2, _handler3);
+            _handler1 = new ValueMutationEventHandler(Operation.Addition, Iterations, _latch);
+            _handler2 = new ValueMutationEventHandler(Operation.Substraction, Iterations, _latch);
+            _handler3 = new ValueMutationEventHandler(Operation.And, Iterations, _latch);
+
+            _disruptor.HandleEventsWith(_handler1, _handler2, _handler3);
+            _ringBuffer = _disruptor.RingBuffer;
         }
 
         public override long RunPass()
         {
-            _ringBuffer.StartProcessors();
+            _disruptor.Start();
 
             var sw = Stopwatch.StartNew();
 
             for (long i = 0; i < Iterations; i++)
             {
-                var @event = _ringBuffer.NextEvent();
-                @event.Data.Value = i;
-                _ringBuffer.Publish(@event);
+                var sequence = _ringBuffer.Next();
+                _ringBuffer[sequence].Value = i;
+                _ringBuffer.Publish(sequence);
             }
 
-            while (!_handler1.Done && !_handler2.Done && !_handler3.Done)
-            {
-                // busy spin
-            }
+            _latch.Wait();
 
             var opsPerSecond = (Iterations * 1000L) / sw.ElapsedMilliseconds;
 
-            _ringBuffer.Halt();
+            _disruptor.Shutdown();
 
             Assert.AreEqual(ExpectedResults[0], _handler1.Value, "Addition");
             Assert.AreEqual(ExpectedResults[1], _handler2.Value, "Sub");

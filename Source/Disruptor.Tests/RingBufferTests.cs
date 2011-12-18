@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Disruptor.Tests.Support;
@@ -10,35 +11,63 @@ namespace Disruptor.Tests
     public class RingBufferTests
     {
         private RingBuffer<StubEvent> _ringBuffer;
-        private IDependencyBarrier _dependencyBarrier;
+        private ISequenceBarrier _sequenceBarrier;
 
         [SetUp]
         public void SetUp()
         {
-            _ringBuffer = new RingBuffer<StubEvent>(() => new StubEvent(-1), 20);
-            _dependencyBarrier = _ringBuffer.CreateDependencyBarrier();
-            _ringBuffer.SetTrackedEventProcessors(new NoOpEventProcessor<StubEvent>(_ringBuffer));
+            _ringBuffer = new RingBuffer<StubEvent>(() => new StubEvent(-1), 32);
+            _sequenceBarrier = _ringBuffer.NewBarrier();
+            _ringBuffer.SetGatingSequences(new NoOpEventProcessor(_ringBuffer).Sequence);
         }
 
         [Test]
         public void ShouldClaimAndGet()
         {
-            Assert.AreEqual(RingBufferConvention.InitialCursorValue, _ringBuffer.Cursor);
+            Assert.AreEqual(Sequencer.InitialCursorValue, _ringBuffer.Cursor);
 
             var expectedEvent = new StubEvent(2701);
 
-            var evt = _ringBuffer.NextEvent();
-            evt.Data.Value = expectedEvent.Value;
-            _ringBuffer.Publish(evt);
+            var claimSequence = _ringBuffer.Next();
+            var oldEvent = _ringBuffer[claimSequence];
+            oldEvent.Copy(expectedEvent);
+            _ringBuffer.Publish(claimSequence);
 
-            var waitForResult = _dependencyBarrier.WaitFor(0);
-            Assert.AreEqual(0L, waitForResult.AvailableSequence);
-            Assert.IsFalse(waitForResult.IsAlerted);
+            long sequence = _sequenceBarrier.WaitFor(0);
+            Assert.AreEqual(0, sequence);
 
-            var entry = _ringBuffer[waitForResult.AvailableSequence];
-            Assert.AreEqual(expectedEvent, entry);
+            StubEvent evt = _ringBuffer[sequence];
+            Assert.AreEqual(expectedEvent, evt);
 
             Assert.AreEqual(0L, _ringBuffer.Cursor);
+        }
+
+        [Test]
+        public void ShouldClaimAndGetWithTimeout()
+        {
+            Assert.AreEqual(Sequencer.InitialCursorValue, _ringBuffer.Cursor);
+
+            var expectedEvent = new StubEvent(2701);
+
+            long claimSequence = _ringBuffer.Next();
+            StubEvent oldEvent = _ringBuffer[claimSequence];
+            oldEvent.Copy(expectedEvent);
+            _ringBuffer.Publish(claimSequence);
+
+            long sequence = _sequenceBarrier.WaitFor(0, TimeSpan.FromMilliseconds(5));
+            Assert.AreEqual(0, sequence);
+
+            var evt = _ringBuffer[sequence];
+            Assert.AreEqual(expectedEvent, evt);
+
+            Assert.AreEqual(0L, _ringBuffer.Cursor);
+        }
+
+        [Test]
+        public void ShouldGetWithTimeout()
+        {
+            long sequence = _sequenceBarrier.WaitFor(0, TimeSpan.FromMilliseconds(5));
+            Assert.AreEqual(Sequencer.InitialCursorValue, sequence);
         }
 
         [Test]
@@ -48,10 +77,10 @@ namespace Disruptor.Tests
 
             var expectedEvent = new StubEvent(2701);
 
-            var evt = _ringBuffer.NextEvent();
-            evt.Data.Value = expectedEvent.Value;
-
-            _ringBuffer.Publish(evt);
+            var sequence = _ringBuffer.Next();
+            StubEvent oldEvent = _ringBuffer[sequence];
+            oldEvent.Copy(expectedEvent);
+            _ringBuffer.Publish(sequence);
 
             Assert.AreEqual(expectedEvent, events.Result[0]);
         }
@@ -59,17 +88,18 @@ namespace Disruptor.Tests
         [Test]
         public void ShouldClaimAndGetMultipleEvents()
         {
-            var numEvents = _ringBuffer.Capacity;
+            var numEvents = _ringBuffer.BufferSize;
             for (var i = 0; i < numEvents; i++)
             {
-                var evt = _ringBuffer.NextEvent();
-                evt.Data.Value = i;
-                _ringBuffer.Publish(evt);
+                var sequence = _ringBuffer.Next();
+                StubEvent evt = _ringBuffer[sequence];
+                evt.Value = i;
+                _ringBuffer.Publish(sequence);
             }
 
             var expectedSequence = numEvents - 1;
-            var waitForResult = _dependencyBarrier.WaitFor(expectedSequence);
-            Assert.AreEqual(expectedSequence, waitForResult.AvailableSequence);
+            var available = _sequenceBarrier.WaitFor(expectedSequence);
+            Assert.AreEqual(expectedSequence, available);
 
             for (var i = 0; i < numEvents; i++)
             {
@@ -80,18 +110,19 @@ namespace Disruptor.Tests
         [Test]
         public void ShouldWrap()
         {
-            var numEvents = _ringBuffer.Capacity;
+            var numEvents = _ringBuffer.BufferSize;
             const int offset = 1000;
             for (var i = 0; i < numEvents + offset; i++)
             {
-                var evt = _ringBuffer.NextEvent();
-                evt.Data.Value = i;
-                _ringBuffer.Publish(evt);
+                var sequence = _ringBuffer.Next();
+                StubEvent evt = _ringBuffer[sequence];
+                evt.Value = i;
+                _ringBuffer.Publish(sequence);
             }
 
             var expectedSequence = numEvents + offset - 1;
-            var waitForResult = _dependencyBarrier.WaitFor(expectedSequence);
-            Assert.AreEqual(expectedSequence, waitForResult.AvailableSequence);
+            var available = _sequenceBarrier.WaitFor(expectedSequence);
+            Assert.AreEqual(expectedSequence, available);
 
             for (var i = offset; i < numEvents + offset; i++)
             {
@@ -99,10 +130,29 @@ namespace Disruptor.Tests
             }
         }
 
+        [Test]
+        public void ShouldSetAtSpecificSequence()
+        {
+            const long expectedSequence = 5;
+
+            _ringBuffer.Claim(expectedSequence);
+            StubEvent expectedEvent = _ringBuffer[expectedSequence];
+            expectedEvent.Value = (int) expectedSequence;
+            _ringBuffer.ForcePublish(expectedSequence);
+
+            long sequence = _sequenceBarrier.WaitFor(expectedSequence);
+            Assert.AreEqual(expectedSequence, sequence);
+
+            StubEvent evt = _ringBuffer[sequence];
+            Assert.AreEqual(expectedEvent, evt);
+
+            Assert.AreEqual(expectedSequence, _ringBuffer.Cursor);
+        }
+
         private Task<Gen.List<StubEvent>> GetEvents(long initial, long toWaitFor)
         {
             var barrier = new Barrier(2);
-            var dependencyBarrier = _ringBuffer.CreateDependencyBarrier();
+            var dependencyBarrier = _ringBuffer.NewBarrier();
 
             var testWaiter = new TestWaiter(barrier, dependencyBarrier, _ringBuffer, initial, toWaitFor);
             var task = Task.Factory.StartNew(() => testWaiter.Call());
@@ -119,25 +169,27 @@ namespace Disruptor.Tests
             var mre = new ManualResetEvent(false);
             var producerComplete = false;
             var ringBuffer = new RingBuffer<StubEvent>(() => new StubEvent(-1), ringBufferSize);
-            var processor = new TestEventProcessor(ringBuffer.CreateDependencyBarrier());
-            ringBuffer.SetTrackedEventProcessors(processor);
+            var processor = new TestEventProcessor(ringBuffer.NewBarrier());
+            ringBuffer.SetGatingSequences(processor.Sequence);
 
-            var thread = new Thread(() =>
-                                        {
-                                            for (int i = 0; i <= ringBufferSize; i++) // produce 5 events
-                                            {
-                                                var evt = ringBuffer.NextEvent();
-                                                evt.Data.Value = i;
-                                                ringBuffer.Publish(evt);
+            var thread = new Thread(
+                () =>
+                    {
+                        for (int i = 0; i <= ringBufferSize; i++) // produce 5 events
+                        {
+                            var sequence = ringBuffer.Next();
+                            StubEvent evt = ringBuffer[sequence];
+                            evt.Value = i;
+                            ringBuffer.Publish(sequence);
 
-                                                if(i == 3) // unblock main thread after 4th event published
-                                                {
-                                                    mre.Set();
-                                                }
-                                            }
-                                            
-                                            producerComplete = true;
-                                        });
+                            if (i == 3) // unblock main thread after 4th event published
+                            {
+                                mre.Set();
+                            }
+                        }
+
+                        producerComplete = true;
+                    });
 
             thread.Start();
 
@@ -153,17 +205,12 @@ namespace Disruptor.Tests
 
         private class TestEventProcessor : IEventProcessor
         {
-            private readonly IDependencyBarrier _dependencyBarrier;
-            private readonly Sequence _sequence = new Sequence(RingBufferConvention.InitialCursorValue);
+            private readonly ISequenceBarrier _sequenceBarrier;
+            private readonly Sequence _sequence = new Sequence(Sequencer.InitialCursorValue);
 
-            public TestEventProcessor(IDependencyBarrier dependencyBarrier)
+            public TestEventProcessor(ISequenceBarrier sequenceBarrier)
             {
-                _dependencyBarrier = dependencyBarrier;
-            }
-
-            public bool Running
-            {
-                get { return true; }
+                _sequenceBarrier = sequenceBarrier;
             }
 
             public Sequence Sequence
@@ -177,13 +224,8 @@ namespace Disruptor.Tests
 
             public void Run()
             {
-                _dependencyBarrier.WaitFor(0L);
+                _sequenceBarrier.WaitFor(0L);
                 _sequence.Value += 1;
-            }
-
-            public void DelaySequenceWrite(int period)
-            {
-                
             }
         }
     }

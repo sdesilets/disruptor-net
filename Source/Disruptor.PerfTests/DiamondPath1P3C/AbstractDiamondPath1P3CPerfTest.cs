@@ -17,8 +17,8 @@ namespace Disruptor.PerfTests.DiamondPath1P3C
                 {
                     for (long i = 0; i < Iterations; i++)
                     {
-                        var fizz = 0 == (i % 3L);
-                        var buzz = 0 == (i % 5L);
+                        var fizz = (i % 3L) == 0;
+                        var buzz = (i % 5L) == 0;
 
                         if (fizz && buzz)
                         {

@@ -1,3 +1,4 @@
+using System.Threading;
 using Disruptor.MemoryLayout;
 
 namespace Disruptor.PerfTests.Support
@@ -6,27 +7,23 @@ namespace Disruptor.PerfTests.Support
     {
         private readonly FizzBuzzStep _fizzBuzzStep;
         private readonly long _iterations;
-        private volatile bool _done;
+        private readonly ManualResetEvent _mru;
         private PaddedLong _fizzBuzzCounter;
-
-        public bool Done
-        {
-            get { return _done; }
-        }
 
         public long FizzBuzzCounter
         {
-            get { return _fizzBuzzCounter.Data; }
+            get { return _fizzBuzzCounter.Value; }
         }
 
-        public FizzBuzzEventHandler(FizzBuzzStep fizzBuzzStep, long iterations)
+        public FizzBuzzEventHandler(FizzBuzzStep fizzBuzzStep, long iterations, ManualResetEvent mru)
         {
             _fizzBuzzStep = fizzBuzzStep;
             _iterations = iterations;
+            _mru = mru;
             _fizzBuzzCounter = new PaddedLong(0);
         }
 
-        public void OnNext(long sequence, FizzBuzzEvent data, bool endOfBatch)
+        public void OnNext(FizzBuzzEvent data, long sequence, bool endOfBatch)
         {
             switch (_fizzBuzzStep)
             {
@@ -40,13 +37,13 @@ namespace Disruptor.PerfTests.Support
                 case FizzBuzzStep.FizzBuzz:
                     if (data.Fizz && data.Buzz)
                     {
-                        ++_fizzBuzzCounter.Data;
+                        ++_fizzBuzzCounter.Value;
                     }
                     break;
             }
             if(sequence == _iterations - 1)
             {
-                _done = true;
+                _mru.Set();
             }
         }
     }
